@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.pushupRPG.app.data.db.GameStateEntity
 import com.pushupRPG.app.data.model.EnchantResult
 import com.pushupRPG.app.data.model.Item
+import com.pushupRPG.app.data.model.PeriodStats
 import com.pushupRPG.app.data.repository.GameRepository
 import com.pushupRPG.app.utils.ItemUtils
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -101,6 +102,78 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
             parts.dropLast(1).joinToString("_")
         } else {
             idPart
+        }
+    }
+
+    // ==================== ПЕРЕМЕННЫЕ ДЛЯ МАГАЗИНА (SHOP) ====================
+    private val _shopItems = MutableStateFlow<List<Item>>(emptyList())
+    val shopItems: StateFlow<List<Item>> = _shopItems.asStateFlow()
+
+    private val _selectedEnchantItem = MutableStateFlow<Item?>(null)
+    val selectedEnchantItem: StateFlow<Item?> = _selectedEnchantItem.asStateFlow()
+
+    fun loadShop() {
+        viewModelScope.launch {
+            val state = repository.getGameState()
+            val itemIds = state.shopSlots.split(",").filter { it.isNotEmpty() }
+            _shopItems.value = itemIds.mapNotNull { ItemUtils.getItemById(it) }
+        }
+    }
+
+    fun buyShopItem(itemId: String, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                repository.buyShopItem(itemId)
+                loadShop() // Обновляем магазин после покупки
+                callback(true)
+            } catch (e: Exception) {
+                callback(false)
+            }
+        }
+    }
+
+    fun rerollShop() {
+        viewModelScope.launch {
+            repository.rerollShop()
+            loadShop()
+        }
+    }
+
+    fun setForgeSlot(slotNumber: Int, itemId: String) {
+        viewModelScope.launch {
+            repository.setForgeSlot(slotNumber, itemId)
+        }
+    }
+
+    fun mergeItems(callback: (Item?) -> Unit) {
+        viewModelScope.launch {
+            val result = repository.mergeItems()
+            callback(result)
+        }
+    }
+
+    fun selectEnchantItem(item: Item?) {
+        _selectedEnchantItem.value = item
+    }
+
+    fun enchantItemWithCallback(itemId: String, callback: (EnchantResult) -> Unit) {
+        viewModelScope.launch {
+            val result = repository.enchantItem(itemId)
+            callback(result)
+        }
+    }
+
+    // ==================== ПЕРЕМЕННЫЕ ДЛЯ СТАТИСТИКИ (STATISTICS) ====================
+    private val _periodStats = MutableStateFlow<PeriodStats?>(null)
+    val periodStats: StateFlow<PeriodStats?> = _periodStats.asStateFlow()
+
+    private val _weekStats = MutableStateFlow<List<Pair<String, Int>>>(emptyList())
+    val weekStats: StateFlow<List<Pair<String, Int>>> = _weekStats.asStateFlow()
+
+    fun loadPeriodStats() {
+        viewModelScope.launch {
+            _periodStats.value = repository.getPeriodStats()
+            _weekStats.value = repository.getWeekStats()
         }
     }
 

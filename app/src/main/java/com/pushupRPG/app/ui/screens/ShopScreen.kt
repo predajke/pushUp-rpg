@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.pushupRPG.app.data.model.Item
-import com.pushupRPG.app.data.repository.EnchantResult
+import com.pushupRPG.app.data.model.EnchantResult
 import com.pushupRPG.app.ui.theme.*
 import com.pushupRPG.app.utils.ItemUtils
 import com.pushupRPG.app.utils.ShopUtils

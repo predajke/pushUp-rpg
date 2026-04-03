@@ -19,8 +19,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pushupRPG.app.data.db.GameStateEntity
+import com.pushupRPG.app.data.model.PeriodStats
 import com.pushupRPG.app.ui.theme.*
-import com.pushupRPG.app.viewmodel.GameViewModel
+import com.pushupRPG.app.ui.GameViewModel
 
 @Composable
 fun StatisticsScreen(
@@ -212,7 +213,7 @@ fun WeeklyChart(
 // --- Статистика отжиманий ---
 @Composable
 fun PushUpStatsCard(
-    periodStats: com.pushupRPG.app.data.repository.PeriodStats?,
+    periodStats: PeriodStats?,
     gameState: GameStateEntity?,
     language: String
 ) {
