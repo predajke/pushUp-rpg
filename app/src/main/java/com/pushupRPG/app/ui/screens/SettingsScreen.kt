@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.activity.compose.LocalActivity
 import com.pushupRPG.app.ui.theme.*
 import com.pushupRPG.app.ui.GameViewModel // ИСПРАВЛЕН ИМПОРТ
 import com.pushupRPG.app.utils.AppStrings
@@ -293,7 +294,7 @@ fun SettingsScreen(
             }
 
             // --- Выход ---
-            val activity = LocalContext.current as? Activity
+            val activity = LocalActivity.current
             SettingsSection(
                 title = AppStrings.t(language, "sec_exit")
             ) {

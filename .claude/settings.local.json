@@ -31,7 +31,14 @@
       "Bash(find \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/\" -type f -name \"*.kt\" -exec sed -i 's|com\\\\.pushupRPG\\\\.app\\\\.ui\\\\.theme|com.ninthbalcony.pushuprpg.ui.theme|g' {} \\\\;)",
       "Bash(find \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/\" -name \"RateUsDialog.kt\" -exec sed -i 's|\"com\\\\.pushupRPG\\\\.app\"|\"com.ninthbalcony.pushuprpg\"|g' {} \\\\;)",
       "Bash(sed -i 's|import androidx\\\\.compose\\\\.foundation\\\\.layout\\\\.\\\\*|import androidx.compose.foundation.layout.*\\\\nimport androidx.compose.foundation.shape.RoundedCornerShape|g' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/AntiCheatWarningDialog.kt\")",
-      "Bash(sed -i 's|import androidx\\\\.compose\\\\.foundation\\\\.layout\\\\.\\\\*|import androidx.compose.foundation.layout.*\\\\nimport androidx.compose.foundation.shape.RoundedCornerShape|g' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/RewardedAdDialog.kt\")"
+      "Bash(sed -i 's|import androidx\\\\.compose\\\\.foundation\\\\.layout\\\\.\\\\*|import androidx.compose.foundation.layout.*\\\\nimport androidx.compose.foundation.shape.RoundedCornerShape|g' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/RewardedAdDialog.kt\")",
+      "Bash(sed -i 's/applicationId = \"com\\\\.ninthbalcony\\\\.pushuprpg\"/applicationId = \"com.pushupRPG.app\"/g' app/build.gradle.kts)",
+      "Bash(sed -i 's/namespace = \"com\\\\.ninthbalcony\\\\.pushuprpg\"/namespace = \"com.pushupRPG.app\"/g' app/build.gradle.kts)",
+      "Bash(rm -rf \"app/src/main/java/com/ninthbalcony\")",
+      "Bash(mkdir -p \"app/src/main/java/com/pushupRPG/app/managers\")",
+      "Bash(mkdir -p \"app/src/main/java/com/pushupRPG/app/ui/dialogs\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)"
     ]
   }
 }

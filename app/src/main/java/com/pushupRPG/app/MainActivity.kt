@@ -16,8 +16,11 @@ import com.google.firebase.Firebase
 import com.google.firebase.initialize
 import com.pushupRPG.app.data.repository.GameRepository
 import com.pushupRPG.app.managers.AdManager
+import com.pushupRPG.app.managers.AntiCheatManager
 import com.pushupRPG.app.managers.CloudSyncManager
+import com.pushupRPG.app.managers.OnboardingManager
 import com.pushupRPG.app.managers.PlayGamesManager
+import com.pushupRPG.app.managers.RateUsManager
 import com.pushupRPG.app.ui.AppNavigation
 import com.pushupRPG.app.ui.GameViewModel
 import com.pushupRPG.app.ui.theme.DarkBackground
@@ -34,6 +37,9 @@ class MainActivity : ComponentActivity() {
     private lateinit var cloudSyncManager: CloudSyncManager
     private lateinit var adManager: AdManager
     private lateinit var playGamesManager: PlayGamesManager
+    private lateinit var antiCheatManager: AntiCheatManager
+    private lateinit var rateUsManager: RateUsManager
+    private lateinit var onboardingManager: OnboardingManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +57,9 @@ class MainActivity : ComponentActivity() {
         cloudSyncManager = CloudSyncManager(this, GlobalScope)
         adManager = AdManager(this)
         playGamesManager = PlayGamesManager(this)
+        antiCheatManager = AntiCheatManager()
+        rateUsManager = RateUsManager()
+        onboardingManager = OnboardingManager()
 
         // Create notification channel
         NotificationHelper.createNotificationChannel(this)
@@ -119,5 +128,7 @@ class MainActivity : ComponentActivity() {
         cloudSyncManager.destroy()
         adManager.destroy()
         playGamesManager.signOut(this)
+        onboardingManager.reset()
+        Log.d(TAG, "MainActivity destroyed")
     }
 }
