@@ -1,0 +1,3 @@
+{
+  "extraArguments": ["--preload", "./cache-fix-preload.mjs"]
+}

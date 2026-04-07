@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew assembleDebug)",
+      "Bash(find Q:/AndroidApp/PushUpRPG -name *.kt -path */data/*)",
+      "Bash(./gradlew testDebug)",
+      "Bash(./gradlew connectedDebugAndroidTest)",
+      "Bash(xargs wc:*)",
+      "Bash(wc -l /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/*.kt)",
+      "Bash(/tmp/analyze.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(python3:*)",
+      "Bash(find Q:AndroidAppPushUpRPG -type f \\\\\\(-name package.json -o -name build.gradle* -o -name settings.gradle* -o -name .env* -o -name Makefile -o -name docker-compose.yml \\\\\\))",
+      "Bash(find Q:AndroidAppPushUpRPG -type f -name *.gradle* -o -name gradlew*)",
+      "Bash(find Q:/AndroidApp/PushUpRPG -type f -name *.properties -o -name *.yml -o -name *.yaml)",
+      "Bash(xargs grep:*)",
+      "Bash(./gradlew tasks:*)",
+      "Bash(grep -n 'if \\(language == \"\"ru\"\"\\)' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/SettingsScreen.kt\")",
+      "Bash(grep -n 'if \\(language == \"\"ru\"\"\\)' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/InventoryScreen.kt\")",
+      "Bash(grep -n 'if \\(language == \"\"ru\"\"\\)' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt\")",
+      "Bash(grep -n 'if \\(language == \"\"ru\"\"\\)' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/ShopScreen.kt\")",
+      "Bash(grep -n 'if \\(language == \"\"ru\"\"\\)' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/BestiaryScreen.kt\" \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/StatisticsScreen.kt\" \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/ProgressScreen.kt\" \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/QuestsScreen.kt\" \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/AchievementsScreen.kt\" \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/LogsScreen.kt\" \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/ItemLogScreen.kt\")",
+      "Bash(grep -l 'import com.pushupRPG.app.utils.AppStrings' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/\"*.kt)",
+      "Bash(gradlew.bat compileDebugKotlin)",
+      "Bash(./gradlew compileDebugKotlin)",
+      "Bash(./gradlew clean:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(find \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/managers/\" -type f -name \"*.kt\" -exec sed -i 's|package com\\\\.pushupRPG\\\\.app\\\\.managers|package com.ninthbalcony.pushuprpg.managers|g' {} \\\\;)",
+      "Bash(find \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/managers/\" -type f -name \"*.kt\" -exec sed -i 's|com\\\\.pushupRPG\\\\.app\\\\.data|com.ninthbalcony.pushuprpg.data|g' {} \\\\;)",
+      "Bash(find \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/\" -type f -name \"*.kt\" -exec sed -i 's|package com\\\\.pushupRPG\\\\.app\\\\.ui\\\\.dialogs|package com.ninthbalcony.pushuprpg.ui.dialogs|g' {} \\\\;)",
+      "Bash(find \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/\" -type f -name \"*.kt\" -exec sed -i 's|com\\\\.pushupRPG\\\\.app\\\\.ui\\\\.theme|com.ninthbalcony.pushuprpg.ui.theme|g' {} \\\\;)",
+      "Bash(find \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/\" -name \"RateUsDialog.kt\" -exec sed -i 's|\"com\\\\.pushupRPG\\\\.app\"|\"com.ninthbalcony.pushuprpg\"|g' {} \\\\;)",
+      "Bash(sed -i 's|import androidx\\\\.compose\\\\.foundation\\\\.layout\\\\.\\\\*|import androidx.compose.foundation.layout.*\\\\nimport androidx.compose.foundation.shape.RoundedCornerShape|g' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/AntiCheatWarningDialog.kt\")",
+      "Bash(sed -i 's|import androidx\\\\.compose\\\\.foundation\\\\.layout\\\\.\\\\*|import androidx.compose.foundation.layout.*\\\\nimport androidx.compose.foundation.shape.RoundedCornerShape|g' \"Q:/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/ui/dialogs/RewardedAdDialog.kt\")"
+    ]
+  }
+}

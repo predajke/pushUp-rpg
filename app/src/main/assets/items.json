@@ -1,0 +1,1418 @@
+{
+  "items": [
+    {
+      "id": "weapon_001",
+      "name_ru": "Пряник",
+      "name_en": "Gingerbread",
+      "slot": "weapon",
+      "rarity": "common",
+      "stats": {
+        "power": 2,
+        "armor": 0,
+        "health": 2,
+        "luck": 0.0
+      },
+      "description_ru": "Вкусненький, как раз что бы поесть перед смертью.",
+      "description_en": "Delicious, just right to eat before dying.",
+      "image_id": "weapon_001"
+    },
+    {
+      "id": "weapon_002",
+      "name_ru": "Палка",
+      "name_en": "Stick",
+      "slot": "weapon",
+      "rarity": "common",
+      "stats": {
+        "power": 3,
+        "armor": 0,
+        "health": 0,
+        "luck": 0.0
+      },
+      "description_ru": "Простая палка, не магическая.",
+      "description_en": "A simple stick, not magical.",
+      "image_id": "weapon_002"
+    },
+    {
+      "id": "weapon_003",
+      "name_ru": "Кастет",
+      "name_en": "Brass knuckles",
+      "slot": "weapon",
+      "rarity": "common",
+      "stats": {
+        "power": 4,
+        "armor": 1,
+        "health": 0,
+        "luck": 0.0
+      },
+      "description_ru": "Дырки 3, а пальцев 5?",
+      "description_en": "There are 3 holes and 5 fingers?",
+      "image_id": "weapon_003"
+    },
+    {
+      "id": "weapon_004",
+      "name_ru": "Рогатка",
+      "name_en": "Slingshot",
+      "slot": "weapon",
+      "rarity": "common",
+      "stats": {
+        "power": 3,
+        "armor": 0,
+        "health": 0,
+        "luck": 0.2
+      },
+      "description_ru": "Тебе что 8 лет?",
+      "description_en": "Are you 8 years old?",
+      "image_id": "weapon_004"
+    },
+    {
+      "id": "weapon_027",
+      "name_ru": "Лук",
+      "name_en": "Bow",
+      "slot": "weapon",
+      "rarity": "common",
+      "stats": {
+        "power": 4,
+        "armor": 0,
+        "health": 0,
+        "luck": 0.1
+      },
+      "description_ru": "На арбалет денег не хватило?",
+      "description_en": "Didn't have enough $ for a crossbow?",
+      "image_id": "weapon_027"
+    },
+    {
+      "id": "weapon_023",
+      "name_ru": "Капли-Лезвия",
+      "name_en": "Droplets-Blades",
+      "slot": "weapon",
+      "rarity": "common",
+      "stats": {
+        "power": 3,
+        "armor": 1,
+        "health": 1,
+        "luck": 0.3
+      },
+      "description_ru": "Как это держать?",
+      "description_en": "How to hold it?",
+      "image_id": "weapon_023"
+    },
+    {
+      "id": "weapon_024",
+      "name_ru": "Капли-Лезвия V2",
+      "name_en": "Droplets-Blades V2",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 6,
+        "armor": 2,
+        "health": 2,
+        "luck": 0.5
+      },
+      "description_ru": "Я понял как это держать!",
+      "description_en": "I got it how to hold it!",
+      "image_id": "weapon_024"
+    },
+    {
+      "id": "weapon_022",
+      "name_ru": "ненуфар",
+      "name_en": "nenufar",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 7,
+        "armor": 0,
+        "health": 1,
+        "luck": 0.1
+      },
+      "description_ru": "не-фаааар",
+      "description_en": "ne-faaaar",
+      "image_id": "weapon_022"
+    },
+    {
+      "id": "weapon_025",
+      "name_ru": "Арбалет",
+      "name_en": "Crossbow",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 8,
+        "armor": 0,
+        "health": 0,
+        "luck": 0.2
+      },
+      "description_ru": "из Скалицы",
+      "description_en": "from Skalitsa",
+      "image_id": "weapon_025"
+    },
+    {
+      "id": "weapon_026",
+      "name_ru": "Щит крестоносца",
+      "name_en": "Crusader's Shield",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 0,
+        "armor": 20,
+        "health": 10,
+        "luck": 0.4
+      },
+      "description_ru": "Бить им вряд ли получится, но попробовать стоит",
+      "description_en": "Don't think that you'll be able to hit them, but it's worth a try.",
+      "image_id": "weapon_026"
+    },
+    {
+      "id": "weapon_005",
+      "name_ru": "Боксерские перчатки",
+      "name_en": "Boxing gloves",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 5,
+        "armor": 1,
+        "health": 1,
+        "luck": 0.0
+      },
+      "description_ru": "Потные, не мытые.",
+      "description_en": "Sweaty, unwashed.",
+      "image_id": "weapon_005"
+    },
+    {
+      "id": "weapon_006",
+      "name_ru": "Надувной пёсель",
+      "name_en": "Inflatable dogo",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 4,
+        "armor": 0,
+        "health": 5,
+        "luck": 0.2
+      },
+      "description_ru": "Отобрал у детей, что бы что?",
+      "description_en": "Took it away from the children, for what?",
+      "image_id": "weapon_006"
+    },
+    {
+      "id": "weapon_007",
+      "name_ru": "Цветочки",
+      "name_en": "Flowers",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 3,
+        "armor": 0,
+        "health": 5,
+        "luck": 0.5
+      },
+      "description_ru": "Их как раз 4, то что нужно.",
+      "description_en": "There are exactly 4 of them, which is what you need.",
+      "image_id": "weapon_007"
+    },
+    {
+      "id": "weapon_008",
+      "name_ru": "Кирпич",
+      "name_en": "Brick",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 6,
+        "armor": 2,
+        "health": 0,
+        "luck": 0.1
+      },
+      "description_ru": "Даже тут больше дырок чем в кастете",
+      "description_en": "Even here there are more holes than in a brass knuckle.",
+      "image_id": "weapon_008"
+    },
+    {
+      "id": "weapon_009",
+      "name_ru": "Мультитул",
+      "name_en": "Multitool",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 5,
+        "armor": 3,
+        "health": 1,
+        "luck": 0.0
+      },
+      "description_ru": "На все случаи жизни.",
+      "description_en": "For all occasions.",
+      "image_id": "weapon_009"
+    },
+    {
+      "id": "weapon_030",
+      "name_ru": "Короткий меч убийцы",
+      "name_en": "Short sword of the assassin",
+      "slot": "weapon",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 6,
+        "armor": 1,
+        "health": 1,
+        "luck": 0.5
+      },
+      "description_ru": "После поимки, убийца стал короче меча.",
+      "description_en": "After being caught, the killer became shorter than a sword.",
+      "image_id": "weapon_030"
+    },
+    {
+      "id": "weapon_010",
+      "name_ru": "Нож",
+      "name_en": "Knife",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 7,
+        "armor": 2,
+        "health": 1,
+        "luck": 0.2
+      },
+      "description_ru": "Для бутербродиков.",
+      "description_en": "For sandwiches.",
+      "image_id": "weapon_010"
+    },
+    {
+      "id": "weapon_011",
+      "name_ru": "Кинжал",
+      "name_en": "Dagger",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 7,
+        "armor": 3,
+        "health": 0,
+        "luck": 0.2
+      },
+      "description_ru": "Теперь ты асасин.",
+      "description_en": "Now you are an assassin.",
+      "image_id": "weapon_011"
+    },
+    {
+      "id": "weapon_012",
+      "name_ru": "Булава",
+      "name_en": "Mace",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 9,
+        "armor": 1,
+        "health": 1,
+        "luck": 0.2
+      },
+      "description_ru": "Не путай с погремушкой.",
+      "description_en": "Don't confuse it with a rattle.",
+      "image_id": "weapon_012"
+    },
+    {
+      "id": "weapon_013",
+      "name_ru": "Монтировка",
+      "name_en": "Mount",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 6,
+        "armor": 6,
+        "health": 0,
+        "luck": 0.6
+      },
+      "description_ru": "Проснись и пой, мистер.",
+      "description_en": "Rise and shine, mister.",
+      "image_id": "weapon_013"
+    },
+    {
+      "id": "weapon_014",
+      "name_ru": "Факел",
+      "name_en": "Torch",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 6,
+        "armor": 2,
+        "health": 12,
+        "luck": 0.2
+      },
+      "description_ru": "Не подпали себе зад.",
+      "description_en": "Don't burn your butt.",
+      "image_id": "weapon_014"
+    },
+    {
+      "id": "weapon_015",
+      "name_ru": "Посох",
+      "name_en": "Staff",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 2,
+        "armor": 7,
+        "health": 13,
+        "luck": 2.0
+      },
+      "description_ru": "Теперь ты маг.",
+      "description_en": "Now you are a magician.",
+      "image_id": "weapon_015"
+    },
+    {
+      "id": "weapon_016",
+      "name_ru": "Посох ЦМ",
+      "name_en": "CM Staff",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 5,
+        "armor": 4,
+        "health": 18,
+        "luck": 1.2
+      },
+      "description_ru": "А теперь верни его.",
+      "description_en": "Now give it back.",
+      "image_id": "weapon_016"
+    },
+    {
+      "id": "weapon_021",
+      "name_ru": "Глефа Боли",
+      "name_en": "Glaive of Pain",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 19,
+        "armor": 9,
+        "health": 9,
+        "luck": 1.9
+      },
+      "description_ru": "Если ты её видишь, тебе уже больно.",
+      "description_en": "If you see her, it already hurts.",
+      "image_id": "weapon_021"
+    },
+    {
+      "id": "weapon_017",
+      "name_ru": "Пистолет",
+      "name_en": "Pistol",
+      "slot": "weapon",
+      "rarity": "epic",
+      "stats": {
+        "power": 25,
+        "armor": 0,
+        "health": 0,
+        "luck": 2.5
+      },
+      "description_ru": "Определенно сильнее рогатки.",
+      "description_en": "Definitely stronger than a slingshot.",
+      "image_id": "weapon_017"
+    },
+    {
+      "id": "weapon_018",
+      "name_ru": "Перчи Росомахи",
+      "name_en": "Wolverine Gloves",
+      "slot": "weapon",
+      "rarity": "epic",
+      "stats": {
+        "power": 14,
+        "armor": 2,
+        "health": 14,
+        "luck": 0.5
+      },
+      "description_ru": "Хорошая попытка професор Ксавиер",
+      "description_en": "Nice try, Professor Xavier.",
+      "image_id": "weapon_018"
+    },
+    {
+      "id": "weapon_019",
+      "name_ru": "Кибер-пиявка",
+      "name_en": "Cyber-leech",
+      "slot": "weapon",
+      "rarity": "epic",
+      "stats": {
+        "power": 15,
+        "armor": 15,
+        "health": 15,
+        "luck": 0.0
+      },
+      "description_ru": "Ты нормальный? Фу!",
+      "description_en": "Are you normal? Ugh!",
+      "image_id": "weapon_019"
+    },
+    {
+      "id": "weapon_020",
+      "name_ru": "BFG-2K26",
+      "name_en": "BFG-2K26",
+      "slot": "weapon",
+      "rarity": "epic",
+      "stats": {
+        "power": 30,
+        "armor": 0,
+        "health": 0,
+        "luck": 0.0
+      },
+      "description_ru": "DOOMED!",
+      "description_en": "DOOMED!",
+      "image_id": "weapon_020"
+    },
+    {
+      "id": "weapon_028",
+      "name_ru": "Лук Чемпиона 7 холмов",
+      "name_en": "7 Hills Champion Bow",
+      "slot": "weapon",
+      "rarity": "epic",
+      "stats": {
+        "power": 21,
+        "armor": 0,
+        "health": 0,
+        "luck": 2.1
+      },
+      "description_ru": "Стреляет через 7 холмов.",
+      "description_en": "Shoots through 7 hills.",
+      "image_id": "weapon_028"
+    },
+    {
+      "id": "weapon_029",
+      "name_ru": "Кувалда Изумудрной стали",
+      "name_en": "Sledgehammer of Emerald Steel",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 16,
+        "armor": 12,
+        "health": 0,
+        "luck": 1.0
+      },
+      "description_ru": "Зубодробительный сплав.",
+      "description_en": "Teeth-crushing alloy.",
+      "image_id": "weapon_029"
+    },
+    {
+      "id": "boots_001",
+      "name_ru": "Сапог мертвеца",
+      "name_en": "Dead Man's Boot",
+      "slot": "boots",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 1,
+        "health": 0,
+        "luck": 0.0
+      },
+      "description_ru": "Не надевай его.",
+      "description_en": "Don't put it on.",
+      "image_id": "boots_001"
+    },
+    {
+      "id": "boots_002",
+      "name_ru": "Тапочки деда",
+      "name_en": "Grandfather's slippers",
+      "slot": "boots",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 1,
+        "health": 1,
+        "luck": 0.0
+      },
+      "description_ru": "Пахнут дедом.",
+      "description_en": "They smell like grandpa.",
+      "image_id": "boots_002"
+    },
+    {
+      "id": "boots_003",
+      "name_ru": "Кеды Боба",
+      "name_en": "Bob's sneakers",
+      "slot": "boots",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 2,
+        "health": 0,
+        "luck": 0.2
+      },
+      "description_ru": "2007",
+      "description_en": "2007",
+      "image_id": "boots_003"
+    },
+    {
+      "id": "boots_004",
+      "name_ru": "Сапоги продавца",
+      "name_en": "Seller's Boots",
+      "slot": "boots",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 0,
+        "armor": 2,
+        "health": 2,
+        "luck": 0.2
+      },
+      "description_ru": "Может в них что то завалялось?",
+      "description_en": "Maybe there's something lying around in them?",
+      "image_id": "boots_004"
+    },
+    {
+      "id": "boots_005",
+      "name_ru": "Рыцарские сапоги",
+      "name_en": "Knight's boots",
+      "slot": "boots",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 3,
+        "armor": 3,
+        "health": 3,
+        "luck": 0.0
+      },
+      "description_ru": "Во славу короля!",
+      "description_en": "For the glory of the king!",
+      "image_id": "boots_005"
+    },
+    {
+      "id": "boots_006",
+      "name_ru": "Сапоги первопроходца",
+      "name_en": "Pioneer boots",
+      "slot": "boots",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 2,
+        "armor": 1,
+        "health": 5,
+        "luck": 0.5
+      },
+      "description_ru": "Лучше чем сапоги мертвеца.",
+      "description_en": "Better than dead man's boots.",
+      "image_id": "boots_006"
+    },
+    {
+      "id": "boots_012",
+      "name_ru": "Сапоги вестника",
+      "name_en": "Herald's Boots",
+      "slot": "boots",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 3,
+        "armor": 2,
+        "health": 4,
+        "luck": 0.6
+      },
+      "description_ru": "Больше вестей никто не получал.",
+      "description_en": "No one received any more news.",
+      "image_id": "boots_012"
+    },
+    {
+      "id": "boots_013",
+      "name_ru": "Сапоги Эльфа",
+      "name_en": "Elf Boots",
+      "slot": "boots",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 2,
+        "armor": 4,
+        "health": 8,
+        "luck": 1.1
+      },
+      "description_ru": "Эльфы никогда не оставляют свою обувь.",
+      "description_en": "Elves never leave their shoes on.",
+      "image_id": "boots_013"
+    },
+    {
+      "id": "boots_014",
+      "name_ru": "1503 C",
+      "name_en": "1503 C",
+      "slot": "boots",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 4,
+        "armor": 8,
+        "health": 4,
+        "luck": 1.2
+      },
+      "description_ru": "1503 это год? или модель?",
+      "description_en": "Is 1503 a year or a model?",
+      "image_id": "boots_014"
+    },
+    {
+      "id": "boots_007",
+      "name_ru": "Сапоги Мага",
+      "name_en": "Mage's Boots",
+      "slot": "boots",
+      "rarity": "rare",
+      "stats": {
+        "power": 1,
+        "armor": 3,
+        "health": 10,
+        "luck": 0.8
+      },
+      "description_ru": "Алохамора!",
+      "description_en": "Alohamora!",
+      "image_id": "boots_007"
+    },
+    {
+      "id": "boots_008",
+      "name_ru": "Тяжелые боты",
+      "name_en": "Heavy boots",
+      "slot": "boots",
+      "rarity": "rare",
+      "stats": {
+        "power": 4,
+        "armor": 10,
+        "health": 8,
+        "luck": 0.0
+      },
+      "description_ru": "Хорошо смотрятся на лице гопника.",
+      "description_en": "They look good on a gopnik's face.",
+      "image_id": "boots_008"
+    },
+    {
+      "id": "boots_009",
+      "name_ru": "Ноги лешего",
+      "name_en": "Legs of a devil",
+      "slot": "boots",
+      "rarity": "rare",
+      "stats": {
+        "power": 4,
+        "armor": 3,
+        "health": 13,
+        "luck": 1.2
+      },
+      "description_ru": "Ты наверное ещё и с пиявками дружишь?",
+      "description_en": "You're probably also friends with leeches?",
+      "image_id": "boots_009"
+    },
+    {
+      "id": "boots_010",
+      "name_ru": "Ботинки Паладина",
+      "name_en": "Paladin's Boots",
+      "slot": "boots",
+      "rarity": "epic",
+      "stats": {
+        "power": 5,
+        "armor": 10,
+        "health": 15,
+        "luck": 1.0
+      },
+      "description_ru": "Достойная обувь.",
+      "description_en": "Decent shoes.",
+      "image_id": "boots_010"
+    },
+    {
+      "id": "boots_011",
+      "name_ru": "Сапоги Дьявола",
+      "name_en": "Devil's Boots",
+      "slot": "boots",
+      "rarity": "epic",
+      "stats": {
+        "power": 8,
+        "armor": 8,
+        "health": 15,
+        "luck": 1.2
+      },
+      "description_ru": "Опасно, но одеть стоит.",
+      "description_en": "It's dangerous, but it's worth wearing.",
+      "image_id": "boots_011"
+    },
+    {
+      "id": "boots_015",
+      "name_ru": "Поножи Верного Рыцаря",
+      "name_en": "Leggings of the Faithful Knight",
+      "slot": "boots",
+      "rarity": "epic",
+      "stats": {
+        "power": 10,
+        "armor": 25,
+        "health": 10,
+        "luck": 1.5
+      },
+      "description_ru": "Служат и сейчас.",
+      "description_en": "They still serve today.",
+      "image_id": "boots_015"
+    },
+    {
+      "id": "head_001",
+      "name_ru": "Кепка",
+      "name_en": "Cap",
+      "slot": "head",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 1,
+        "health": 1,
+        "luck": 0.0
+      },
+      "description_ru": "Зато солнце не бьёт в лицо.",
+      "description_en": "At least the sun doesn't hit your face.",
+      "image_id": "head_001"
+    },
+    {
+      "id": "head_002",
+      "name_ru": "Шапочка из фольги",
+      "name_en": "Tin foil hat",
+      "slot": "head",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 1,
+        "health": 1,
+        "luck": 0.1
+      },
+      "description_ru": "Защищает от... ЛОЛ, ЧТО?",
+      "description_en": "Protects from... LOL WHAT?",
+      "image_id": "head_002"
+    },
+    {
+      "id": "head_003",
+      "name_ru": "Боксерский шлем",
+      "name_en": "Boxing helmet",
+      "slot": "head",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 0,
+        "armor": 2,
+        "health": 3,
+        "luck": 0.2
+      },
+      "description_ru": "Не пропусти в зубы.",
+      "description_en": "Don't let it get into your teeth.",
+      "image_id": "head_003"
+    },
+    {
+      "id": "head_004",
+      "name_ru": "Эльфийский шлем",
+      "name_en": "Elf helmet",
+      "slot": "head",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 1,
+        "armor": 1,
+        "health": 8,
+        "luck": 0.8
+      },
+      "description_ru": "Можешь притворится кустом.",
+      "description_en": "You can pretend to be a bush.",
+      "image_id": "head_004"
+    },
+    {
+      "id": "head_005",
+      "name_ru": "Капюшон псевдо-мага",
+      "name_en": "Pseudo-Mage's Hood",
+      "slot": "head",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 0,
+        "armor": 1,
+        "health": 10,
+        "luck": 1.0
+      },
+      "description_ru": "Лишь подобие.",
+      "description_en": "Just a semblance.",
+      "image_id": "head_005"
+    },
+    {
+      "id": "head_006",
+      "name_ru": "Капюшон мага",
+      "name_en": "Mage's Hood",
+      "slot": "head",
+      "rarity": "rare",
+      "stats": {
+        "power": 2,
+        "armor": 2,
+        "health": 10,
+        "luck": 2.0
+      },
+      "description_ru": "Абракадабра!",
+      "description_en": "Abracadabra!",
+      "image_id": "head_006"
+    },
+    {
+      "id": "head_007",
+      "name_ru": "Рыцарский шлем",
+      "name_en": "Knight's helmet",
+      "slot": "head",
+      "rarity": "rare",
+      "stats": {
+        "power": 4,
+        "armor": 8,
+        "health": 6,
+        "luck": 0.4
+      },
+      "description_ru": "Дешевая сталь.",
+      "description_en": "Cheap steel.",
+      "image_id": "head_007"
+    },
+    {
+      "id": "head_008",
+      "name_ru": "Капюшон придворного",
+      "name_en": "Courtier's hood",
+      "slot": "head",
+      "rarity": "rare",
+      "stats": {
+        "power": 5,
+        "armor": 5,
+        "health": 15,
+        "luck": 1.0
+      },
+      "description_ru": "Стиль и блеск.",
+      "description_en": "Style and shine.",
+      "image_id": "head_008"
+    },
+    {
+      "id": "head_009",
+      "name_ru": "Шлем гнома",
+      "name_en": "Dwarf helmet",
+      "slot": "head",
+      "rarity": "epic",
+      "stats": {
+        "power": 8,
+        "armor": 12,
+        "health": 18,
+        "luck": 0.0
+      },
+      "description_ru": "Хоть скала упадёт, всё равно.",
+      "description_en": "Even if the rock falls, it doesn't matter.",
+      "image_id": "head_009"
+    },
+    {
+      "id": "head_010",
+      "name_ru": "Шлем Паладина",
+      "name_en": "Paladin's Helmet",
+      "slot": "head",
+      "rarity": "epic",
+      "stats": {
+        "power": 8,
+        "armor": 20,
+        "health": 10,
+        "luck": 0.0
+      },
+      "description_ru": "Он прямо светится!",
+      "description_en": "He's practically glowing!",
+      "image_id": "head_010"
+    },
+    {
+      "id": "head_011",
+      "name_ru": "Маска Кабала",
+      "name_en": "Cabal Mask",
+      "slot": "head",
+      "rarity": "epic",
+      "stats": {
+        "power": 15,
+        "armor": 10,
+        "health": 15,
+        "luck": 1.0
+      },
+      "description_ru": "Готов к фаталити?",
+      "description_en": "Ready for fatality?",
+      "image_id": "head_011"
+    },
+    {
+      "id": "head_012",
+      "name_ru": "Птичий доктор",
+      "name_en": "Bird doctor",
+      "slot": "head",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 3,
+        "armor": 5,
+        "health": 8,
+        "luck": 1.0
+      },
+      "description_ru": "Сомнительная медецина",
+      "description_en": "Questionable medicine",
+      "image_id": "head_012"
+    },
+    {
+      "id": "head_013",
+      "name_ru": "Птичий доктор [v2]",
+      "name_en": "Bird doctor [v2]",
+      "slot": "head",
+      "rarity": "rare",
+      "stats": {
+        "power": 6,
+        "armor": 8,
+        "health": 12,
+        "luck": 1.4
+      },
+      "description_ru": "Улучшенная медецина",
+      "description_en": "Better medicine",
+      "image_id": "head_013"
+    },
+    {
+      "id": "head_014",
+      "name_ru": "Шлем Верного Рыцаря",
+      "name_en": "Helmet of the Faithful Knight",
+      "slot": "head",
+      "rarity": "epic",
+      "stats": {
+        "power": 10,
+        "armor": 25,
+        "health": 15,
+        "luck": 1.5
+      },
+      "description_ru": "Верный до конца.",
+      "description_en": "Faithful to the end.",
+      "image_id": "head_014"
+    },
+    {
+      "id": "head_014",
+      "name_ru": "Венец Силы",
+      "name_en": "Crown of Power",
+      "slot": "head",
+      "rarity": "epic",
+      "stats": {
+        "power": 25,
+        "armor": 10,
+        "health": 5,
+        "luck": 1.5
+      },
+      "description_ru": "Этот венец был выкован силой и омыт боль.",
+      "description_en": "This crown was forged with strength and washed with pain.",
+      "image_id": "head_014"
+    },
+    {
+      "id": "necklace_001",
+      "name_ru": "Зубастое ожерелье",
+      "name_en": "Tooth Necklace",
+      "slot": "necklace",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 2,
+        "health": 0,
+        "luck": 0.2
+      },
+      "description_ru": "Главное что бы не из твоих зубов.",
+      "description_en": "The main thing is that it doesn't come from your teeth.",
+      "image_id": "necklace_001"
+    },
+    {
+      "id": "necklace_002",
+      "name_ru": "Изумрудное ожерелье",
+      "name_en": "Emerald necklace",
+      "slot": "necklace",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 1,
+        "health": 1,
+        "luck": 0.3
+      },
+      "description_ru": "Украл у твоей сестры?",
+      "description_en": "Stole from your sister?",
+      "image_id": "necklace_002"
+    },
+    {
+      "id": "necklace_003",
+      "name_ru": "Цепь рэпера",
+      "name_en": "Rapper's chain",
+      "slot": "necklace",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 2,
+        "armor": 2,
+        "health": 0,
+        "luck": 0.5
+      },
+      "description_ru": "Йоу-йоу, полегче.",
+      "description_en": "Yo-yo, easy.",
+      "image_id": "necklace_003"
+    },
+    {
+      "id": "necklace_004",
+      "name_ru": "Ожерелье эльфа",
+      "name_en": "Elf Necklace",
+      "slot": "necklace",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 1,
+        "armor": 2,
+        "health": 5,
+        "luck": 0.5
+      },
+      "description_ru": "Теперь ты точно куст.",
+      "description_en": "Now you are definitely a bush.",
+      "image_id": "necklace_004"
+    },
+    {
+      "id": "necklace_005",
+      "name_ru": "Амулет продавца",
+      "name_en": "Seller's Amulet",
+      "slot": "necklace",
+      "rarity": "rare",
+      "stats": {
+        "power": 2,
+        "armor": 5,
+        "health": 10,
+        "luck": 0.3
+      },
+      "description_ru": "А это точно аметист?",
+      "description_en": "Is this really an amethyst?",
+      "image_id": "necklace_005"
+    },
+    {
+      "id": "necklace_006",
+      "name_ru": "Амулет мага",
+      "name_en": "Amulet of the Magician",
+      "slot": "necklace",
+      "rarity": "rare",
+      "stats": {
+        "power": 5,
+        "armor": 2,
+        "health": 10,
+        "luck": 0.4
+      },
+      "description_ru": "Без регена маны, ха.",
+      "description_en": "No mana regen, ha.",
+      "image_id": "necklace_006"
+    },
+    {
+      "id": "necklace_007",
+      "name_ru": "Ведьмачий кулон",
+      "name_en": "Witcher's pendant",
+      "slot": "necklace",
+      "rarity": "epic",
+      "stats": {
+        "power": 7,
+        "armor": 7,
+        "health": 14,
+        "luck": 1.0
+      },
+      "description_ru": "Ауф",
+      "description_en": "Auf",
+      "image_id": "necklace_007"
+    },
+    {
+      "id": "necklace_008",
+      "name_ru": "Накидка всадника",
+      "name_en": "Horseman's Cape",
+      "slot": "necklace",
+      "rarity": "epic",
+      "stats": {
+        "power": 10,
+        "armor": 10,
+        "health": 5,
+        "luck": 0.0
+      },
+      "description_ru": "Тебя боятся, может снимешь?",
+      "description_en": "They're scared, maybe you should take it off?",
+      "image_id": "necklace_008"
+    },
+    {
+      "id": "necklace_009",
+      "name_ru": "Амулет Крови",
+      "name_en": "Blood Amulet",
+      "slot": "necklace",
+      "rarity": "epic",
+      "stats": {
+        "power": 15,
+        "armor": 5,
+        "health": 15,
+        "luck": 1.5
+      },
+      "description_ru": "Источающий энергию жизни.",
+      "description_en": "Exuding the energy of life.",
+      "image_id": "necklace_009"
+    },
+    {
+      "id": "necklace_010",
+      "name_ru": "Амулет школы Волка",
+      "name_en": "Amulet of the Wolf School",
+      "slot": "necklace",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 3,
+        "armor": 2,
+        "health": 1,
+        "luck": 0.7
+      },
+      "description_ru": "Они заним вернутся.",
+      "description_en": "They will come back for them.",
+      "image_id": "necklace_010"
+    },
+    {
+      "id": "necklace_011",
+      "name_ru": "Свечение малахита",
+      "name_en": "The glow of malachite",
+      "slot": "necklace",
+      "rarity": "rare",
+      "stats": {
+        "power": 6,
+        "armor": 6,
+        "health": 2,
+        "luck": 0.6
+      },
+      "description_ru": "Сияние, отпугивающее потусторонних гостей.",
+      "description_en": "A glow that repels otherworldly guests.",
+      "image_id": "necklace_011"
+    },
+    {
+      "id": "pants_001",
+      "name_ru": "Ремень",
+      "name_en": "Belt",
+      "slot": "pants",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 1,
+        "health": 0,
+        "luck": 0.0
+      },
+      "description_ru": "А штаны дома забыл?",
+      "description_en": "Did you forget your pants at home?",
+      "image_id": "pants_001"
+    },
+    {
+      "id": "pants_002",
+      "name_ru": "Шнурок с тряпкой",
+      "name_en": "Cord with a rag",
+      "slot": "pants",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 0,
+        "health": 1,
+        "luck": 0.1
+      },
+      "description_ru": "Ты не шаолинь.",
+      "description_en": "You are not Shaolin.",
+      "image_id": "pants_002"
+    },
+    {
+      "id": "pants_003",
+      "name_ru": "Чёрные трусы",
+      "name_en": "Black panties",
+      "slot": "pants",
+      "rarity": "common",
+      "stats": {
+        "power": 0,
+        "armor": 1,
+        "health": 0,
+        "luck": 0.1
+      },
+      "description_ru": "Тоже у деда взял?",
+      "description_en": "Did you also take it from grandpa?",
+      "image_id": "pants_003"
+    },
+    {
+      "id": "pants_004",
+      "name_ru": "Джинсовые шорты",
+      "name_en": "Denim shorts",
+      "slot": "pants",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 0,
+        "armor": 2,
+        "health": 2,
+        "luck": 0.0
+      },
+      "description_ru": "Дёшево и сердито.",
+      "description_en": "Cheap and cheerful.",
+      "image_id": "pants_004"
+    },
+    {
+      "id": "pants_005",
+      "name_ru": "Шорты бойскаута",
+      "name_en": "Boy Scout shorts",
+      "slot": "pants",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 0,
+        "armor": 3,
+        "health": 1,
+        "luck": 0.1
+      },
+      "description_ru": "Где твои нашивки?",
+      "description_en": "Where are your badges?",
+      "image_id": "pants_005"
+    },
+    {
+      "id": "pants_006",
+      "name_ru": "Каратэ трусы",
+      "name_en": "Karate pants",
+      "slot": "pants",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 1,
+        "armor": 2,
+        "health": 1,
+        "luck": 0.2
+      },
+      "description_ru": "Не сядь на шпагат только.",
+      "description_en": "Just don't do the splits.",
+      "image_id": "pants_006"
+    },
+    {
+      "id": "pants_015",
+      "name_ru": "Охотничье Штаны",
+      "name_en": "Hunting Pants",
+      "slot": "pants",
+      "rarity": "uncommon",
+      "stats": {
+        "power": 2,
+        "armor": 3,
+        "health": 2,
+        "luck": 0.1
+      },
+      "description_ru": "Для охоты на мелкую дичь.",
+      "description_en": "For hunting small game.",
+      "image_id": "pants_015"
+    },
+    {
+      "id": "pants_007",
+      "name_ru": "Рыцарские поножи",
+      "name_en": "Knight's greaves",
+      "slot": "pants",
+      "rarity": "rare",
+      "stats": {
+        "power": 3,
+        "armor": 4,
+        "health": 4,
+        "luck": 0.0
+      },
+      "description_ru": "Только надень что то под них.",
+      "description_en": "Just wear something underneath them.",
+      "image_id": "pants_007"
+    },
+    {
+      "id": "pants_013",
+      "name_ru": "Кольчужные поножи",
+      "name_en": "Chainmail greaves",
+      "slot": "pants",
+      "rarity": "rare",
+      "stats": {
+        "power": 4,
+        "armor": 14,
+        "health": 0,
+        "luck": 0.2
+      },
+      "description_ru": "Кольчуга хорошего качества.",
+      "description_en": "Chain mail of good quality.",
+      "image_id": "pants_013"
+    },
+    {
+      "id": "pants_014",
+      "name_ru": "Шорты Султана",
+      "name_en": "Sultan's Shorts",
+      "slot": "pants",
+      "rarity": "rare",
+      "stats": {
+        "power": 3,
+        "armor": 7,
+        "health": 15,
+        "luck": 2.2
+      },
+      "description_ru": "Султан был очень удачлив.",
+      "description_en": "The Sultan was very lucky.",
+      "image_id": "pants_014"
+    },
+    {
+      "id": "pants_008",
+      "name_ru": "Магический кильт",
+      "name_en": "Magical kilt",
+      "slot": "pants",
+      "rarity": "rare",
+      "stats": {
+        "power": 2,
+        "armor": 1,
+        "health": 8,
+        "luck": 1.0
+      },
+      "description_ru": "Или магический мини плащ?",
+      "description_en": "Or a magical mini cloak?",
+      "image_id": "pants_008"
+    },
+    {
+      "id": "pants_009",
+      "name_ru": "Чулки тёмного мага",
+      "name_en": "Dark Mage's Stockings",
+      "slot": "pants",
+      "rarity": "rare",
+      "stats": {
+        "power": 4,
+        "armor": 4,
+        "health": 4,
+        "luck": 0.4
+      },
+      "description_ru": "Ну подумаешь женские...",
+      "description_en": "Well, so what if they're women's...",
+      "image_id": "pants_009"
+    },
+    {
+      "id": "pants_010",
+      "name_ru": "Чемпионские шорты",
+      "name_en": "Champion shorts",
+      "slot": "pants",
+      "rarity": "epic",
+      "stats": {
+        "power": 10,
+        "armor": 6,
+        "health": 6,
+        "luck": 0.5
+      },
+      "description_ru": "Ты крут!",
+      "description_en": "You're cool!",
+      "image_id": "pants_010"
+    },
+    {
+      "id": "pants_011",
+      "name_ru": "Кильт окультиста",
+      "name_en": "Occultist's Kilt",
+      "slot": "pants",
+      "rarity": "epic",
+      "stats": {
+        "power": 5,
+        "armor": 10,
+        "health": 10,
+        "luck": 0.2
+      },
+      "description_ru": "Тёмные духи овладевают тобою.",
+      "description_en": "Dark spirits are taking possession of you.",
+      "image_id": "pants_011"
+    },
+    {
+      "id": "pants_012",
+      "name_ru": "Экзоскилет 2K",
+      "name_en": "Exoskeleton 2K",
+      "slot": "pants",
+      "rarity": "epic",
+      "stats": {
+        "power": 12,
+        "armor": 18,
+        "health": 0,
+        "luck": 0.0
+      },
+      "description_ru": "Это точно не прототип?",
+      "description_en": "Are you sure this isn't a prototype?",
+      "image_id": "pants_012"
+    },
+    { "id": "legendary_sword_doom", "name_ru": "Меч Погибели", "name_en": "Sword of Doom", "slot": "weapon", "rarity": "legendary", "stats": { "power": 50, "armor": 0, "health": 0, "luck": 1.5 }, "description_ru": "Выкован из кристаллов древнего проклятия.", "description_en": "Forged from ancient doom crystals.", "image_id": "legendary_sword_doom" },
+    { "id": "legendary_axe_ragnarok", "name_ru": "Топор Рагнарёк", "name_en": "Axe of Ragnarok", "slot": "weapon", "rarity": "legendary", "stats": { "power": 60, "armor": 5, "health": 30, "luck": 0.0 }, "description_ru": "Топор, положивший конец эпохе богов.", "description_en": "The axe that ended the age of gods.", "image_id": "legendary_axe_ragnarok" },
+    { "id": "legendary_helm_titan", "name_ru": "Шлем Титана", "name_en": "Helm of the Titan", "slot": "head", "rarity": "legendary", "stats": { "power": 10, "armor": 35, "health": 120, "luck": 0.0 }, "description_ru": "Шлем, носимый древними титанами.", "description_en": "Helmet worn by ancient titans.", "image_id": "legendary_helm_titan" },
+    { "id": "legendary_amulet_fate", "name_ru": "Амулет Судьбы", "name_en": "Amulet of Fate", "slot": "necklace", "rarity": "legendary", "stats": { "power": 15, "armor": 0, "health": 80, "luck": 3.0 }, "description_ru": "Гнёт нити судьбы в твою пользу.", "description_en": "Bends the threads of fate in your favour.", "image_id": "legendary_amulet_fate" },
+    { "id": "legendary_pants_void", "name_ru": "Штаны Пустоты", "name_en": "Void Trousers", "slot": "pants", "rarity": "legendary", "stats": { "power": 0, "armor": 50, "health": 150, "luck": 1.0 }, "description_ru": "Сотканы из ткани самой пустоты.", "description_en": "Woven from the fabric of the void itself.", "image_id": "legendary_pants_void" },
+    { "id": "legendary_boots_wind", "name_ru": "Сапоги Ветра", "name_en": "Wind Boots", "slot": "boots", "rarity": "legendary", "stats": { "power": 15, "armor": 20, "health": 0, "luck": 2.5 }, "description_ru": "Несут хозяина быстрее ветра.", "description_en": "Carry their owner faster than the wind.", "image_id": "legendary_boots_wind" },
+    { "id": "set_berserker_helm", "name_ru": "Шлем Берсерка", "name_en": "Berserker Helm", "slot": "head", "rarity": "rare", "setId": "berserker", "stats": { "power": 18, "armor": 5, "health": 20, "luck": 0.0 }, "description_ru": "Комплект Берсерка. 2/3 части: +15%/+35% урон.", "description_en": "Berserker set. 2/3pc: +15%/+35% dmg.", "image_id": "set_berserker_helm" },
+    { "id": "set_berserker_axe", "name_ru": "Топор Берсерка", "name_en": "Berserker Axe", "slot": "weapon", "rarity": "rare", "setId": "berserker", "stats": { "power": 32, "armor": 0, "health": 0, "luck": 0.5 }, "description_ru": "Комплект Берсерка. 2/3 части: +15%/+35% урон.", "description_en": "Berserker set. 2/3pc: +15%/+35% dmg.", "image_id": "set_berserker_axe" },
+    { "id": "set_berserker_pants", "name_ru": "Штаны Берсерка", "name_en": "Berserker Pants", "slot": "pants", "rarity": "rare", "setId": "berserker", "stats": { "power": 10, "armor": 20, "health": 40, "luck": 0.0 }, "description_ru": "Комплект Берсерка. 2/3 части: +15%/+35% урон.", "description_en": "Berserker set. 2/3pc: +15%/+35% dmg.", "image_id": "set_berserker_pants" },
+    { "id": "set_guardian_helm", "name_ru": "Шлем Стража", "name_en": "Guardian Helm", "slot": "head", "rarity": "rare", "setId": "guardian", "stats": { "power": 5, "armor": 25, "health": 60, "luck": 0.0 }, "description_ru": "Комплект Стража. 2/3 части: +20%/+40% броня.", "description_en": "Guardian set. 2/3pc: +20%/+40% armor.", "image_id": "set_guardian_helm" },
+    { "id": "set_guardian_necklace", "name_ru": "Амулет Стража", "name_en": "Guardian Necklace", "slot": "necklace", "rarity": "rare", "setId": "guardian", "stats": { "power": 0, "armor": 15, "health": 50, "luck": 0.5 }, "description_ru": "Комплект Стража. 2/3 части: +20%/+40% броня.", "description_en": "Guardian set. 2/3pc: +20%/+40% armor.", "image_id": "set_guardian_necklace" },
+    { "id": "set_guardian_boots", "name_ru": "Сапоги Стража", "name_en": "Guardian Boots", "slot": "boots", "rarity": "rare", "setId": "guardian", "stats": { "power": 0, "armor": 20, "health": 70, "luck": 0.0 }, "description_ru": "Комплект Стража. 2/3 части: +20%/+40% броня.", "description_en": "Guardian set. 2/3pc: +20%/+40% armor.", "image_id": "set_guardian_boots" },
+    { "id": "set_shadow_dagger", "name_ru": "Кинжал Тени", "name_en": "Shadow Dagger", "slot": "weapon", "rarity": "epic", "setId": "shadow", "stats": { "power": 25, "armor": 0, "health": 0, "luck": 2.0 }, "description_ru": "Комплект Тени. 2/3 части: +15%/+30% дроп.", "description_en": "Shadow set. 2/3pc: +15%/+30% drop.", "image_id": "set_shadow_dagger" },
+    { "id": "set_shadow_necklace", "name_ru": "Кулон Тени", "name_en": "Shadow Necklace", "slot": "necklace", "rarity": "epic", "setId": "shadow", "stats": { "power": 10, "armor": 0, "health": 0, "luck": 2.5 }, "description_ru": "Комплект Тени. 2/3 части: +15%/+30% дроп.", "description_en": "Shadow set. 2/3pc: +15%/+30% drop.", "image_id": "set_shadow_necklace" },
+    { "id": "set_shadow_boots", "name_ru": "Сапоги Тени", "name_en": "Shadow Boots", "slot": "boots", "rarity": "epic", "setId": "shadow", "stats": { "power": 15, "armor": 5, "health": 0, "luck": 1.5 }, "description_ru": "Комплект Тени. 2/3 части: +15%/+30% дроп.", "description_en": "Shadow set. 2/3pc: +15%/+30% drop.", "image_id": "set_shadow_boots" },
+    { "id": "set_archon_crown", "name_ru": "Корона Архонта", "name_en": "Archon Crown", "slot": "head", "rarity": "epic", "setId": "archon", "stats": { "power": 12, "armor": 0, "health": 40, "luck": 1.5 }, "description_ru": "Комплект Архонта. 2/3 части: +20%/+40% опыт.", "description_en": "Archon set. 2/3pc: +20%/+40% XP.", "image_id": "set_archon_crown" },
+    { "id": "set_archon_staff", "name_ru": "Посох Архонта", "name_en": "Archon Staff", "slot": "weapon", "rarity": "epic", "setId": "archon", "stats": { "power": 30, "armor": 0, "health": 0, "luck": 2.0 }, "description_ru": "Комплект Архонта. 2/3 части: +20%/+40% опыт.", "description_en": "Archon set. 2/3pc: +20%/+40% XP.", "image_id": "set_archon_staff" },
+    { "id": "set_archon_robe", "name_ru": "Мантия Архонта", "name_en": "Archon Robe", "slot": "pants", "rarity": "epic", "setId": "archon", "stats": { "power": 0, "armor": 15, "health": 60, "luck": 1.0 }, "description_ru": "Комплект Архонта. 2/3 части: +20%/+40% опыт.", "description_en": "Archon set. 2/3pc: +20%/+40% XP.", "image_id": "set_archon_robe" },
+    { "id": "set_smith_necklace", "name_ru": "Кулон Кузнеца", "name_en": "Smith Necklace", "slot": "necklace", "rarity": "uncommon", "setId": "smith", "stats": { "power": 5, "armor": 5, "health": 0, "luck": 1.0 }, "description_ru": "Комплект Кузнеца. 2/3 части: +15%/+30% заточка.", "description_en": "Smith set. 2/3pc: +15%/+30% enchant.", "image_id": "set_smith_necklace" },
+    { "id": "set_smith_apron", "name_ru": "Фартук Кузнеца", "name_en": "Smith Apron", "slot": "pants", "rarity": "uncommon", "setId": "smith", "stats": { "power": 0, "armor": 10, "health": 30, "luck": 0.5 }, "description_ru": "Комплект Кузнеца. 2/3 части: +15%/+30% заточка.", "description_en": "Smith set. 2/3pc: +15%/+30% enchant.", "image_id": "set_smith_apron" },
+    { "id": "set_smith_boots", "name_ru": "Сапоги Кузнеца", "name_en": "Smith Boots", "slot": "boots", "rarity": "uncommon", "setId": "smith", "stats": { "power": 0, "armor": 8, "health": 25, "luck": 0.8 }, "description_ru": "Комплект Кузнеца. 2/3 части: +15%/+30% заточка.", "description_en": "Smith set. 2/3pc: +15%/+30% enchant.", "image_id": "set_smith_boots" },
+    { "id": "weapon_031", "name_ru": "Адский Крюк", "name_en": "Hell Hook", "slot": "weapon", "rarity": "epic", "stats": { "power": 42, "armor": 0, "health": 0, "luck": 1.5 }, "description_ru": "Крюк из кромешного ада, коверкает плоть врагов.", "description_en": "A hook forged in hellfire itself, tears through flesh.", "image_id": "weapon_031" },
+    { "id": "set_hellxdead_weapon", "name_ru": "Оружие HELLxDEAD", "name_en": "HELLxDEAD Weapon", "slot": "weapon", "rarity": "legendary", "setId": "hellxdead", "stats": { "power": 85, "armor": 10, "health": 0, "luck": 2.0 }, "description_ru": "HELLxDEAD Set. 2/3 части: +40%/+80% урон. 3/3: +150% урон, +50% дроп.", "description_en": "HELLxDEAD Set. 2/3pc: +40%/+80% dmg. 3/3: +150% dmg, +50% drop.", "image_id": "set_hellxdead_weapon" },
+    { "id": "set_hellxdead_head", "name_ru": "Голова HELLxDEAD", "name_en": "HELLxDEAD Head", "slot": "head", "rarity": "legendary", "setId": "hellxdead", "stats": { "power": 30, "armor": 25, "health": 80, "luck": 3.0 }, "description_ru": "HELLxDEAD Set. 2/3 части: +40%/+80% урон. 3/3: +150% урон, +50% дроп.", "description_en": "HELLxDEAD Set. 2/3pc: +40%/+80% dmg. 3/3: +150% dmg, +50% drop.", "image_id": "set_hellxdead_head" },
+    { "id": "set_hellxdead_pants", "name_ru": "Штаны HELLxDEAD", "name_en": "HELLxDEAD Pants", "slot": "pants", "rarity": "legendary", "setId": "hellxdead", "stats": { "power": 35, "armor": 30, "health": 120, "luck": 2.5 }, "description_ru": "HELLxDEAD Set. 2/3 части: +40%/+80% урон. 3/3: +150% урон, +50% дроп.", "description_en": "HELLxDEAD Set. 2/3pc: +40%/+80% dmg. 3/3: +150% dmg, +50% drop.", "image_id": "set_hellxdead_pants" },
+
+    { "id": "necklace_012", "name_ru": "Стальная Защита Шеи", "name_en": "Steel-Neck Protection", "slot": "necklace", "rarity": "epic", "stats": { "power": 10, "armor": 22, "health": 70, "luck": 1.0 }, "description_ru": "Стальные пластины, кованые для защиты шеи. Хорошая оборона и HP.", "description_en": "Steel plates forged to protect the neck. Solid defense and HP.", "image_id": "necklace_012" },
+    { "id": "necklace_013", "name_ru": "S7331-Защита Шеи X2", "name_en": "S7331-Neck Protection X2", "slot": "necklace", "rarity": "legendary", "stats": { "power": 17, "armor": 38, "health": 122, "luck": 1.75 }, "description_ru": "Улучшенная версия стальной защиты. Нет предела совершенству.", "description_en": "The upgraded version of Steel-Neck. No limit to perfection.", "image_id": "necklace_013" },
+    { "id": "necklace_014", "name_ru": "Тяжёлый Латный Нагрудник", "name_en": "Heavy Armored Cuirass", "slot": "necklace", "rarity": "epic", "stats": { "power": 5, "armor": 45, "health": 30, "luck": 0.5 }, "description_ru": "Максимальная броня, минимальная скорость. Ты крепость.", "description_en": "Maximum armor, minimum speed. You are the fortress.", "image_id": "necklace_014" },
+    { "id": "necklace_015", "name_ru": "Золотая Кольчуга", "name_en": "Golden Chainmail", "slot": "necklace", "rarity": "epic", "stats": { "power": 15, "armor": 12, "health": 30, "luck": 3.0 }, "description_ru": "Блестит, притягивает удачу. Не очень защищает, но выглядит богато.", "description_en": "Shiny, attracts luck. Doesn't protect much, but looks rich.", "image_id": "necklace_015" },
+    { "id": "necklace_016", "name_ru": "Аметист", "name_en": "Amethyst", "slot": "necklace", "rarity": "epic", "stats": { "power": 22, "armor": 5, "health": 20, "luck": 3.5 }, "description_ru": "Тонкий, но невероятно мощный. Сила заключена в камне.", "description_en": "Thin but incredibly powerful. The strength lies within the stone.", "image_id": "necklace_016" },
+    { "id": "necklace_017", "name_ru": "Майянский Кулон", "name_en": "Mayan Pendant", "slot": "necklace", "rarity": "epic", "stats": { "power": 10, "armor": 10, "health": 40, "luck": 2.5 }, "description_ru": "Артефакт древней цивилизации. Баланс во всём.", "description_en": "Artifact of an ancient civilization. Balance in everything.", "image_id": "necklace_017" },
+
+    { "id": "set_void_head", "name_ru": "ШЛЕМa VOID", "name_en": "VOID HELM", "slot": "head", "rarity": "legendary", "setId": "void", "stats": { "power": 38, "armor": 32, "health": 100, "luck": 3.5 }, "description_ru": "VOID Сет. 2-5 части: +50%/+100%/+150%/+250% урон. 5/5: +100% дроп, +50% опыт.", "description_en": "VOID Set. 2-5pc: +50%/+100%/+150%/+250% dmg. 5/5: +100% drop, +50% XP.", "image_id": "set_void_head" },
+    { "id": "set_void_weapon1", "name_ru": "VOID 4XE", "name_en": "VOID 4XE", "slot": "weapon", "rarity": "legendary", "setId": "void", "stats": { "power": 105, "armor": 12, "health": 0, "luck": 2.5 }, "description_ru": "VOID Сет. 2-5 части: +50%/+100%/+150%/+250% урон. 5/5: +100% дроп, +50% опыт.", "description_en": "VOID Set. 2-5pc: +50%/+100%/+150%/+250% dmg. 5/5: +100% drop, +50% XP.", "image_id": "set_void_weapon1" },
+    { "id": "set_void_weapon2", "name_ru": "VOID AX3", "name_en": "VOID AX3", "slot": "weapon", "rarity": "legendary", "setId": "void", "stats": { "power": 100, "armor": 15, "health": 10, "luck": 2.0 }, "description_ru": "VOID Сет. 2-5 части: +50%/+100%/+150%/+250% урон. 5/5: +100% дроп, +50% опыт.", "description_en": "VOID Set. 2-5pc: +50%/+100%/+150%/+250% dmg. 5/5: +100% drop, +50% XP.", "image_id": "set_void_weapon2" },
+    { "id": "set_void_pants", "name_ru": "VOID ШТАНЫ", "name_en": "VOID PANTS", "slot": "pants", "rarity": "legendary", "setId": "void", "stats": { "power": 44, "armor": 38, "health": 145, "luck": 3.0 }, "description_ru": "VOID Сет. 2-5 части: +50%/+100%/+150%/+250% урон. 5/5: +100% дроп, +50% опыт.", "description_en": "VOID Set. 2-5pc: +50%/+100%/+150%/+250% dmg. 5/5: +100% drop, +50% XP.", "image_id": "set_void_pants" },
+    { "id": "set_void_boots", "name_ru": "VOID САПОГИ", "name_en": "VOID BOOTS", "slot": "boots", "rarity": "legendary", "setId": "void", "stats": { "power": 32, "armor": 35, "health": 120, "luck": 2.5 }, "description_ru": "VOID Сет. 2-5 части: +50%/+100%/+150%/+250% урон. 5/5: +100% дроп, +50% опыт.", "description_en": "VOID Set. 2-5pc: +50%/+100%/+150%/+250% dmg. 5/5: +100% drop, +50% XP.", "image_id": "set_void_boots" }
+  ]
+}

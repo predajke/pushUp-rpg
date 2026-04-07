@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "477535266151",
+    "project_id": "pushup-rpg",
+    "storage_bucket": "pushup-rpg.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477535266151:android:16186fdb9ebdfe6cf0bbc2",
+        "android_client_info": {
+          "package_name": "com.ninthbalcony.pushuprpg"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGPVuZulFuLzY8Gz-mBX6T-s59x1uINnw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
