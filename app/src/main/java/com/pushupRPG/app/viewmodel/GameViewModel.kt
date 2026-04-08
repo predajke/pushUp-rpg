@@ -3,12 +3,14 @@ package com.pushupRPG.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pushupRPG.app.data.db.GameStateEntity
+import com.pushupRPG.app.data.exception.CheatCooldownException
 import com.pushupRPG.app.data.model.EnchantResult
 import com.pushupRPG.app.data.model.ForgeResult
 import com.pushupRPG.app.data.model.Item
 import com.pushupRPG.app.data.model.PeriodStats
 import com.pushupRPG.app.data.repository.GameRepository
 import com.pushupRPG.app.managers.OnboardingManager
+import com.pushupRPG.app.managers.AdType
 import com.pushupRPG.app.utils.ItemUtils
 import com.pushupRPG.app.utils.EventUtils
 import com.pushupRPG.app.utils.DailyRewardUtils
@@ -78,6 +80,16 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
 
     private val _newLevel = MutableStateFlow(0)
     val newLevel: StateFlow<Int> = _newLevel.asStateFlow()
+
+    // Anti-cheat
+    data class AntiCheatCooldown(
+        val remainingMs: Long,
+        val adType: AdType,
+        val attemptNumber: Int
+    )
+
+    private val _antiCheatCooldown = MutableStateFlow<AntiCheatCooldown?>(null)
+    val antiCheatCooldown: StateFlow<AntiCheatCooldown?> = _antiCheatCooldown.asStateFlow()
 
     val totalStats: StateFlow<com.pushupRPG.app.utils.TotalStats?> = gameState.filterNotNull().map { state ->
         val slots = listOf(
@@ -158,13 +170,25 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
         if (count > 0) {
             _inputValue.value = 0
             viewModelScope.launch {
-                val leveledUpTo = repository.addPushUps(count)
-                if (leveledUpTo > 0) {
-                    _newLevel.value = leveledUpTo
-                    _showLevelUpDialog.value = true
+                try {
+                    val leveledUpTo = repository.addPushUps(count)
+                    if (leveledUpTo > 0) {
+                        _newLevel.value = leveledUpTo
+                        _showLevelUpDialog.value = true
+                    }
+                } catch (e: CheatCooldownException) {
+                    _antiCheatCooldown.value = AntiCheatCooldown(
+                        remainingMs = e.remainingMs,
+                        adType = e.adType,
+                        attemptNumber = e.attemptNumber
+                    )
                 }
             }
         }
+    }
+
+    fun clearAntiCheatCooldown() {
+        _antiCheatCooldown.value = null
     }
 
     fun dismissLevelUpDialog() {

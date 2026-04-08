@@ -120,8 +120,8 @@ fun HighlightTourGuideDialog(
                 )
             }
 
-            // Info box: bottom for steps 0-3, top for steps 4-5 (Logs/Quests are near bottom)
-            val infoAlignment = if (currentStep >= 4) Alignment.TopCenter else Alignment.BottomCenter
+            // Info box: bottom for steps 0-2, top for steps 3-5 (Battle/Logs/Quests)
+            val infoAlignment = if (currentStep >= 3) Alignment.TopCenter else Alignment.BottomCenter
             Column(
                 modifier = Modifier
                     .align(infoAlignment)

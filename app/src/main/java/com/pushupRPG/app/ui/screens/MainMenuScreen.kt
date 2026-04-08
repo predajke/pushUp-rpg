@@ -63,6 +63,7 @@ fun MainMenuScreen(
     val pendingDailyReward by viewModel.pendingDailyReward.collectAsState(initial = null)
     val onboardingStep by viewModel.onboardingStep.collectAsState(initial = 0)
     val isOnboardingComplete by viewModel.isOnboardingComplete.collectAsState(initial = false)
+    val antiCheatCooldown by viewModel.antiCheatCooldown.collectAsState(initial = null)
 
     // Scroll state extracted here so it can be used in LaunchedEffect (before early return)
     val scrollState = rememberScrollState()
@@ -161,6 +162,46 @@ fun MainMenuScreen(
             onSkip = { viewModel.skipOnboarding(gameState) },
             onComplete = { viewModel.completeOnboarding(gameState) }
         )
+    }
+
+    // Anti-cheat: Show cooldown dialog or ad
+    antiCheatCooldown?.let { cooldown ->
+        when (cooldown.adType) {
+            com.pushupRPG.app.managers.AdType.NONE -> {
+                // Should not happen, but just in case show cooldown
+                com.pushupRPG.app.ui.dialogs.AntiCheatWarningDialog(
+                    remainingCooldownMs = cooldown.remainingMs,
+                    onDismiss = { viewModel.clearAntiCheatCooldown() }
+                )
+            }
+            com.pushupRPG.app.managers.AdType.SKIPPABLE -> {
+                // Show rewarded ad with skip button (skip after 10s)
+                com.pushupRPG.app.ui.dialogs.RewardedAdDialog(
+                    title = AppStrings.t(language, "ad_title"),
+                    description = AppStrings.t(language, "ad_description_cheat"),
+                    rewardText = AppStrings.t(language, "ad_button_watch"),
+                    onWatchAd = {
+                        // TODO: Show rewarded ad here when AdManager is integrated
+                        viewModel.clearAntiCheatCooldown()
+                    },
+                    onDecline = {
+                        // Show cooldown instead
+                        // User chose not to watch ad, show cooldown
+                    },
+                    onDismiss = {
+                        // Dialog dismissed, show cooldown
+                    }
+                )
+            }
+            com.pushupRPG.app.managers.AdType.NO_SKIP -> {
+                // Show rewarded ad without skip (force watch 20-30s)
+                // For now, we'll show a warning that forces user to wait or watch ad
+                com.pushupRPG.app.ui.dialogs.AntiCheatWarningDialog(
+                    remainingCooldownMs = cooldown.remainingMs,
+                    onDismiss = { viewModel.clearAntiCheatCooldown() }
+                )
+            }
+        }
     }
 
     Box(

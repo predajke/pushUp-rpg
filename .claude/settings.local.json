@@ -38,7 +38,19 @@
       "Bash(mkdir -p \"app/src/main/java/com/pushupRPG/app/managers\")",
       "Bash(mkdir -p \"app/src/main/java/com/pushupRPG/app/ui/dialogs\")",
       "Bash(git add:*)",
-      "Bash(git commit -m ':*)"
+      "Bash(git commit -m ':*)",
+      "Bash(adb logcat:*)",
+      "Bash(./gradlew --stop)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)",
+      "Bash(gh repo:*)",
+      "Bash(curl -s https://api.github.com/repos/predajke/pushUp-rpg)",
+      "Bash(git checkout:*)",
+      "Bash(sed -n '569,575p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
+      "Bash(sed -n '840,845p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
+      "Bash(sed -n '891,896p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
+      "Bash(sed -n '1037,1042p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
+      "Bash(sed -n '235,242p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)"
     ]
   }
 }

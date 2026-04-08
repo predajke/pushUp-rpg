@@ -265,6 +265,12 @@ object AppStrings {
 
         "onboard_skip"      to m("Skip Tutorial", "Пропустить", "Saltar", "Passer", "Überspringen", "Pular"),
         "onboard_next"      to m("Next", "Дальше", "Siguiente", "Suivant", "Weiter", "Próximo"),
+
+        // Ad & Anti-Cheat
+        "ad_title"          to m("Watch Ad", "Смотреть Рекламу", "Ver Anuncio", "Regarder Pub", "Anzeige Ansehen", "Assistir Anúncio"),
+        "ad_description_cheat" to m("Slow down! You're doing great! 💪\n\nWatch an ad to continue training...", "Медленнее! Ты отлично работаешь! 💪\n\nПосмотри рекламу и продолжи тренировку...", "¡Más lento! ¡Lo estás haciendo genial! 💪\n\nMira un anuncio para continuar entrenando...", "Ralentir! Tu fais du super travail! 💪\n\nRegarde une pub pour continuer l'entraînement...", "Verlangsam! Du machst es großartig! 💪\n\nSchau dir eine Anzeige an und trainiere weiter...", "Mais devagar! Você está indo muito bem! 💪\n\nAssista a um anúncio para continuar treinando..."),
+        "ad_button_watch"   to m("Watch Ad (10s skip)", "Смотреть (skip через 10s)", "Ver Anuncio (skip en 10s)", "Regarder (skip dans 10s)", "Anzeige (skip in 10s)", "Assistir (skip em 10s)"),
+        "ad_button_skip"    to m("Skip Ad", "Пропустить", "Saltar", "Passer", "Überspringen", "Pular"),
     )
 
     fun t(lang: String, key: String): String = data[key]?.get(lang) ?: data[key]?.get("en") ?: key

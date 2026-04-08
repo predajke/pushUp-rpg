@@ -5,9 +5,12 @@ import com.pushupRPG.app.data.db.AppDatabase
 import com.pushupRPG.app.data.db.GameStateEntity
 import com.pushupRPG.app.data.db.LogEntryEntity
 import com.pushupRPG.app.data.db.PushUpRecordEntity
+import com.pushupRPG.app.data.db.entity.MaxPushUpsAttemptEntity
+import com.pushupRPG.app.data.exception.CheatCooldownException
 import com.pushupRPG.app.utils.DateUtils
 import com.pushupRPG.app.utils.GameCalculations
 import com.pushupRPG.app.utils.ItemUtils
+import com.pushupRPG.app.managers.AntiCheatManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -30,6 +33,8 @@ class GameRepository(private val context: Context) {
 
     private val db = AppDatabase.getDatabase(context)
     private val dao = db.pushUpDao()
+    private val maxPushUpsDao = db.maxPushUpsDao()
+    private val antiCheatManager = AntiCheatManager()
     private val saveMutex = Mutex()
 
     init {
@@ -107,6 +112,29 @@ class GameRepository(private val context: Context) {
     /** Возвращает новый уровень если произошёл level-up, иначе 0 */
     suspend fun addPushUps(count: Int): Int {
         val today = DateUtils.getTodayString()
+
+        // Anti-cheat: проверка максимума 99 отжиманий
+        if (count == 99) {
+            val lastMaxAttempt = maxPushUpsDao.getLastAttemptForDate(today)
+            val attemptNumber = maxPushUpsDao.getAttemptsCountForDate(today) + 1
+
+            if (lastMaxAttempt != null) {
+                val remainingCooldown = antiCheatManager.getRemainingCooldownMsForMaxAttempt(
+                    lastMaxAttempt.timestamp,
+                    lastMaxAttempt.attemptNumber
+                )
+
+                if (remainingCooldown > 0) {
+                    val adType = antiCheatManager.getRequiredAd(attemptNumber)
+                    addLog("⚠️ Anti-cheat cooldown", "⚠️ Кулдаун после максимума")
+                    throw CheatCooldownException(remainingCooldown, adType, attemptNumber)
+                }
+            }
+
+            // Сохраняем попытку в БД
+            maxPushUpsDao.insertAttempt(MaxPushUpsAttemptEntity(date = today, attemptNumber = attemptNumber))
+        }
+
         val state = getGameState()
         val wasRevived = state.isPlayerDead
 

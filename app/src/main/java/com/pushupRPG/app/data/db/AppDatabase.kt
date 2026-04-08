@@ -4,19 +4,22 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.pushupRPG.app.data.db.entity.MaxPushUpsAttemptEntity
 
 @Database(
     entities = [
         GameStateEntity::class,
         PushUpRecordEntity::class,
-        LogEntryEntity::class
+        LogEntryEntity::class,
+        MaxPushUpsAttemptEntity::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun pushUpDao(): PushUpDao
+    abstract fun maxPushUpsDao(): com.pushupRPG.app.data.db.dao.MaxPushUpsDao
 
     companion object {
         @Volatile
@@ -116,6 +119,21 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_11_12 = object : androidx.room.migration.Migration(11, 12) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                // Max pushups (99) tracking for anti-cheat
+                database.execSQL("""
+                    CREATE TABLE max_pushups_attempts (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        date TEXT NOT NULL,
+                        timestamp INTEGER NOT NULL DEFAULT ${System.currentTimeMillis()},
+                        attemptNumber INTEGER NOT NULL
+                    )
+                """)
+                database.execSQL("CREATE INDEX idx_date ON max_pushups_attempts(date)")
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -123,7 +141,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "pushup_rpg_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
                     .build()
                 INSTANCE = instance
                 instance
