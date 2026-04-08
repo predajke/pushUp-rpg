@@ -18,7 +18,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -58,6 +61,37 @@ fun MainMenuScreen(
     val activeEvent by viewModel.activeEvent.collectAsState(initial = null)
     val showDailyReward by viewModel.showDailyReward.collectAsState(initial = false)
     val pendingDailyReward by viewModel.pendingDailyReward.collectAsState(initial = null)
+    val onboardingStep by viewModel.onboardingStep.collectAsState(initial = 0)
+    val isOnboardingComplete by viewModel.isOnboardingComplete.collectAsState(initial = false)
+
+    // Scroll state extracted here so it can be used in LaunchedEffect (before early return)
+    val scrollState = rememberScrollState()
+
+    // Track coordinates for tour guide - declared before early return so remember works correctly
+    val targetRect = remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }
+    val totalPushUpsRect = remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }
+    val inventoryRect = remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }
+    val shopRect = remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }
+    val battleRect = remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }
+    val logsRect = remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }
+    val questsRect = remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }
+
+    // Update target rect when step or any measured rect changes
+    LaunchedEffect(onboardingStep, totalPushUpsRect.value, inventoryRect.value, shopRect.value, battleRect.value, logsRect.value, questsRect.value) {
+        targetRect.value = when (onboardingStep) {
+            0 -> totalPushUpsRect.value
+            1 -> inventoryRect.value
+            2 -> shopRect.value
+            3 -> battleRect.value
+            4 -> logsRect.value
+            5 -> questsRect.value
+            else -> androidx.compose.ui.geometry.Rect.Zero
+        }
+        // Step 5 (Quests) is near bottom of scroll — scroll down so the element is visible
+        if (onboardingStep == 5) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
 
     if (isLoading || gameState == null) {
         Box(
@@ -80,7 +114,17 @@ fun MainMenuScreen(
         }
     }
 
+    // Initialize onboarding if first launch
+    LaunchedEffect(gameState) {
+        if (gameState != null && gameState!!.isFirstLaunch && !isOnboardingComplete) {
+            viewModel.initializeOnboarding(gameState!!)
+        }
+    }
+
     val language = state.language
+    val statusBarHeightPx = with(LocalDensity.current) {
+        WindowInsets.statusBars.getTop(this).toFloat()
+    }
     val maxHp = GameCalculations.getMaxHp(
         state.playerLevel,
         state.baseHealth,
@@ -105,6 +149,20 @@ fun MainMenuScreen(
         )
     }
 
+    // Show highlight onboarding if not complete
+    if (!isOnboardingComplete && onboardingStep < com.pushupRPG.app.managers.OnboardingManager.TOTAL_STEPS) {
+        com.pushupRPG.app.ui.dialogs.HighlightTourGuideDialog(
+            currentStep = onboardingStep,
+            onboardingManager = viewModel.getOnboardingManager(),
+            language = language,
+            targetRect = targetRect.value,
+            statusBarHeightPx = statusBarHeightPx,
+            onNext = { viewModel.nextOnboardingStep() },
+            onSkip = { viewModel.skipOnboarding(gameState) },
+            onComplete = { viewModel.completeOnboarding(gameState) }
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -125,7 +183,7 @@ fun MainMenuScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(bottom = 16.dp)
                 .navigationBarsPadding()
         ) {
@@ -145,7 +203,9 @@ fun MainMenuScreen(
                 onReset = { viewModel.resetInput() },
                 onSave = { viewModel.savePushUps() },
                 onTotalClick = onNavigateToStatistics,
-                onShopClick = onNavigateToShop
+                onShopClick = onNavigateToShop,
+                modifier = Modifier.onGloballyPositioned { totalPushUpsRect.value = it.boundsInWindow() },
+                onShopPositioned = { shopRect.value = it }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -153,7 +213,8 @@ fun MainMenuScreen(
             StatsPanel(
                 state = state,
                 totalStats = totalStats,
-                onClick = onNavigateToInventory
+                onClick = onNavigateToInventory,
+                modifier = Modifier.onGloballyPositioned { inventoryRect.value = it.boundsInWindow() }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -161,7 +222,9 @@ fun MainMenuScreen(
             BattleArena(
                 state = state,
                 maxHp = maxHp,
-                modifier = Modifier.heightIn(min = 220.dp)
+                modifier = Modifier
+                    .heightIn(min = 220.dp)
+                    .onGloballyPositioned { battleRect.value = it.boundsInWindow() }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -169,7 +232,8 @@ fun MainMenuScreen(
             MiniLog(
                 logs = logs,
                 language = language,
-                onClick = onNavigateToLogs
+                onClick = onNavigateToLogs,
+                modifier = Modifier.onGloballyPositioned { logsRect.value = it.boundsInWindow() }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -177,7 +241,8 @@ fun MainMenuScreen(
             QuestShortcutButton(
                 language = language,
                 quests = viewModel.getActiveQuests(state),
-                onClick = onNavigateToQuests
+                onClick = onNavigateToQuests,
+                modifier = Modifier.onGloballyPositioned { questsRect.value = it.boundsInWindow() }
             )
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -197,7 +262,8 @@ fun MainMenuScreen(
 fun QuestShortcutButton(
     language: String,
     quests: List<com.pushupRPG.app.utils.ActiveQuest>,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val bgResId = remember {
@@ -208,7 +274,7 @@ fun QuestShortcutButton(
     val badge = if (readyCount > 0) " ($readyCount ✓)" else ""
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(12.dp))
@@ -536,7 +602,9 @@ fun PushUpCounter(
     onReset: () -> Unit,
     onSave: () -> Unit,
     onTotalClick: () -> Unit,
-    onShopClick: () -> Unit
+    onShopClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onShopPositioned: ((androidx.compose.ui.geometry.Rect) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val bgResId = remember {
@@ -553,7 +621,7 @@ fun PushUpCounter(
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
             .background(DarkCard, RoundedCornerShape(12.dp))
@@ -637,7 +705,10 @@ fun PushUpCounter(
                             .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
                             .background(Color(0xFF1A3A2A), RoundedCornerShape(8.dp))
                             .clip(RoundedCornerShape(8.dp))
-                            .clickable { onShopClick() },
+                            .clickable { onShopClick() }
+                            .onGloballyPositioned { coordinates ->
+                                onShopPositioned?.invoke(coordinates.boundsInWindow())
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         if (shopBtnBg != 0) {
@@ -802,7 +873,8 @@ fun PushUpCounter(
 fun StatsPanel(
     state: GameStateEntity,
     totalStats: com.pushupRPG.app.utils.TotalStats?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val power = totalStats?.power ?: state.basePower
     val armor = totalStats?.armor ?: state.baseArmor
@@ -810,7 +882,7 @@ fun StatsPanel(
     val luck = totalStats?.luck ?: state.baseLuck
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
             .background(DarkCard, RoundedCornerShape(12.dp))
@@ -999,10 +1071,11 @@ fun BattleArena(
 fun MiniLog(
     logs: List<LogEntryEntity>,
     language: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
             .background(LogBackground, RoundedCornerShape(12.dp))

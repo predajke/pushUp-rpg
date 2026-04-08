@@ -201,6 +201,70 @@ object AppStrings {
         "encountered"       to m("monsters encountered","монстров встречено","monstruos encontrados","monstres rencontrés","Monster angetroffen","monstros encontrados"),
         "last_items"        to m("Last",               "Последние",         "Últimos",           "Derniers",         "Letzte",            "Últimos"),
         "items_word"        to m("items",              "предметов",         "objetos",           "objets",           "Gegenstände",       "itens"),
+
+        // --- Онбординг (7 шагов) ---
+        "onboard_step_title_0" to m("Welcome to PushUpRPG!", "Добро пожаловать в PushUpRPG!", "¡Bienvenido a PushUpRPG!", "Bienvenue dans PushUpRPG!", "Willkommen bei PushUpRPG!", "Bem-vindo ao PushUpRPG!"),
+        "onboard_step_desc_0" to m(
+            "Hey there! This app is a push-up counter with a twist. Here you enter your push-ups: +1 or +10. Know math? Good! And don't forget to press Save.",
+            "Приветствую тебя, как ты догадался это приложение ничто иное как счётчик для твоих отжиманий, но с некоторыми... вообщем тут ты вводишь свои отжимания, +1 -1, математику же знаешь? Ну и Save не забудь нажать.",
+            "¡Hola! Esta aplicación es un contador de flexiones con un giro. Aquí ingresas tus flexiones: +1 o +10. ¿Sabes matemáticas? ¡Bien! Y no olvides presionar Guardar.",
+            "Salut! Cette application est un compteur de pompes avec une touche. Ici tu entres tes pompes: +1 ou +10. Tu connais les maths? Bien! Et n'oublie pas d'appuyer sur Enregistrer.",
+            "Hallo! Diese App ist ein Liegestütz-Zähler mit einem Twist. Hier gibst du deine Liegestütze ein: +1 oder +10. Kennst du Mathe? Gut! Und vergiss nicht, Speichern zu drücken.",
+            "Olá! Este aplicativo é um contador de flexões com uma reviravolta. Aqui você insere seus flexões: +1 ou +10. Você sabe matemática? Ótimo! E não esqueça de pressionar Salvar."
+        ),
+
+        "onboard_step_title_1" to m("Your Wardrobe", "Твой гардероб", "Tu guardarropa", "Ta garde-robe", "Deine Garderobe", "Seu guarda-roupa"),
+        "onboard_step_desc_1" to m(
+            "This little panel opens the door to other worlds. Equip yourself with cool gear and level up your stats!",
+            "Эта маленькая панелька - открывает дверь в мир других, короче там ты одеваешься, если есть во что, и качаешь поинты",
+            "Este pequeño panel abre la puerta a otros mundos. ¡Equípate con cosas geniales y sube de nivel tus estadísticas!",
+            "Ce petit panneau ouvre la porte à d'autres mondes. Équipe-toi avec des trucs cool et monte tes statistiques!",
+            "Dieses kleine Panel öffnet die Tür zu anderen Welten. Rüste dich mit coolen Sachen aus und levele deine Werte!",
+            "Este pequeno painel abre a porta para outros mundos. Equipe-se com coisas legais e suba suas estatísticas!"
+        ),
+
+        "onboard_step_title_2" to m("The Bazaar", "Базар", "El Bazar", "Le Bazar", "Der Basar", "O Bazar"),
+        "onboard_step_desc_2" to m(
+            "This is not just a shop, it's a BAZAAR! Got everything: items, forge, enchanters, and FREE GIFTS! 😉",
+            "Это не просто магазин, это просто БАЗАР, там есть всё, и вещички, и кузница и маги зачаровщики, а и БЕСПЛАТНЫЕ ПОДАРОЧКИ ;)",
+            "¡Esto no es solo una tienda, es un BAZAR! Tiene todo: artículos, forja, encantadores, ¡y REGALOS GRATIS! 😉",
+            "Ce n'est pas juste une boutique, c'est un BAZAR! Il y a tout: objets, forge, enchanteurs, et CADEAUX GRATUITS! 😉",
+            "Das ist nicht nur ein Shop, das ist ein BASAR! Alles drin: Gegenstände, Schmiede, Verzauberer und KOSTENLOSE GESCHENKE! 😉",
+            "Isto não é apenas uma loja, é um BAZAR! Tem tudo: itens, forja, encantadores, e PRESENTES GRÁTIS! 😉"
+        ),
+
+        "onboard_step_title_3" to m("Endless Battle", "Бесконечная битва", "Batalla infinita", "Bataille infinie", "Endlose Schlacht", "Batalha infinita"),
+        "onboard_step_desc_3" to m(
+            "Here's an endless battle: your push-ups vs. your laziness. Ha! You're on the left, and looks like you got some problems. 😄",
+            "Тут идёт бесконечная битва, между твоми отжиманиями и твоей ленью, ХА! (ты слева если что и похоже у тебя проблемы)",
+            "Aquí hay una batalla infinita: tus flexiones vs. tu pereza. ¡Ja! Estás a la izquierda, ¡y parece que tienes problemas!",
+            "Il y a une bataille infinie ici: tes pompes vs. ta paresse. Ha! Tu es à gauche, et on dirait que tu as des problèmes!",
+            "Hier ist eine endlose Schlacht: deine Liegestütze gegen deine Faulheit. Ha! Du bist links, und es sieht aus, als hättest du Probleme!",
+            "Aqui há uma batalha infinita: suas flexões vs. sua preguiça. Ha! Você está à esquerda, e parece que tem problemas!"
+        ),
+
+        "onboard_step_title_4" to m("Battle Logs", "Журнал боя", "Registro de batalla", "Journal de combat", "Kampfprotokoll", "Registro de batalha"),
+        "onboard_step_desc_4" to m(
+            "Here are the logs showing how many times you got beaten, and maybe won a few (probably not). Battle runs automatically even when you're offline, so don't worry!",
+            "Тут логи, где показано сколько раз ты получил по лицу, ну и возможно победил кого то (вряд ли), бой идёт в автоматическом режиме даже когда ты не в приложение, так что не беспокойся.",
+            "Aquí están los registros mostrando cuántas veces te golpearon, y tal vez ganaste unos pocos (probablemente no). La batalla se ejecuta automáticamente incluso cuando estás fuera de línea.",
+            "Voici les journaux montrant combien de fois tu t'es fait battre, et peut-être que tu as gagné quelques fois (probablement pas). La bataille s'exécute automatiquement même hors ligne.",
+            "Hier sind die Logs, die zeigen, wie oft du geschlagen wurdest, und vielleicht hast du ein paar mal gewonnen (wahrscheinlich nicht). Der Kampf läuft automatisch, auch wenn du offline bist.",
+            "Aqui estão os registros mostrando quantas vezes você foi derrotado, e talvez venceu alguns (provavelmente não). A batalha é executada automaticamente mesmo quando você está offline."
+        ),
+
+        "onboard_step_title_5" to m("Quests & Achievements", "Квесты и ачивки", "Misiones y logros", "Quêtes et réalisations", "Quests und Erfolge", "Missões e conquistas"),
+        "onboard_step_desc_5" to m(
+            "Here are tabs with daily quests—get rewards, unlock achievements. Good luck out there, and let's do those push-ups! I'm watching. 💪",
+            "Тут вкладки с ежедневными квестами, опять же за вознограждение ну и все ачивки которые ты смог открыть. Удачи тебе и давай отжимайся, я слежу.",
+            "Aquí hay pestañas con misiones diarias: obtén recompensas, desbloquea logros. Buena suerte, ¡y hagamos esas flexiones! Estoy mirando. 💪",
+            "Voici des onglets avec des quêtes quotidiennes: obtiens des récompenses, débloque les réalisations. Bonne chance, et faisons ces pompes! Je regarde. 💪",
+            "Hier sind Registerkarten mit täglichen Quests: Belohnungen erhalten, Erfolge freischalten. Viel Glück, und lass uns diese Liegestütze machen! Ich beobachte. 💪",
+            "Aqui estão abas com missões diárias: ganhe recompensas, desbloqueie conquistas. Boa sorte, e vamos fazer esses flexões! Estou observando. 💪"
+        ),
+
+        "onboard_skip"      to m("Skip Tutorial", "Пропустить", "Saltar", "Passer", "Überspringen", "Pular"),
+        "onboard_next"      to m("Next", "Дальше", "Siguiente", "Suivant", "Weiter", "Próximo"),
     )
 
     fun t(lang: String, key: String): String = data[key]?.get(lang) ?: data[key]?.get("en") ?: key

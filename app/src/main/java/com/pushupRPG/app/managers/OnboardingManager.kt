@@ -1,6 +1,7 @@
 package com.pushupRPG.app.managers
 
 import android.util.Log
+import com.pushupRPG.app.utils.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,18 +10,17 @@ class OnboardingManager {
     companion object {
         private const val TAG = "OnboardingManager"
 
-        // Onboarding steps
-        const val STEP_TOTAL_PUSHUPS = 0
-        const val STEP_INCREMENT_BUTTONS = 1
-        const val STEP_SAVE_BUTTON = 2
-        const val STEP_LOGS = 3
-        const val STEP_QUESTS = 4
-        const val STEP_INVENTORY = 5
-        const val STEP_SHOP = 6
-        const val TOTAL_STEPS = 7
+        // Onboarding steps (matched to Main Menu screens)
+        const val STEP_WELCOME = 0              // Total Pushups today
+        const val STEP_INVENTORY = 1            // Inventory window
+        const val STEP_SHOP = 2                 // Shop button
+        const val STEP_BATTLE = 3               // Current Battle
+        const val STEP_LOGS = 4                 // Battle Logs
+        const val STEP_QUESTS = 5               // Quests + Progress + Achievements
+        const val TOTAL_STEPS = 6
     }
 
-    private val _currentStep = MutableStateFlow(STEP_TOTAL_PUSHUPS)
+    private val _currentStep = MutableStateFlow(STEP_WELCOME)
     val currentStep: StateFlow<Int> = _currentStep.asStateFlow()
 
     private val _isOnboardingComplete = MutableStateFlow(false)
@@ -28,7 +28,7 @@ class OnboardingManager {
 
     fun startOnboarding() {
         Log.d(TAG, "Starting onboarding flow")
-        _currentStep.value = STEP_TOTAL_PUSHUPS
+        _currentStep.value = STEP_WELCOME
         _isOnboardingComplete.value = false
     }
 
@@ -39,13 +39,6 @@ class OnboardingManager {
             Log.d(TAG, "Advanced to step $nextStep")
         } else {
             completeOnboarding()
-        }
-    }
-
-    fun skipToStep(step: Int) {
-        if (step in 0 until TOTAL_STEPS) {
-            _currentStep.value = step
-            Log.d(TAG, "Jumped to step $step")
         }
     }
 
@@ -61,35 +54,41 @@ class OnboardingManager {
         _currentStep.value = TOTAL_STEPS
     }
 
-    fun getStepTitle(step: Int): String {
+    fun getStepTitleKey(step: Int): String {
         return when (step) {
-            STEP_TOTAL_PUSHUPS -> "Total Push-ups"
-            STEP_INCREMENT_BUTTONS -> "Increment Buttons"
-            STEP_SAVE_BUTTON -> "Save Your Progress"
-            STEP_LOGS -> "View Your Logs"
-            STEP_QUESTS -> "Complete Quests"
-            STEP_INVENTORY -> "Manage Inventory"
-            STEP_SHOP -> "Visit the Shop"
-            else -> "Unknown Step"
+            STEP_WELCOME -> "onboard_step_title_0"
+            STEP_INVENTORY -> "onboard_step_title_1"
+            STEP_SHOP -> "onboard_step_title_2"
+            STEP_BATTLE -> "onboard_step_title_3"
+            STEP_LOGS -> "onboard_step_title_4"
+            STEP_QUESTS -> "onboard_step_title_5"
+            else -> "onboard_step_title_0"
         }
     }
 
-    fun getStepDescription(step: Int): String {
+    fun getStepDescriptionKey(step: Int): String {
         return when (step) {
-            STEP_TOTAL_PUSHUPS -> "This shows your total push-ups. Keep improving!"
-            STEP_INCREMENT_BUTTONS -> "Use +1 for single push-ups or +10 for multiple. Choose what's fastest for you!"
-            STEP_SAVE_BUTTON -> "Press SAVE to record your progress. This also stores your data in the cloud."
-            STEP_LOGS -> "Check your logs to track your push-up history and stats over time."
-            STEP_QUESTS -> "Complete daily and weekly quests to earn rewards and level up!"
-            STEP_INVENTORY -> "Collect items and manage your equipment here."
-            STEP_SHOP -> "Spend your earned currency to buy new items and upgrades."
-            else -> ""
+            STEP_WELCOME -> "onboard_step_desc_0"
+            STEP_INVENTORY -> "onboard_step_desc_1"
+            STEP_SHOP -> "onboard_step_desc_2"
+            STEP_BATTLE -> "onboard_step_desc_3"
+            STEP_LOGS -> "onboard_step_desc_4"
+            STEP_QUESTS -> "onboard_step_desc_5"
+            else -> "onboard_step_desc_0"
         }
+    }
+
+    fun getStepTitle(step: Int, language: String): String {
+        return AppStrings.t(language, getStepTitleKey(step))
+    }
+
+    fun getStepDescription(step: Int, language: String): String {
+        return AppStrings.t(language, getStepDescriptionKey(step))
     }
 
     fun reset() {
         Log.d(TAG, "Resetting onboarding state")
-        _currentStep.value = STEP_TOTAL_PUSHUPS
+        _currentStep.value = STEP_WELCOME
         _isOnboardingComplete.value = false
     }
 }

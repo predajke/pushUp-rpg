@@ -8,6 +8,7 @@ import com.pushupRPG.app.data.model.ForgeResult
 import com.pushupRPG.app.data.model.Item
 import com.pushupRPG.app.data.model.PeriodStats
 import com.pushupRPG.app.data.repository.GameRepository
+import com.pushupRPG.app.managers.OnboardingManager
 import com.pushupRPG.app.utils.ItemUtils
 import com.pushupRPG.app.utils.EventUtils
 import com.pushupRPG.app.utils.DailyRewardUtils
@@ -31,6 +32,42 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
     val gameState = repository.getGameStateFlow()
     val recentLogs = repository.getRecentLogsFlow()
     val allLogs = repository.getAllLogsFlow()
+
+    // ==================== ОНБОРДИНГ ====================
+    private val onboardingManager = OnboardingManager()
+    val onboardingStep: StateFlow<Int> = onboardingManager.currentStep
+    val isOnboardingComplete: StateFlow<Boolean> = onboardingManager.isOnboardingComplete
+
+    fun initializeOnboarding(gameState: GameStateEntity?) {
+        if (gameState != null && gameState.isFirstLaunch) {
+            onboardingManager.startOnboarding()
+        }
+    }
+
+    fun nextOnboardingStep() {
+        onboardingManager.nextStep()
+    }
+
+    fun completeOnboarding(gameState: GameStateEntity?) {
+        onboardingManager.completeOnboarding()
+        // Save that onboarding is complete
+        if (gameState != null) {
+            viewModelScope.launch {
+                repository.saveGameState(gameState.copy(isFirstLaunch = false))
+            }
+        }
+    }
+
+    fun skipOnboarding(gameState: GameStateEntity?) {
+        onboardingManager.skipOnboarding()
+        if (gameState != null) {
+            viewModelScope.launch {
+                repository.saveGameState(gameState.copy(isFirstLaunch = false))
+            }
+        }
+    }
+
+    fun getOnboardingManager(): OnboardingManager = onboardingManager
 
     // ==================== ПЕРЕМЕННЫЕ ДЛЯ ГЛАВНОГО МЕНЮ ====================
     private val _inputValue = MutableStateFlow(0)
