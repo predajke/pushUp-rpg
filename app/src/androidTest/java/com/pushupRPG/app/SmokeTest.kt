@@ -1,17 +1,17 @@
-package com.pushupRPG.app
+package com.ninthbalcony.pushuprpg
 
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.pushupRPG.app.data.db.AppDatabase
-import com.pushupRPG.app.data.db.GameStateEntity
-import com.pushupRPG.app.data.model.EnchantResult
-import com.pushupRPG.app.data.model.ForgeResult
-import com.pushupRPG.app.data.repository.GameRepository
-import com.pushupRPG.app.utils.ActiveQuest
-import com.pushupRPG.app.utils.ItemUtils
-import com.pushupRPG.app.utils.QuestSystem
+import com.ninthbalcony.pushuprpg.data.db.AppDatabase
+import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
+import com.ninthbalcony.pushuprpg.data.model.EnchantResult
+import com.ninthbalcony.pushuprpg.data.model.ForgeResult
+import com.ninthbalcony.pushuprpg.data.repository.GameRepository
+import com.ninthbalcony.pushuprpg.utils.ActiveQuest
+import com.ninthbalcony.pushuprpg.utils.ItemUtils
+import com.ninthbalcony.pushuprpg.utils.QuestSystem
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.*

@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.pushupRPG.app"
+    namespace = "com.ninthbalcony.pushuprpg"
     compileSdk = 35
 
     defaultConfig {

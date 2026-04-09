@@ -50,7 +50,9 @@
       "Bash(sed -n '840,845p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
       "Bash(sed -n '891,896p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
       "Bash(sed -n '1037,1042p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
-      "Bash(sed -n '235,242p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)"
+      "Bash(sed -n '235,242p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
+      "Bash(bash /tmp/rename_package.sh)",
+      "Bash(find app/src/main/java -name \"*.kt\" -type f -exec sed -i 's/com\\\\.pushupRPG\\\\.app/com.ninthbalcony.pushuprpg/g' {} \\\\;)"
     ]
   }
 }

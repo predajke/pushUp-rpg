@@ -1,4 +1,4 @@
-package com.pushupRPG.app
+package com.ninthbalcony.pushuprpg
 
 import org.junit.Test
 

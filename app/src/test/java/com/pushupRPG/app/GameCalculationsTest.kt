@@ -1,6 +1,6 @@
-package com.pushupRPG.app
+package com.ninthbalcony.pushuprpg
 
-import com.pushupRPG.app.utils.GameCalculations
+import com.ninthbalcony.pushuprpg.utils.GameCalculations
 import org.junit.Assert.*
 import org.junit.Test
 
