@@ -1270,6 +1270,28 @@ class GameRepository(private val context: Context) {
             teeth = state.teeth + 100000
         ))
     }
+
+    // ==================== RATE US ====================
+
+    suspend fun updateRateUsState(action: RateUsAction) {
+        val state = getGameState()
+        val newState = when (action) {
+            RateUsAction.RATE_NOW -> {
+                state.copy(rateUsLastShowDate = System.currentTimeMillis())
+            }
+            RateUsAction.REMIND_LATER -> {
+                state.copy(rateUsLastShowDate = System.currentTimeMillis())
+            }
+            RateUsAction.NEVER_ASK -> {
+                state.copy(rateUsDoNotShowAgain = true)
+            }
+        }
+        saveGameState(newState)
+    }
+}
+
+enum class RateUsAction {
+    RATE_NOW, REMIND_LATER, NEVER_ASK
 }
 
 // я удалил отсюда data class PeriodStats и enum class EnchantResult

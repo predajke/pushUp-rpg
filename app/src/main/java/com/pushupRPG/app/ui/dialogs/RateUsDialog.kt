@@ -19,19 +19,24 @@ fun RateUsDialog(
     onRate: () -> Unit,
     onRemindLater: () -> Unit,
     onNeverAsk: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    title: String = "Enjoying PushUpRPG?",
+    description: String = "If you're having a great time, please take a moment to rate the app. Your feedback helps us improve!",
+    buttonRate: String = "Rate Now",
+    buttonReminder: String = "Remind Later",
+    buttonNever: String = "Never Ask"
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Enjoying PushUpRPG?",
+                text = title,
                 fontSize = 20.sp
             )
         },
         text = {
             Text(
-                text = "If you're having a great time, please take a moment to rate the app. Your feedback helps us improve!",
+                text = description,
                 fontSize = 14.sp
             )
         },
@@ -42,7 +47,7 @@ fun RateUsDialog(
                     containerColor = Color(0xFF4CAF50)
                 )
             ) {
-                Text("Rate Now")
+                Text(buttonRate)
             }
         },
         dismissButton = {
@@ -53,13 +58,13 @@ fun RateUsDialog(
                         .fillMaxWidth()
                         .padding(end = 8.dp)
                 ) {
-                    Text("Remind Later")
+                    Text(buttonReminder)
                 }
                 TextButton(
                     onClick = onNeverAsk,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Never Ask", color = Color.Gray)
+                    Text(buttonNever, color = Color.Gray)
                 }
             }
         },

@@ -64,6 +64,7 @@ fun MainMenuScreen(
     val onboardingStep by viewModel.onboardingStep.collectAsState(initial = 0)
     val isOnboardingComplete by viewModel.isOnboardingComplete.collectAsState(initial = false)
     val antiCheatCooldown by viewModel.antiCheatCooldown.collectAsState(initial = null)
+    val showRateUsDialog by viewModel.showRateUsDialog.collectAsState(initial = false)
 
     // Scroll state extracted here so it can be used in LaunchedEffect (before early return)
     val scrollState = rememberScrollState()
@@ -119,6 +120,13 @@ fun MainMenuScreen(
     LaunchedEffect(gameState) {
         if (gameState != null && gameState!!.isFirstLaunch && !isOnboardingComplete) {
             viewModel.initializeOnboarding(gameState!!)
+        }
+    }
+
+    // Check and show Rate Us dialog
+    LaunchedEffect(gameState) {
+        if (gameState != null) {
+            viewModel.checkAndShowRateUs(gameState!!)
         }
     }
 
@@ -202,6 +210,30 @@ fun MainMenuScreen(
                 )
             }
         }
+    }
+
+    // Rate Us Dialog
+    if (showRateUsDialog) {
+        com.pushupRPG.app.ui.dialogs.RateUsDialog(
+            onRate = {
+                viewModel.rateUsAction(com.pushupRPG.app.data.repository.RateUsAction.RATE_NOW)
+                // TODO: Open Google Play Store when integrated
+            },
+            onRemindLater = {
+                viewModel.rateUsAction(com.pushupRPG.app.data.repository.RateUsAction.REMIND_LATER)
+            },
+            onNeverAsk = {
+                viewModel.rateUsAction(com.pushupRPG.app.data.repository.RateUsAction.NEVER_ASK)
+            },
+            onDismiss = {
+                viewModel.dismissRateUsDialog()
+            },
+            title = AppStrings.t(language, "rate_us_title"),
+            description = AppStrings.t(language, "rate_us_description"),
+            buttonRate = AppStrings.t(language, "btn_rate_now"),
+            buttonReminder = AppStrings.t(language, "btn_remind_later"),
+            buttonNever = AppStrings.t(language, "btn_never_ask")
+        )
     }
 
     Box(

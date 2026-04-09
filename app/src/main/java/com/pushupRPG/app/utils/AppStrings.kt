@@ -271,6 +271,13 @@ object AppStrings {
         "ad_description_cheat" to m("Slow down! You're doing great! 💪\n\nWatch an ad to continue training...", "Медленнее! Ты отлично работаешь! 💪\n\nПосмотри рекламу и продолжи тренировку...", "¡Más lento! ¡Lo estás haciendo genial! 💪\n\nMira un anuncio para continuar entrenando...", "Ralentir! Tu fais du super travail! 💪\n\nRegarde une pub pour continuer l'entraînement...", "Verlangsam! Du machst es großartig! 💪\n\nSchau dir eine Anzeige an und trainiere weiter...", "Mais devagar! Você está indo muito bem! 💪\n\nAssista a um anúncio para continuar treinando..."),
         "ad_button_watch"   to m("Watch Ad (10s skip)", "Смотреть (skip через 10s)", "Ver Anuncio (skip en 10s)", "Regarder (skip dans 10s)", "Anzeige (skip in 10s)", "Assistir (skip em 10s)"),
         "ad_button_skip"    to m("Skip Ad", "Пропустить", "Saltar", "Passer", "Überspringen", "Pular"),
+
+        // Rate Us
+        "rate_us_title"     to m("Enjoying PushUpRPG?", "Нравится PushUpRPG?", "¿Te gusta PushUpRPG?", "Aimez-vous PushUpRPG?", "Gefällt dir PushUpRPG?", "Está gostando do PushUpRPG?"),
+        "rate_us_description" to m("If you're having a great time, please take a moment to rate the app. Your feedback helps us improve!", "Если тебе нравится, оцени приложение. Твой отзыв помогает нам улучшаться!", "Si lo estás disfrutando, tómate un momento para calificar la app. ¡Tu opinión nos ayuda a mejorar!", "Si tu t'amuses, prends un moment pour évaluer l'app. Ton avis nous aide à nous améliorer!", "Wenn dir das gefällt, nimm dir einen Moment Zeit, um die App zu bewerten. Dein Feedback hilft uns zu verbessern!", "Se você está se divertindo, avalie o app. Seu feedback nos ajuda a melhorar!"),
+        "btn_rate_now"      to m("Rate Now", "Оценить", "Calificar Ahora", "Évaluer Maintenant", "Jetzt Bewerten", "Avaliar Agora"),
+        "btn_remind_later"  to m("Remind Later", "Напомнить Позже", "Recordar Después", "Me Rappeler Plus Tard", "Später Erinnern", "Lembrar Depois"),
+        "btn_never_ask"     to m("Never Ask", "Больше не спрашивать", "Nunca Preguntar", "Ne Pas Demander", "Nicht Mehr Fragen", "Nunca Perguntar"),
     )
 
     fun t(lang: String, key: String): String = data[key]?.get(lang) ?: data[key]?.get("en") ?: key

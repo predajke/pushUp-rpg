@@ -91,6 +91,10 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
     private val _antiCheatCooldown = MutableStateFlow<AntiCheatCooldown?>(null)
     val antiCheatCooldown: StateFlow<AntiCheatCooldown?> = _antiCheatCooldown.asStateFlow()
 
+    // Rate Us
+    private val _showRateUsDialog = MutableStateFlow(false)
+    val showRateUsDialog: StateFlow<Boolean> = _showRateUsDialog.asStateFlow()
+
     val totalStats: StateFlow<com.pushupRPG.app.utils.TotalStats?> = gameState.filterNotNull().map { state ->
         val slots = listOf(
             state.equippedHead, state.equippedNecklace, state.equippedWeapon1,
@@ -193,6 +197,30 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
 
     fun dismissLevelUpDialog() {
         _showLevelUpDialog.value = false
+    }
+
+    // Rate Us
+    fun checkAndShowRateUs(gameState: GameStateEntity?) {
+        if (gameState == null) return
+
+        val rateUsManager = com.pushupRPG.app.managers.RateUsManager()
+        val shouldShow = rateUsManager.shouldShowRateUsDialog(
+            installDate = gameState.installDate,
+            rateUsLastShowDate = gameState.rateUsLastShowDate,
+            rateUsDoNotShowAgain = gameState.rateUsDoNotShowAgain
+        )
+        _showRateUsDialog.value = shouldShow
+    }
+
+    fun rateUsAction(action: com.pushupRPG.app.data.repository.RateUsAction) {
+        viewModelScope.launch {
+            repository.updateRateUsState(action)
+            _showRateUsDialog.value = false
+        }
+    }
+
+    fun dismissRateUsDialog() {
+        _showRateUsDialog.value = false
     }
 
     fun triggerRealtimeTick() {
