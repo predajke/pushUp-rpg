@@ -13,7 +13,7 @@ import com.ninthbalcony.pushuprpg.data.db.entity.MaxPushUpsAttemptEntity
         LogEntryEntity::class,
         MaxPushUpsAttemptEntity::class
     ],
-    version = 12,
+    version = 19,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -119,6 +119,59 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_12_13 = object : androidx.room.migration.Migration(12, 13) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE game_state ADD COLUMN shopRerollCount INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN shopRerollResetTime INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN lastAdQuestRerollDate TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        private val MIGRATION_13_14 = object : androidx.room.migration.Migration(13, 14) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE game_state ADD COLUMN adShopViewCount INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN adShopLastViewTime INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_14_15 = object : androidx.room.migration.Migration(14, 15) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE game_state ADD COLUMN prestigeLevel INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_15_16 = object : androidx.room.migration.Migration(15, 16) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE game_state ADD COLUMN dailySpinUsedToday INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN dailySpinAdViewsToday INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN lastDailySpinReset TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN totalShopPurchases INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN totalEnchantAttempts INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN totalMergeAttempts INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_16_17 = object : androidx.room.migration.Migration(16, 17) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE game_state ADD COLUMN spinTokens INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_17_18 = object : androidx.room.migration.Migration(17, 18) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE game_state ADD COLUMN teethFromQuests INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN teethFromAds INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN teethFromSpin INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE game_state ADD COLUMN itemsFromSpin INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_18_19 = object : androidx.room.migration.Migration(18, 19) {
+            override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE game_state ADD COLUMN lastHourlySpinGrantTime INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         private val MIGRATION_11_12 = object : androidx.room.migration.Migration(11, 12) {
             override fun migrate(database: androidx.sqlite.db.SupportSQLiteDatabase) {
                 // Max pushups (99) tracking for anti-cheat
@@ -141,7 +194,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "pushup_rpg_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18, MIGRATION_18_19)
                     .build()
                 INSTANCE = instance
                 instance

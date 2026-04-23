@@ -30,6 +30,9 @@ import com.ninthbalcony.pushuprpg.utils.AchBonusType
 import com.ninthbalcony.pushuprpg.utils.AchievementDef
 import com.ninthbalcony.pushuprpg.utils.AchievementSystem
 import com.ninthbalcony.pushuprpg.utils.AppStrings
+import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.Preview
+import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -289,4 +292,11 @@ private fun achBonusDotColor(type: AchBonusType): Color = when (type) {
     AchBonusType.CRIT_PERCENT         -> Color(0xFFFF6B00)
     AchBonusType.ENCHANT_FLAT         -> Color(0xFF9C27B0)
     AchBonusType.TEETH_RATE_PERCENT   -> Color(0xFFFFEE58)
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 920)
+@Composable
+private fun AchievementsScreenPreview() {
+    val vm = remember { GameViewModel(FakeGameRepository()) }
+    AchievementsScreen(viewModel = vm, onBack = {})
 }

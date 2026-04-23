@@ -14,13 +14,14 @@ class GameCalculationsTest {
     }
 
     @Test
-    fun `getLevelFromXp - уровень 2 при xp=100`() {
-        assertEquals(2, GameCalculations.getLevelFromXp(100))
+    fun `getLevelFromXp - уровень 1 при xp=100`() {
+        assertEquals(1, GameCalculations.getLevelFromXp(100))
     }
 
     @Test
-    fun `getLevelFromXp - уровень 10 при xp=3000`() {
-        assertEquals(10, GameCalculations.getLevelFromXp(3000))
+    fun `getLevelFromXp - уровень 7 при xp=3000`() {
+        // 2700 < 3000 < 3500, поэтому уровень 7
+        assertEquals(7, GameCalculations.getLevelFromXp(3000))
     }
 
     @Test
@@ -34,10 +35,10 @@ class GameCalculationsTest {
     }
 
     @Test
-    fun `getXpThresholdForLevel - уровень за пределами массива = линейный рост`() {
-        // XP_THRESHOLDS.size = 55, last = 34000, шаг = 500
-        val threshold = GameCalculations.getXpThresholdForLevel(56)
-        assertEquals(34000 + 500, threshold)
+    fun `getXpThresholdForLevel - уровень 10 = 5400`() {
+        // Сумма: 200 + 300 + 400 + 500 + 600 + 700 + 800 + 900 + 1000 = 5400
+        val threshold = GameCalculations.getXpThresholdForLevel(10)
+        assertEquals(5400, threshold)
     }
 
     @Test
@@ -48,8 +49,8 @@ class GameCalculationsTest {
 
     @Test
     fun `getXpForNextLevel - положительное значение`() {
-        val needed = GameCalculations.getXpForNextLevel(0) // нужно 100 до уровня 2
-        assertEquals(100, needed)
+        val needed = GameCalculations.getXpForNextLevel(0) // нужно 200 до уровня 2
+        assertEquals(200, needed)
     }
 
     // ==================== Урон ====================
@@ -116,15 +117,15 @@ class GameCalculationsTest {
     fun `getTeethFromSell - редкость определяет цену`() {
         assertEquals(1, GameCalculations.getTeethFromSell("common"))
         assertEquals(2, GameCalculations.getTeethFromSell("uncommon"))
-        assertEquals(3, GameCalculations.getTeethFromSell("rare"))
-        assertEquals(5, GameCalculations.getTeethFromSell("epic"))
+        assertEquals(4, GameCalculations.getTeethFromSell("rare"))
+        assertEquals(8, GameCalculations.getTeethFromSell("epic"))
     }
 
     @Test
-    fun `getTeethFromMonster - от 1 до monsterLevel включительно`() {
+    fun `getTeethFromMonster - масштабируется с уровнем монстра`() {
         repeat(100) {
-            val teeth = GameCalculations.getTeethFromMonster(5)
-            assertTrue("Зубы должны быть от 1 до 5", teeth in 1..5)
+            val teeth = GameCalculations.getTeethFromMonster(10)
+            assertTrue("Зубы от монстра уровня 10 должны быть от 5 до 10", teeth in 5..10)
         }
     }
 

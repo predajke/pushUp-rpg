@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
         // Initialize managers
         cloudSyncManager = CloudSyncManager(this, GlobalScope)
         adManager = AdManager(this)
+        adManager.preloadRewardedAd()
         playGamesManager = PlayGamesManager(this)
         antiCheatManager = AntiCheatManager()
         rateUsManager = RateUsManager()
@@ -117,6 +118,8 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    viewModel.setAdManager(adManager)
+                    viewModel.setPlayGamesManager(playGamesManager)
                     AppNavigation(viewModel = viewModel)
                 }
             }

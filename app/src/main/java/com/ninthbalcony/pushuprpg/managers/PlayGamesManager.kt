@@ -14,9 +14,15 @@ class PlayGamesManager(private val context: Context) {
     companion object {
         private const val TAG = "PlayGamesManager"
 
-        // Achievement IDs (replace with your actual Google Play Console achievement IDs)
-        private const val ACHIEVEMENT_FIRST_FIGHT = "CgkI_YOUR_ID_1" // Replace with actual ID
-        private const val ACHIEVEMENT_MASTER_PUSHUPS = "CgkI_YOUR_ID_2" // Replace with actual ID
+        // Achievement IDs
+        private const val ACHIEVEMENT_FIRST_FIGHT = "CgkI58rH-vINEAIQAA"
+        private const val ACHIEVEMENT_MASTER_PUSHUPS = "CgkI58rH-vINEAIQAQ"
+        private const val ACHIEVEMENT_EPIC_CATCH = "CgkI58rH-vINEAIQAg"
+        private const val ACHIEVEMENT_LEGENDARY_CATCH = "CgkI58rH-vINEAIQAw"
+        private const val ACHIEVEMENT_RICH = "CgkI58rH-vINEAIQBA"
+        private const val ACHIEVEMENT_FAILED_ENCHANTS = "CgkI58rH-vINEAIQBQ"
+        private const val ACHIEVEMENT_FULL_WARDROBE = "CgkI58rH-vINEAIQBg"
+        private const val ACHIEVEMENT_ALCHEMIST = "CgkI58rH-vINEAIQBw"
     }
 
     private var gamesClient: GamesClient? = null
@@ -83,6 +89,42 @@ class PlayGamesManager(private val context: Context) {
 
         Games.getAchievementsClient(context, signInAccount!!).reveal(ACHIEVEMENT_MASTER_PUSHUPS)
         Log.d(TAG, "Revealed achievement: Master Pushups")
+    }
+
+    fun unlockAchievementEpicCatch() {
+        if (gamesClient == null) return
+        Games.getAchievementsClient(context, signInAccount!!).unlock(ACHIEVEMENT_EPIC_CATCH)
+        Log.d(TAG, "Unlocked achievement: Epic Catch")
+    }
+
+    fun unlockAchievementLegendaryCatch() {
+        if (gamesClient == null) return
+        Games.getAchievementsClient(context, signInAccount!!).unlock(ACHIEVEMENT_LEGENDARY_CATCH)
+        Log.d(TAG, "Unlocked achievement: Legendary Catch")
+    }
+
+    fun unlockAchievementRich() {
+        if (gamesClient == null) return
+        Games.getAchievementsClient(context, signInAccount!!).unlock(ACHIEVEMENT_RICH)
+        Log.d(TAG, "Unlocked achievement: Rich")
+    }
+
+    fun incrementAchievementFailedEnchants(steps: Int) {
+        if (gamesClient == null) return
+        Games.getAchievementsClient(context, signInAccount!!).increment(ACHIEVEMENT_FAILED_ENCHANTS, steps)
+        Log.d(TAG, "Incremented Failed Enchants by $steps")
+    }
+
+    fun unlockAchievementFullWardrobe() {
+        if (gamesClient == null) return
+        Games.getAchievementsClient(context, signInAccount!!).unlock(ACHIEVEMENT_FULL_WARDROBE)
+        Log.d(TAG, "Unlocked achievement: Full Wardrobe")
+    }
+
+    fun incrementAchievementAlchemist(steps: Int) {
+        if (gamesClient == null) return
+        Games.getAchievementsClient(context, signInAccount!!).increment(ACHIEVEMENT_ALCHEMIST, steps)
+        Log.d(TAG, "Incremented Alchemist by $steps")
     }
 
     fun getAchievementsClient(): GamesClient? {

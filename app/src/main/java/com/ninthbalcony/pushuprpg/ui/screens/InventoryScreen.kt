@@ -31,6 +31,9 @@ import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.GameCalculations
 import com.ninthbalcony.pushuprpg.utils.ItemUtils
+import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.Preview
+import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
 // --- Экипировка ---
 @Composable
@@ -541,7 +544,9 @@ private fun InventoryStatsPanel(
     state: GameStateEntity,
     totalStats: com.ninthbalcony.pushuprpg.utils.TotalStats?,
     language: String,
-    onSpendPoint: (String) -> Unit
+    onSpendPoint: (String) -> Unit,
+    achBonuses: com.ninthbalcony.pushuprpg.utils.AchievementBonuses = com.ninthbalcony.pushuprpg.utils.AchievementBonuses(),
+    setBonuses: com.ninthbalcony.pushuprpg.utils.SetBonuses = com.ninthbalcony.pushuprpg.utils.SetBonuses()
 ) {
     val totalPower = totalStats?.power ?: state.basePower
     val totalArmor = totalStats?.armor ?: state.baseArmor
@@ -592,6 +597,17 @@ private fun InventoryStatsPanel(
                     fontWeight = FontWeight.Bold,
                     color = TextSecondary
                 )
+                if (state.prestigeLevel > 0) {
+                    Text(
+                        text = if (language == "ru")
+                            "🏅 Сбросов: ${state.prestigeLevel}"
+                        else
+                            "🏅 Resets: ${state.prestigeLevel}",
+                        fontSize = 12.sp,
+                        color = LuckColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 if (hasPoints) {
                     Text(
                         text = if (language == "ru")
@@ -656,6 +672,117 @@ private fun InventoryStatsPanel(
                 hasPoints = hasPoints,
                 onSpend = { onSpendPoint("luck") }
             )
+
+            // ===== ACHIEVEMENT BOOSTS =====
+            if (achBonuses.damagePercent > 0 || achBonuses.armorPercent > 0 ||
+                achBonuses.hpFlat > 0 || achBonuses.critPercent > 0 ||
+                achBonuses.xpPercent > 0 || achBonuses.enchantFlat > 0 ||
+                achBonuses.dropRatePercent > 0 || achBonuses.teethRatePercent > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = if (language == "ru") "📜 Бонусы достижений:" else "📜 Achievement Boosts:",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OrangeAccent
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
+                    if (achBonuses.damagePercent > 0) {
+                        Text(
+                            text = "+${(achBonuses.damagePercent * 100).toInt()}% " +
+                                (if (language == "ru") "урон" else "dmg"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                    if (achBonuses.armorPercent > 0) {
+                        Text(
+                            text = "+${(achBonuses.armorPercent * 100).toInt()}% " +
+                                (if (language == "ru") "броня" else "armor"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                    if (achBonuses.hpFlat > 0) {
+                        Text(
+                            text = "+${achBonuses.hpFlat} " +
+                                (if (language == "ru") "HP" else "HP"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                    if (achBonuses.critPercent > 0) {
+                        Text(
+                            text = "+${(achBonuses.critPercent * 100).toInt()}% " +
+                                (if (language == "ru") "крит" else "crit"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                    if (achBonuses.xpPercent > 0) {
+                        Text(
+                            text = "+${(achBonuses.xpPercent * 100).toInt()}% " +
+                                (if (language == "ru") "опыт" else "XP"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                    if (achBonuses.enchantFlat > 0) {
+                        Text(
+                            text = "+${achBonuses.enchantFlat.toInt()}% " +
+                                (if (language == "ru") "заточка" else "enchant"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                    if (achBonuses.dropRatePercent > 0) {
+                        Text(
+                            text = "+${(achBonuses.dropRatePercent * 100).toInt()}% " +
+                                (if (language == "ru") "дроп" else "drop"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                    if (achBonuses.teethRatePercent > 0) {
+                        Text(
+                            text = "+${(achBonuses.teethRatePercent * 100).toInt()}% " +
+                                (if (language == "ru") "зубы" else "teeth"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
+            }
+
+            // ===== SET MODIFIERS =====
+            if (setBonuses.damagePercent > 0 || setBonuses.armorPercent > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = if (language == "ru") "⚙️ Модификаторы наборов:" else "⚙️ Set Modifiers:",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OrangeAccent
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
+                    if (setBonuses.damagePercent > 0) {
+                        Text(
+                            text = "+${(setBonuses.damagePercent * 100).toInt()}% " +
+                                (if (language == "ru") "урон" else "dmg"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                    if (setBonuses.armorPercent > 0) {
+                        Text(
+                            text = "+${(setBonuses.armorPercent * 100).toInt()}% " +
+                                (if (language == "ru") "броня" else "armor"),
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
+            }
         } // Column
     } // Box (фон)
 }
@@ -912,15 +1039,27 @@ fun InventoryScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Статы
+                val achBonuses = com.ninthbalcony.pushuprpg.utils.AchievementSystem.getActiveBonuses(state.activeAchievementIds)
+                val setBonuses = ItemUtils.getSetBonuses(viewModel.getEquippedItems(state))
+
                 InventoryStatsPanel(
                     state = state,
                     totalStats = totalStats,
                     language = language,
-                    onSpendPoint = { stat -> viewModel.spendStatPoint(stat) }
+                    onSpendPoint = { stat -> viewModel.spendStatPoint(stat) },
+                    achBonuses = achBonuses,
+                    setBonuses = setBonuses
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 920)
+@Composable
+private fun InventoryScreenPreview() {
+    val vm = remember { GameViewModel(FakeGameRepository()) }
+    InventoryScreen(viewModel = vm, onBack = {}, onNavigateToShop = {}, onNavigateToAchievements = {})
 }

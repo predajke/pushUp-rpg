@@ -1,5 +1,6 @@
 package com.ninthbalcony.pushuprpg.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,8 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,8 +34,30 @@ import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.ItemUtils
 import com.ninthbalcony.pushuprpg.utils.ShopUtils
+import com.ninthbalcony.pushuprpg.utils.SpinReward
+import com.ninthbalcony.pushuprpg.utils.SpinResult
+import com.ninthbalcony.pushuprpg.utils.SpinUtils
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
+import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.Preview
+import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
+// Веса иконок для ленты (отражают вероятности наград)
+private val SPIN_WEIGHTED_TYPES = listOf(
+    "common_spin",   "common_spin",   "common_spin",   "common_spin",   "common_spin",
+    "teeth",         "teeth",         "teeth",         "teeth",
+    "uncommon_spin", "uncommon_spin", "uncommon_spin", "uncommon_spin",
+    "rare_spin",     "rare_spin",     "rare_spin",     "rare_spin",
+    "clover_box",    "clover_box",
+    "boss_cube"
+)
+
+/** Генерирует список иконок для ленты; winnerType фиксируется на позиции 22 */
+private fun buildSpinRibbon(winnerType: String?): List<String> {
+    val items = MutableList(60) { SPIN_WEIGHTED_TYPES.random() }
+    if (winnerType != null) items[22] = winnerType
+    return items
+}
 
 @Composable
 fun ShopScreen(
@@ -55,6 +80,16 @@ fun ShopScreen(
     var showCursedDialog by remember { mutableStateOf(false) }
     var showNoTeethDialog by remember { mutableStateOf(false) }
 
+    // Daily Spin state
+    var showSpinResultDialog by remember { mutableStateOf(false) }
+    var spinResultToShow by remember { mutableStateOf<SpinResult?>(null) }
+    var isSpinAnimating by remember { mutableStateOf(false) }
+    // Лента генерируется в ShopScreen (гарантирует совпадение иконки и награды)
+    var spinRibbonItems by remember { mutableStateOf(buildSpinRibbon(null)) }
+    val spinResult by viewModel.spinResult.collectAsState()
+    val availableSpins by viewModel.availableSpins.collectAsState()
+    val adViewsToday by viewModel.adViewsToday.collectAsState()
+
     val forgeSlot1Item = remember(state.forgeSlot1) {
         if (state.forgeSlot1.isNotEmpty()) ItemUtils.getItemById(state.forgeSlot1) else null
     }
@@ -65,8 +100,44 @@ fun ShopScreen(
     val selectedEnchantItem by viewModel.selectedEnchantItem.collectAsState(initial = null)
     var showEnchantItemPicker by remember { mutableStateOf(false) }
 
+    val adRewardPending by viewModel.adRewardPending.collectAsState()
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         viewModel.loadShop()
+        viewModel.refreshSpinCounters()
+    }
+
+    LaunchedEffect(state.shopLastRefresh) {
+        val remaining = com.ninthbalcony.pushuprpg.utils.ShopUtils.SHOP_REFRESH_INTERVAL_MS -
+            (System.currentTimeMillis() - state.shopLastRefresh)
+        if (remaining > 0) {
+            kotlinx.coroutines.delay(remaining)
+            viewModel.loadShop()
+        }
+    }
+
+    // Когда результат пришёл: строим ленту с победителем на поз.22, ждём recomposition, затем анимация
+    LaunchedEffect(spinResult) {
+        val result = spinResult ?: return@LaunchedEffect
+        if (isSpinAnimating || showSpinResultDialog) return@LaunchedEffect
+        // 1. Строим ленту с правильным типом на позиции 22 (до старта анимации)
+        spinRibbonItems = buildSpinRibbon(result.reward.type)
+        spinResultToShow = result
+        // 2. Ждём recomposition (~4 кадра = 64ms) — гарантирует что лента перестроилась
+        kotlinx.coroutines.delay(64)
+        isSpinAnimating = true
+    }
+
+    if (adRewardPending > 0) {
+        com.ninthbalcony.pushuprpg.ui.dialogs.RewardedAdDialog(
+            title = AppStrings.t(language, "ad_title"),
+            description = AppStrings.t(language, "ad_reward_desc"),
+            rewardText = "+$adRewardPending 🦷",
+            onWatchAd = { (context as? android.app.Activity)?.let { viewModel.playRewardedAd(it) } },
+            onDecline = { viewModel.dismissAdReward() },
+            onDismiss = { viewModel.dismissAdReward() }
+        )
     }
 
     if (showForgeItemPicker > 0) {
@@ -114,6 +185,20 @@ fun ShopScreen(
 
     if (showNoTeethDialog) {
         NoTeethDialog(onDismiss = { showNoTeethDialog = false })
+    }
+
+    if (showSpinResultDialog && spinResultToShow != null) {
+        SpinResultDialog(
+            result = spinResultToShow!!.reward,
+            wonItemIds = spinResultToShow!!.wonItemIds,
+            language = language,
+            onDismiss = {
+                showSpinResultDialog = false
+                spinResultToShow = null
+                viewModel.clearSpinResult()
+                viewModel.refreshSpinCounters()
+            }
+        )
     }
 
     if (showEnchantItemPicker) {
@@ -236,12 +321,15 @@ fun ShopScreen(
                             }
                         }
                     }
-                }
+                },
+                onRecycle = { viewModel.recycleForgeSlots() }
             )
 
             CloverBoxSection(
                 cloverUsed = state.cloverBoxUsedToday,
                 freePointsUsed = state.freePointsUsedToday,
+                adShopViewCount = state.adShopViewCount,
+                adShopLastViewTime = state.adShopLastViewTime,
                 language = language,
                 onCloverBox = {
                     viewModel.useCloverBox { result ->
@@ -263,6 +351,22 @@ fun ShopScreen(
                         }
                         showResultDialog = true
                     }
+                },
+                onWatchAdReward = { viewModel.requestAdReward(20) }
+            )
+
+            // --- Daily Spin ---
+            DailySpinSection(
+                availableSpins = availableSpins,
+                adViewsToday = adViewsToday,
+                isSpinAnimating = isSpinAnimating,
+                ribbonItems = spinRibbonItems,
+                language = language,
+                onSpin = { viewModel.performDailySpin() },
+                onAdSpin = { viewModel.watchAdForSpin() },
+                onAnimationEnd = {
+                    isSpinAnimating = false
+                    showSpinResultDialog = true
                 }
             )
 
@@ -316,6 +420,21 @@ fun ShopSection(
         context.resources.getIdentifier("bg_shop", "drawable", context.packageName)
     }
 
+    var currentTimeMs by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(1_000L)
+            currentTimeMs = System.currentTimeMillis()
+        }
+    }
+    val resetIntervalMs = 5L * 60 * 1000
+    val effectiveCount = if (currentTimeMs - state.shopRerollResetTime >= resetIntervalMs) 0 else state.shopRerollCount
+    val rerollCost = (effectiveCount + 1) * 3
+    val rerollResetLabel: String? = if (effectiveCount > 0) {
+        val remaining = resetIntervalMs - (currentTimeMs - state.shopRerollResetTime)
+        if (remaining > 0) "${remaining / 60000}m ${(remaining % 60000) / 1000}s" else null
+    } else null
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -364,7 +483,7 @@ fun ShopSection(
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
                     ) {
                         Text(
-                            text = AppStrings.t(language, "btn_reroll"),
+                            text = "${AppStrings.t(language, "btn_reroll")} $rerollCost 🦷",
                             fontSize = 12.sp
                         )
                     }
@@ -451,7 +570,10 @@ fun ShopSection(
 
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Reroll cost = 1 🦷",
+                text = if (rerollResetLabel != null)
+                    (if (language == "ru") "Сброс стоимости через: $rerollResetLabel" else "Cost resets in: $rerollResetLabel")
+                else
+                    (if (language == "ru") "Стоимость рерола: $rerollCost 🦷 (×3 за каждый рерол)" else "Reroll cost: $rerollCost 🦷 (×3 each reroll)"),
                 fontSize = 12.sp,
                 color = TextSecondary,
                 textAlign = TextAlign.Center,
@@ -519,7 +641,8 @@ fun ForgeSection(
     language: String,
     onSlot1Click: () -> Unit,
     onSlot2Click: () -> Unit,
-    onMerge: () -> Unit
+    onMerge: () -> Unit,
+    onRecycle: () -> Unit
 ) {
     val context = LocalContext.current
     val bgResId = remember {
@@ -593,34 +716,51 @@ fun ForgeSection(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp)
-                            .background(
-                                if (slot1Item != null && slot2Item != null) OrangeAccent
-                                else ButtonGray,
-                                RoundedCornerShape(8.dp)
-                            )
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable(enabled = slot1Item != null && slot2Item != null) { onMerge() },
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        if (mergeBtnBg != 0 && slot1Item != null && slot2Item != null) {
-                            Image(
-                                painter = painterResource(id = mergeBtnBg),
-                                contentDescription = null,
-                                modifier = Modifier.matchParentSize(),
-                                contentScale = ContentScale.Crop,
-                                alpha = 0.3f
+                        // Merge button
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .background(
+                                    if (slot1Item != null && slot2Item != null) OrangeAccent
+                                    else ButtonGray,
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable(enabled = slot1Item != null && slot2Item != null) { onMerge() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (mergeBtnBg != 0 && slot1Item != null && slot2Item != null) {
+                                Image(
+                                    painter = painterResource(id = mergeBtnBg),
+                                    contentDescription = null,
+                                    modifier = Modifier.matchParentSize(),
+                                    contentScale = ContentScale.Crop,
+                                    alpha = 0.3f
+                                )
+                            }
+                            Text(
+                                text = AppStrings.t(language, "btn_merge"),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Yellow,
+                                fontSize = 13.sp
                             )
                         }
-                        Text(
-                            text = AppStrings.t(language, "btn_merge"),
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Yellow,
-                            fontSize = 13.sp
-                        )
+                        // Recycle button
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .background(DarkSurfaceVariant, RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onRecycle() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("♻", fontSize = 20.sp)
+                        }
                     }
                 }
             }
@@ -686,10 +826,24 @@ fun ForgeSlot(
 fun CloverBoxSection(
     cloverUsed: Int,
     freePointsUsed: Int,
+    adShopViewCount: Int,
+    adShopLastViewTime: Long,
     language: String,
     onCloverBox: () -> Unit,
-    onFreePoints: () -> Unit
+    onFreePoints: () -> Unit,
+    onWatchAdReward: () -> Unit
 ) {
+    var adCurrentTimeMs by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(adShopLastViewTime) {
+        while (true) {
+            kotlinx.coroutines.delay(1_000L)
+            adCurrentTimeMs = System.currentTimeMillis()
+        }
+    }
+    val adCooldownMs = minOf(30_000L, adShopViewCount.toLong() * 5_000L)
+    val adCooldownRemaining = (adCooldownMs - (adCurrentTimeMs - adShopLastViewTime)).coerceAtLeast(0L)
+    val onAdCooldown = adCooldownRemaining > 0
+
     val context = LocalContext.current
     val bgResId = remember {
         context.resources.getIdentifier("bg_clover", "drawable", context.packageName)
@@ -827,6 +981,41 @@ fun CloverBoxSection(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider(color = DarkSurfaceVariant)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🎬", fontSize = 20.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(AppStrings.t(language, "ad_reward_title"), fontSize = 13.sp, color = TextPrimary)
+                        Text("+20 🦷", fontSize = 11.sp, color = TextSecondary)
+                        if (onAdCooldown) {
+                            Text("${adCooldownRemaining / 1000}s", fontSize = 10.sp, color = TextMuted)
+                        }
+                    }
+                }
+                Button(
+                    onClick = onWatchAdReward,
+                    enabled = !onAdCooldown,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = OrangeAccent,
+                        disabledContainerColor = ButtonGray
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(36.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp)
+                ) {
+                    Text(AppStrings.t(language, "btn_watch_ad"), fontSize = 13.sp)
+                }
+            }
         }
     }
 }
@@ -1516,4 +1705,393 @@ private fun getItemEmojiForShop(slot: String): String {
         "boots" -> "👟"
         else -> "📦"
     }
+}
+
+// ==================== DAILY SPIN ====================
+
+@Composable
+private fun DailySpinSection(
+    availableSpins: Int,
+    adViewsToday: Int,
+    isSpinAnimating: Boolean,
+    ribbonItems: List<String>,
+    language: String,
+    onSpin: () -> Unit,
+    onAdSpin: () -> Unit,
+    onAnimationEnd: () -> Unit
+) {
+    val context = LocalContext.current
+    val bgResId = remember {
+        context.resources.getIdentifier("bg_spin", "drawable", context.packageName)
+    }
+    val canWatchAd = adViewsToday < SpinUtils.MAX_DAILY_AD_VIEWS
+    val canSpin = availableSpins > 0 && !isSpinAnimating
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+        if (bgResId != 0) {
+            Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.5f
+            )
+            Box(modifier = Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.4f)))
+        } else {
+            Box(modifier = Modifier.matchParentSize().background(DarkCard))
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Заголовок убран — он уже нарисован на картинке bg_spin
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text("▼", color = Color(0xFFFFD700), fontSize = 14.sp)
+
+            SpinRibbon(
+                isSpinAnimating = isSpinAnimating,
+                ribbonItems = ribbonItems,
+                onAnimationEnd = onAnimationEnd,
+                modifier = Modifier.fillMaxWidth().height(80.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // SPIN и Watch AD по центру рядом
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // SPIN с бейджем
+                Box(modifier = Modifier.width(120.dp)) {
+                    Button(
+                        onClick = onSpin,
+                        enabled = canSpin,
+                        modifier = Modifier.fillMaxWidth().height(40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1e6303),
+                            disabledContainerColor = Color(0xFF1B5E20)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("SPIN", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                    if (availableSpins > 0) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 6.dp, y = (-6).dp)
+                                .defaultMinSize(minWidth = 22.dp, minHeight = 22.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(Color.Red)
+                                .padding(horizontal = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("$availableSpins", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Watch AD
+                Button(
+                    onClick = onAdSpin,
+                    enabled = !isSpinAnimating && canWatchAd,
+                    modifier = Modifier.width(68.dp).height(34.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFb39500),
+                        contentColor = Color.Black,
+                        disabledContainerColor = Color(0xFF9ea605),
+                        disabledContentColor = Color.Black
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = if (language == "ru") "Реклама" else "Watch AD",
+                            fontSize = 12.sp, fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "$adViewsToday/${SpinUtils.MAX_DAILY_AD_VIEWS}",
+                            fontSize = 9.sp
+                        )
+                    }
+                }
+            }
+
+            // Вероятности наград
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = if (language == "ru")
+                    "Leg 3% • Epic 12% • Rare 19% • Unc 20% • Зубы 21% • Com 25%"
+                else
+                    "Leg 3% • Epic 12% • Rare 19% • Unc 20% • Teeth 21% • Com 25%",
+                color = TextSecondary.copy(alpha = 0.6f),
+                fontSize = 10.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+// Лента с анимацией вращения
+@Composable
+private fun SpinRibbon(
+    isSpinAnimating: Boolean,
+    ribbonItems: List<String>,  // передаётся снаружи, winner на позиции 22
+    onAnimationEnd: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+
+    val itemWidthDp = 72.dp
+    val itemWidthPx = with(density) { itemWidthDp.toPx() }
+    val scrollItems = 22
+
+    val offsetX = remember { Animatable(0f) }
+
+    LaunchedEffect(isSpinAnimating) {
+        if (isSpinAnimating) {
+            offsetX.snapTo(0f)
+            offsetX.animateTo(
+                targetValue = scrollItems.toFloat() * itemWidthPx,
+                animationSpec = tween(durationMillis = 7000, easing = FastOutSlowInEasing)
+            )
+            onAnimationEnd()
+        } else {
+            offsetX.snapTo(0f)
+        }
+    }
+
+    // BoxWithConstraints: maxWidth = реальная ширина ленты → item[0] по центру изначально,
+    // после прокрутки scrollItems позиций — item[scrollItems] идеально по центру маркера
+    BoxWithConstraints(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.Black.copy(alpha = 0.4f))
+            .border(1.dp, Color(0xFFFFD700).copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+    ) {
+        // constraints.maxWidth уже в пикселях — явно используем скоуп BoxWithConstraints
+        val centeringOffset = constraints.maxWidth.toFloat() / 2f - itemWidthPx / 2f
+
+        // ВАЖНО: align=Start, иначе дефолтный CenterHorizontally центрирует
+        // Row (шириной 60*72=4320dp) внутри Box и ломает расчёт centeringOffset
+        Row(
+            modifier = Modifier
+                .fillMaxHeight()
+                .wrapContentWidth(align = Alignment.Start, unbounded = true)
+                .graphicsLayer { translationX = centeringOffset - offsetX.value },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ribbonItems.forEach { type ->
+                SpinRibbonIcon(type = type, context = context, sizeDp = itemWidthDp)
+            }
+        }
+
+        // Золотой маркер по центру
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .width(itemWidthDp)
+                .fillMaxHeight()
+                .border(2.dp, Color(0xFFFFD700), RoundedCornerShape(4.dp))
+        )
+    }
+}
+
+// Иконка на ленте
+@Composable
+private fun SpinRibbonIcon(
+    type: String,
+    context: android.content.Context,
+    sizeDp: androidx.compose.ui.unit.Dp
+) {
+    val iconResId = remember(type) {
+        when (type) {
+            "clover_box"    -> context.resources.getIdentifier("img_clover_box", "drawable", context.packageName)
+            "boss_cube"     -> context.resources.getIdentifier("boss_cube", "drawable", context.packageName)
+            "teeth"         -> context.resources.getIdentifier("teeth_bag", "drawable", context.packageName)
+            "uncommon_spin" -> context.resources.getIdentifier("weapon_009", "drawable", context.packageName)
+            "rare_spin"     -> context.resources.getIdentifier("weapon_011", "drawable", context.packageName)
+            "common_spin"   -> context.resources.getIdentifier("boots_001", "drawable", context.packageName)
+            else            -> 0
+        }
+    }
+    Box(
+        modifier = Modifier.size(sizeDp),
+        contentAlignment = Alignment.Center
+    ) {
+        if (iconResId != 0) {
+            Image(
+                painter = painterResource(id = iconResId),
+                contentDescription = null,
+                modifier = Modifier.size(sizeDp - 12.dp),
+                contentScale = ContentScale.Fit
+            )
+        } else {
+            Text(text = "❓", fontSize = 24.sp)
+        }
+    }
+}
+
+// Диалог результата спина
+@Composable
+private fun SpinResultDialog(
+    result: SpinReward,
+    wonItemIds: List<String>,
+    language: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+
+    val bgDrawable = when (result.type) {
+        "boss_cube"     -> "bg_pop_cube"
+        "clover_box"    -> "bg_pop_epic"
+        "rare_spin",
+        "uncommon_spin",
+        "common_spin"   -> "bg_pop_boot"
+        else            -> "bg_pop_teeth"
+    }
+    val bgResId = remember(bgDrawable) {
+        context.resources.getIdentifier(bgDrawable, "drawable", context.packageName)
+    }
+
+    val addedToInv = if (language == "ru") "Добавлен в инвентарь!" else "Added to inventory!"
+    val (title, desc) = when (result.type) {
+        "boss_cube"     -> Pair(if (language == "ru") "Легендарный предмет!" else "Legendary Item!", addedToInv)
+        "clover_box"    -> Pair(if (language == "ru") "Эпический предмет!" else "Epic Item!", addedToInv)
+        "rare_spin"     -> Pair(if (language == "ru") "Редкий предмет!" else "Rare Item!", addedToInv)
+        "uncommon_spin" -> Pair(if (language == "ru") "Необычный предмет!" else "Uncommon Item!", addedToInv)
+        "common_spin"   -> Pair(if (language == "ru") "Обычный предмет!" else "Common Item!", addedToInv)
+        else            -> Pair("${result.amount} 🦷", if (language == "ru") "Зубы добавлены к балансу!" else "Teeth added to your balance!")
+    }
+
+    val rewardColor = when (result.type) {
+        "boss_cube"     -> Color(0xFFFFD700)
+        "clover_box"    -> Color(0xFF9C27B0)
+        "rare_spin"     -> Color(0xFF2196F3)
+        "uncommon_spin" -> Color(0xFF4CAF50)
+        "common_spin"   -> Color(0xFFE0E0E0)
+        else            -> Color(0xFFE0E0E0)
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+        ) {
+            // Фоновая картинка
+            if (bgResId != 0) {
+                Image(
+                    painter = painterResource(id = bgResId),
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(modifier = Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.45f)))
+            } else {
+                Box(modifier = Modifier.matchParentSize().background(DarkCard))
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 28.dp)
+            ) {
+                // Заголовок по центру
+                Text(
+                    text = if (language == "ru") "Ты выиграл!" else "You Won!",
+                    color = Color(0xFFFFD700),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Иконки выпавших предметов (только для item-наград)
+                if (wonItemIds.isNotEmpty()) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        wonItemIds.forEach { itemId ->
+                            val resId = remember(itemId) {
+                                context.resources.getIdentifier(itemId, "drawable", context.packageName)
+                            }
+                            Box(
+                                modifier = Modifier.size(72.dp).padding(4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (resId != 0) {
+                                    Image(
+                                        painter = painterResource(id = resId),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(64.dp),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                } else {
+                                    Text("❓", fontSize = 36.sp)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = title,
+                    color = rewardColor,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = desc,
+                    color = TextSecondary,
+                    fontSize = 13.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Кнопка OK — узкая, по центру
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.width(80.dp).height(32.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("OK", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 920)
+@Composable
+private fun ShopScreenPreview() {
+    val vm = remember { GameViewModel(FakeGameRepository()) }
+    ShopScreen(viewModel = vm, onBack = {})
 }

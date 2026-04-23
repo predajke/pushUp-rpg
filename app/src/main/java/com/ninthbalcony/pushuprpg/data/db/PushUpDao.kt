@@ -26,6 +26,9 @@ interface PushUpDao {
     @Query("SELECT date, SUM(count) as count FROM pushup_records GROUP BY date ORDER BY date DESC LIMIT 7")
     suspend fun getLast7DaysStats(): List<DayStats>
 
+    @Query("SELECT strftime('%Y-%m', date) as date, SUM(count) as count FROM pushup_records WHERE date >= date('now', 'start of month', '-11 months') GROUP BY strftime('%Y-%m', date) ORDER BY date ASC")
+    suspend fun getLast12MonthsStats(): List<DayStats>
+
     @Query("SELECT SUM(count) FROM pushup_records WHERE date >= :startDate")
     suspend fun getPushUpsSince(startDate: String): Int?
 

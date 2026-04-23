@@ -88,17 +88,33 @@ object ItemUtils {
                 "shadow"    -> { drop  += if (count >= 3) 0.30f else if (count >= 2) 0.15f else 0f }
                 "archon"    -> { xp    += if (count >= 3) 0.40f else if (count >= 2) 0.20f else 0f }
                 "smith"     -> { enchant += if (count >= 3) 0.30f else if (count >= 2) 0.15f else 0f }
-                "hellxdead" -> { dmg += if (count >= 3) 1.50f else if (count >= 2) 0.80f else 0f; drop += if (count >= 3) 0.50f else 0f }
+                "hellxdead" -> { dmg += if (count >= 3) 0.93f else if (count >= 2) 0.50f else 0f; drop += if (count >= 3) 0.31f else 0f }
+                "singularity" -> {
+                    dmg += if (count >= 4) 1.00f else if (count >= 3) 0.60f else if (count >= 2) 0.30f else 0f;
+                    armor += if (count >= 4) 0.50f else if (count >= 3) 0.20f else 0f
+                }
                 "void"      -> {
                     dmg  += when {
-                        count >= 5 -> 2.50f
-                        count >= 4 -> 1.50f
+                        count >= 5 -> 1.75f
+                        count >= 4 -> 1.30f
                         count >= 3 -> 1.00f
                         count >= 2 -> 0.50f
                         else       -> 0f
                     }
                     drop += if (count >= 5) 1.00f else if (count >= 4) 0.60f else if (count >= 3) 0.30f else 0f
                     xp   += if (count >= 5) 0.50f else if (count >= 3) 0.20f else 0f
+                }
+                "scifi"     -> {
+                    armor += if (count >= 3) 0.30f else if (count >= 2) 0.20f else 0f
+                    dmg   += if (count >= 3) 0.25f else 0f
+                }
+                "post"      -> {
+                    dmg += if (count >= 4) 2.00f else if (count >= 3) 1.20f else if (count >= 2) 0.60f else 0f
+                }
+                "elf"       -> {
+                    dmg   += when { count >= 5 -> 2.50f; count >= 4 -> 1.50f; count >= 3 -> 1.00f; count >= 2 -> 0.50f; else -> 0f }
+                    armor += when { count >= 5 -> 1.00f; count >= 4 -> 0.60f; count >= 3 -> 0.30f; else -> 0f }
+                    drop  += if (count >= 5) 0.80f else 0f
                 }
             }
         }

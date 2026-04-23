@@ -5,7 +5,7 @@ import kotlin.random.Random
 
 object ShopUtils {
 
-    const val SHOP_REFRESH_INTERVAL_MS = 6L * 60 * 60 * 1000 // 6 часов
+    const val SHOP_REFRESH_INTERVAL_MS = 10L * 60 * 1000 // 10 минут
     const val SHOP_SLOTS = 4
 
     // Цены покупки в магазине
@@ -53,9 +53,9 @@ object ShopUtils {
     fun getTimeUntilRefresh(lastRefresh: Long): String {
         val remaining = SHOP_REFRESH_INTERVAL_MS - (System.currentTimeMillis() - lastRefresh)
         if (remaining <= 0) return "Now"
-        val hours = remaining / 3_600_000
-        val minutes = (remaining % 3_600_000) / 60_000
-        return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
+        val minutes = remaining / 60_000
+        val seconds = (remaining % 60_000) / 1_000
+        return "${minutes}m ${seconds}s"
     }
 
     // Шансы кузницы. null = FAIL (15%)

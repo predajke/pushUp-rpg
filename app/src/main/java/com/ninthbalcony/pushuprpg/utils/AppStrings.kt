@@ -166,7 +166,13 @@ object AppStrings {
 
         // --- Статистика ---
         "stats_last_week"   to m("Last week",       "Последняя неделя",     "Última semana",    "Dernière semaine",     "Letzte Woche",     "Última semana"),
+        "stats_last_year"   to m("Last year",        "Последний год",        "Último año",       "Dernière année",       "Letztes Jahr",     "Último ano"),
         "stats_no_data"     to m("No data for this week","Нет данных за эту неделю","Sin datos esta semana","Pas de données pour cette semaine","Keine Daten für diese Woche","Sem dados desta semana"),
+        "stats_this_week"   to m("This week",        "Эта неделя",           "Esta semana",      "Cette semaine",        "Diese Woche",      "Esta semana"),
+        "stats_this_year"   to m("This year",        "Этот год",             "Este año",         "Cette année",          "Dieses Jahr",      "Este ano"),
+        "stats_daily_avg"   to m("Daily avg",        "Среднее/день",         "Promedio/día",     "Moy./jour",            "Ø/Tag",            "Média/dia"),
+        "stats_best_day"    to m("Best day",         "Лучший день",          "Mejor día",        "Meilleur jour",        "Bester Tag",       "Melhor dia"),
+        "stats_best_month"  to m("Best month",       "Лучший месяц",         "Mejor mes",        "Meilleur mois",        "Bester Monat",     "Melhor mês"),
         "period_week"       to m("Last week",       "За последнюю неделю",  "Última semana",    "Dernière semaine",     "Letzte Woche",     "Última semana"),
         "period_month"      to m("Last month",      "За последний месяц",   "Último mes",       "Dernier mois",         "Letzter Monat",    "Último mês"),
         "period_quarter"    to m("Last quarter",    "За последний квартал", "Último trimestre", "Dernier trimestre",    "Letztes Quartal",  "Último trimestre"),
@@ -271,6 +277,9 @@ object AppStrings {
         "ad_description_cheat" to m("Slow down! You're doing great! 💪\n\nWatch an ad to continue training...", "Медленнее! Ты отлично работаешь! 💪\n\nПосмотри рекламу и продолжи тренировку...", "¡Más lento! ¡Lo estás haciendo genial! 💪\n\nMira un anuncio para continuar entrenando...", "Ralentir! Tu fais du super travail! 💪\n\nRegarde une pub pour continuer l'entraînement...", "Verlangsam! Du machst es großartig! 💪\n\nSchau dir eine Anzeige an und trainiere weiter...", "Mais devagar! Você está indo muito bem! 💪\n\nAssista a um anúncio para continuar treinando..."),
         "ad_button_watch"   to m("Watch Ad (10s skip)", "Смотреть (skip через 10s)", "Ver Anuncio (skip en 10s)", "Regarder (skip dans 10s)", "Anzeige (skip in 10s)", "Assistir (skip em 10s)"),
         "ad_button_skip"    to m("Skip Ad", "Пропустить", "Saltar", "Passer", "Überspringen", "Pular"),
+        "ad_reward_title"   to m("Watch Ad", "Смотреть рекламу", "Ver anuncio", "Regarder pub", "Werbung sehen", "Ver anúncio"),
+        "ad_reward_desc"    to m("Watch a short ad to earn bonus teeth!", "Посмотри рекламу и получи бонусные зубы!", "¡Mira un anuncio y gana dientes!", "Regarde une pub et gagne des dents!", "Schau eine Anzeige und verdiene Zähne!", "Assista a um anúncio e ganhe dentes!"),
+        "btn_watch_ad"      to m("Watch", "Смотреть", "Ver", "Regarder", "Ansehen", "Assistir"),
 
         // Rate Us
         "rate_us_title"     to m("Enjoying PushUpRPG?", "Нравится PushUpRPG?", "¿Te gusta PushUpRPG?", "Aimez-vous PushUpRPG?", "Gefällt dir PushUpRPG?", "Está gostando do PushUpRPG?"),

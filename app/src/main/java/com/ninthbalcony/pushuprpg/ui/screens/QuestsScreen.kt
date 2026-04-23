@@ -24,6 +24,9 @@ import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.ActiveQuest
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.QuestSystem
+import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.Preview
+import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
 @Composable
 fun QuestsScreen(
@@ -37,6 +40,20 @@ fun QuestsScreen(
     val quests = viewModel.getActiveQuests(state)
     val daily = quests.filter { QuestSystem.getDefById(it.defId)?.isWeekly == false }
     val weekly = quests.filter { QuestSystem.getDefById(it.defId)?.isWeekly == true }
+
+    val adQuestRerollPending by viewModel.adQuestRerollPending.collectAsState()
+    val activity = LocalContext.current as? android.app.Activity
+
+    if (adQuestRerollPending) {
+        com.ninthbalcony.pushuprpg.ui.dialogs.RewardedAdDialog(
+            title = AppStrings.t(language, "ad_title"),
+            description = if (language == "ru") "Получите 3 новых случайных ежедневных задания!" else "Get 3 new random daily quests!",
+            rewardText = if (language == "ru") "3 новых задания" else "3 new quests",
+            onWatchAd = { activity?.let { viewModel.playAdQuestReroll(it) } },
+            onDecline = { viewModel.dismissAdQuestReroll() },
+            onDismiss = { viewModel.dismissAdQuestReroll() }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -95,6 +112,32 @@ fun QuestsScreen(
                         color = TextMuted, fontSize = 13.sp
                     )
                 }
+            }
+
+            item {
+                val today = com.ninthbalcony.pushuprpg.utils.DateUtils.getTodayString()
+                val alreadyRerolledToday = state.lastAdQuestRerollDate == today
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    OutlinedButton(
+                        onClick = { if (!alreadyRerolledToday) viewModel.requestAdQuestReroll() },
+                        enabled = !alreadyRerolledToday,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = if (alreadyRerolledToday) TextMuted else OrangeAccent),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, if (alreadyRerolledToday) TextMuted else OrangeAccent)
+                    ) {
+                        Text(
+                            text = if (alreadyRerolledToday)
+                                (if (language == "ru") "🎬 Перебросить задания (исп.)" else "🎬 Reroll Quests (used)")
+                            else
+                                (if (language == "ru") "🎬 Перебросить ежедневные задания" else "🎬 Watch Ad to Reroll Daily"),
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
             }
 
             item {
@@ -257,4 +300,11 @@ private fun QuestCard(
         }
         } // Column (контент)
     } // Box (карточка)
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 920)
+@Composable
+private fun QuestsScreenPreview() {
+    val vm = remember { GameViewModel(FakeGameRepository()) }
+    QuestsScreen(viewModel = vm, onBack = {})
 }

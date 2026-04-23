@@ -33,6 +33,7 @@ object Routes {
     const val PROGRESS = "progress"
     const val ACHIEVEMENTS = "achievements"
     const val BESTIARY = "bestiary"
+    const val BOSSES = "bosses"
     const val ITEM_LOG = "item_log"
 }
 
@@ -144,6 +145,7 @@ fun AppNavigation(viewModel: GameViewModel) {
                 viewModel = viewModel,
                 onNavigateToAchievements = { navController.navigate(Routes.ACHIEVEMENTS) },
                 onNavigateToBestiary = { navController.navigate(Routes.BESTIARY) },
+                onNavigateToBosses = { navController.navigate(Routes.BOSSES) },
                 onNavigateToItemLog = { navController.navigate(Routes.ITEM_LOG) },
                 onBack = { navController.popBackStack() }
             )
@@ -157,10 +159,20 @@ fun AppNavigation(viewModel: GameViewModel) {
             )
         }
 
-        // Bestiary
+        // Bestiary (монстры)
         composable(Routes.BESTIARY) {
             BestiaryScreen(
                 viewModel = viewModel,
+                bossesOnly = false,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // Bosses
+        composable(Routes.BOSSES) {
+            BestiaryScreen(
+                viewModel = viewModel,
+                bossesOnly = true,
                 onBack = { navController.popBackStack() }
             )
         }

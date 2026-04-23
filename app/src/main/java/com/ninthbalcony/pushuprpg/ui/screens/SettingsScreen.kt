@@ -27,6 +27,9 @@ import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.ui.GameViewModel // ИСПРАВЛЕН ИМПОРТ
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.NotificationScheduler
+import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.Preview
+import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
 @Composable
 fun SettingsScreen(
@@ -273,24 +276,10 @@ fun SettingsScreen(
             SettingsSection(
                 title = AppStrings.t(language, "sec_info")
             ) {
-                gameState?.let { state ->
-                    InfoRow(
-                        label = AppStrings.t(language, "stat_level"),
-                        value = "${state.playerLevel}"
-                    )
-                    InfoRow(
-                        label = AppStrings.t(language, "info_pushups"),
-                        value = "${state.totalPushUpsAllTime}"
-                    )
-                    InfoRow(
-                        label = AppStrings.t(language, "info_monsters"),
-                        value = "${state.monstersKilled}"
-                    )
-                    InfoRow(
-                        label = AppStrings.t(language, "info_version"),
-                        value = "1.0.0"
-                    )
-                }
+                InfoRow(
+                    label = AppStrings.t(language, "info_version"),
+                    value = "1.0.0"
+                )
             }
 
             // --- Выход ---
@@ -610,4 +599,11 @@ fun ResetConfirmDialog(
             }
         }
     }
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 920)
+@Composable
+private fun SettingsScreenPreview() {
+    val vm = remember { GameViewModel(FakeGameRepository()) }
+    SettingsScreen(viewModel = vm, onBack = {})
 }

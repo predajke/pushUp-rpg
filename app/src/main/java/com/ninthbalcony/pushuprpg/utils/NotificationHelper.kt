@@ -16,6 +16,7 @@ object NotificationHelper {
     private const val NOTIFICATION_ID_REMINDER = 1001
     private const val NOTIFICATION_ID_HERO_DEAD = 1002
     private const val NOTIFICATION_ID_EVENT = 1003
+    private const val NOTIFICATION_ID_SPIN_READY = 1004
 
     fun createNotificationChannel(context: Context) {
         val channel = NotificationChannel(
@@ -93,6 +94,17 @@ object NotificationHelper {
             title = title,
             text = text
         )
+    }
+
+    fun showSpinReadyNotification(context: Context) {
+        val prefs = context.getSharedPreferences("pushup_prefs", Context.MODE_PRIVATE)
+        val language = prefs.getString("language", "en") ?: "en"
+        val title = if (language == "ru") "🎰 Спины накопились!" else "🎰 Spins are ready!"
+        val text = if (language == "ru")
+            "У тебя накопилось 5 прокрутов колеса удачи. Зайди и используй их!"
+        else
+            "You have 5 spin tokens waiting. Come and use them!"
+        showNotification(context, NOTIFICATION_ID_SPIN_READY, title, text)
     }
 
     private fun showNotification(

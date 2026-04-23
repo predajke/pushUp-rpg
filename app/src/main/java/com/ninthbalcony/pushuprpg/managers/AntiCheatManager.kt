@@ -10,6 +10,30 @@ enum class AdType {
 }
 
 class AntiCheatManager {
+
+    private var lastGeneralSaveTime: Long = 0L
+
+    fun checkGeneralCooldown(count: Int): Long {
+        val elapsed = System.currentTimeMillis() - lastGeneralSaveTime
+        if (elapsed >= 10_000L) return 0L
+        val cooldown = generalCooldownMs(count)
+        return (cooldown - elapsed).coerceAtLeast(0L)
+    }
+
+    fun recordGeneralSave() {
+        lastGeneralSaveTime = System.currentTimeMillis()
+    }
+
+    private fun generalCooldownMs(count: Int): Long = when (count) {
+        in 1..10  ->  8_000L
+        in 11..20 -> 12_000L
+        in 21..40 -> 15_000L
+        else      -> 20_000L
+    }
+
+    fun generalAdType(count: Int): AdType =
+        if (count >= 41) AdType.SKIPPABLE else AdType.NONE
+
     companion object {
         private const val TAG = "AntiCheatManager"
         private const val RAPID_SAVE_THRESHOLD = 80  // pushups

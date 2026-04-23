@@ -38,6 +38,10 @@ import com.ninthbalcony.pushuprpg.utils.MonsterUtils
 import com.ninthbalcony.pushuprpg.utils.DailyRewardUtils
 import com.ninthbalcony.pushuprpg.ui.GameViewModel // ИСПРАВЛЕН ИМПОРТ
 import com.ninthbalcony.pushuprpg.utils.AppStrings
+import androidx.compose.ui.geometry.Offset                  // + для крутого шрифта
+import androidx.compose.ui.graphics.Shadow                  // + для крутого шрифта
+import androidx.compose.ui.text.TextStyle                   // + для крутого шрифта
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun MainMenuScreen(
@@ -65,6 +69,7 @@ fun MainMenuScreen(
     val isOnboardingComplete by viewModel.isOnboardingComplete.collectAsState(initial = false)
     val antiCheatCooldown by viewModel.antiCheatCooldown.collectAsState(initial = null)
     val showRateUsDialog by viewModel.showRateUsDialog.collectAsState(initial = false)
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     // Scroll state extracted here so it can be used in LaunchedEffect (before early return)
     val scrollState = rememberScrollState()
@@ -108,6 +113,8 @@ fun MainMenuScreen(
     val state = gameState!!
 
     LaunchedEffect(Unit) {
+        viewModel.updateStreakOnLogin()
+        viewModel.refreshSpinCounters()
         viewModel.triggerRealtimeTick()
         viewModel.claimDailyReward()
         while (true) {
@@ -116,10 +123,10 @@ fun MainMenuScreen(
         }
     }
 
-    // Initialize onboarding if first launch
-    LaunchedEffect(gameState) {
-        if (gameState != null && gameState!!.isFirstLaunch && !isOnboardingComplete) {
-            viewModel.initializeOnboarding(gameState!!)
+    // Initialize onboarding if first launch (only once)
+    LaunchedEffect(state.isFirstLaunch) {
+        if (state.isFirstLaunch && !isOnboardingComplete) {
+            viewModel.initializeOnboarding(state)
         }
     }
 
@@ -134,11 +141,7 @@ fun MainMenuScreen(
     val statusBarHeightPx = with(LocalDensity.current) {
         WindowInsets.statusBars.getTop(this).toFloat()
     }
-    val maxHp = GameCalculations.getMaxHp(
-        state.playerLevel,
-        state.baseHealth,
-        viewModel.getEquippedItems(state).sumOf { it.stats.health }
-    )
+    val maxHp = totalStats?.health ?: state.baseHealth
 
     if (showLevelUpDialog) {
         LevelUpDialog(
@@ -159,7 +162,7 @@ fun MainMenuScreen(
     }
 
     // Show highlight onboarding if not complete
-    if (!isOnboardingComplete && onboardingStep < com.ninthbalcony.pushuprpg.managers.OnboardingManager.TOTAL_STEPS) {
+    if (state.isFirstLaunch && !isOnboardingComplete && onboardingStep < com.ninthbalcony.pushuprpg.managers.OnboardingManager.TOTAL_STEPS) {
         com.ninthbalcony.pushuprpg.ui.dialogs.HighlightTourGuideDialog(
             currentStep = onboardingStep,
             onboardingManager = viewModel.getOnboardingManager(),
@@ -217,7 +220,9 @@ fun MainMenuScreen(
         com.ninthbalcony.pushuprpg.ui.dialogs.RateUsDialog(
             onRate = {
                 viewModel.rateUsAction(com.ninthbalcony.pushuprpg.data.repository.RateUsAction.RATE_NOW)
-                // TODO: Open Google Play Store when integrated
+                val uri = android.net.Uri.parse("market://details?id=com.ninthbalcony.pushuprpg")
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, uri)
+                context.startActivity(intent)
             },
             onRemindLater = {
                 viewModel.rateUsAction(com.ninthbalcony.pushuprpg.data.repository.RateUsAction.REMIND_LATER)
@@ -268,6 +273,16 @@ fun MainMenuScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            BattleArena(
+                state = state,
+                maxHp = maxHp,
+                modifier = Modifier
+                    .heightIn(min = 220.dp)
+                    .onGloballyPositioned { battleRect.value = it.boundsInWindow() }
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             PushUpCounter(
                 state = state,
                 inputValue = inputValue,
@@ -288,16 +303,6 @@ fun MainMenuScreen(
                 totalStats = totalStats,
                 onClick = onNavigateToInventory,
                 modifier = Modifier.onGloballyPositioned { inventoryRect.value = it.boundsInWindow() }
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            BattleArena(
-                state = state,
-                maxHp = maxHp,
-                modifier = Modifier
-                    .heightIn(min = 220.dp)
-                    .onGloballyPositioned { battleRect.value = it.boundsInWindow() }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -729,10 +734,16 @@ fun PushUpCounter(
             ) {
                 Text(
                     text = "${state.pushUpsToday}",
-                    fontSize = 44.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 45.sp,
                     color = OrangeAccent,
-                    lineHeight = 48.sp
+                    fontWeight = FontWeight.Bold,
+                    style = TextStyle(
+                        shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(3f, 4f),
+                        blurRadius = 3f
+                        )
+                    )
                 )
             }
 
@@ -1007,9 +1018,6 @@ fun BattleArena(
     }
 
     val heroImageRes = state.heroAvatar.ifEmpty { MonsterUtils.getHeroImageRes(state.playerLevel) }
-    val monsterImageRes = remember(state.monsterName) {
-        MonsterUtils.getImageResByName(state.monsterName)
-    }
 
     Box(
         modifier = Modifier
@@ -1108,22 +1116,30 @@ fun BattleArena(
 
                 Text(
                     text = "VS",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = OrangeAccent
+                    fontSize = 42.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFFFFCC00),
+                    style = TextStyle(
+                        shadow = Shadow(
+                            color = Color.Red,
+                            offset = Offset(3f, 4f),
+                            blurRadius = 4f
+                        )
+                    )
                 )
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f)
                 ) {
+                    val monster = MonsterUtils.getMonsterByLevel(state.monsterLevel)
+                    val monsterName = MonsterUtils.getMonsterName(monster, state.language)
+                    val monsterImageRes = monster.imageRes
                     DrawableImage(
                         name = monsterImageRes,
                         modifier = Modifier.size(110.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    val monster = MonsterUtils.getMonsterByLevel(state.monsterLevel)
-                    val monsterName = MonsterUtils.getMonsterName(monster, state.language)
                     Text(
                         text = "$monsterName (${state.monsterLevel} lvl)",
                         fontSize = 12.sp,
@@ -1393,4 +1409,74 @@ fun ScreenBackground(name: String) {
 private fun formatTimestamp(timestamp: Long): String {
     val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
     return sdf.format(java.util.Date(timestamp))
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 920)
+@Composable
+private fun MainMenuScreenPreview() {
+    val vm = remember { GameViewModel(com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository()) }
+    MainMenuScreen(
+        viewModel = vm,
+        onNavigateToInventory = {},
+        onNavigateToLogs = {},
+        onNavigateToStatistics = {},
+        onNavigateToSettings = {},
+        onNavigateToShop = {},
+        onNavigateToQuests = {},
+        onNavigateToProgress = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BattleArenaPreview() {
+    val mockState = GameStateEntity(
+        playerLevel = 2,
+        currentHp = 97,
+        baseHealth = 120,
+        monsterLevel = 1,
+        monsterCurrentHp = 55,
+        monsterMaxHp = 61,
+        isPlayerDead = false,
+        playerName = "Hero",
+        heroAvatar = "",
+        language = "en"
+    )
+    BattleArena(state = mockState, maxHp = 120)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PushUpCounterPreview() {
+    val mockState = GameStateEntity(
+        pushUpsToday = 297,
+        language = "en"
+    )
+    PushUpCounter(
+        state = mockState,
+        inputValue = 0,
+        language = "en",
+        onAddToInput = {},
+        onReset = {},
+        onSave = {},
+        onTotalClick = {},
+        onShopClick = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun StatsPanelPreview() {
+    val mockState = GameStateEntity(
+        basePower = 5,
+        baseArmor = 0,
+        baseHealth = 120,
+        baseLuck = 0.3f,
+        teeth = 8
+    )
+    StatsPanel(
+        state = mockState,
+        totalStats = null,
+        onClick = {}
+    )
 }

@@ -42,7 +42,15 @@ object BossUtils {
         Monster(id = 112, name = "The Grinder", nameRu = "Скрежет",
             level = 38, maxHp = 40000, damage = 999, dropRate = 1.0f,
             imageRes = "boss_the_grinder", isBoss = true, dropRarityMin = "legendary"),
-
+        Monster(id = 113, name = "Bone Cube", nameRu = "Костяной Куб",
+            level = 41, maxHp = 60000, damage = 1300, dropRate = 1.0f,
+            imageRes = "boss_cube", isBoss = true, dropRarityMin = "legendary"),
+        Monster(id = 114, name = "Iron Bull", nameRu = "Железный Бык",
+            level = 46, maxHp = 90000, damage = 1700, dropRate = 1.0f,
+            imageRes = "boss_oven", isBoss = true, dropRarityMin = "legendary"),
+        Monster(id = 115, name = "Diablo", nameRu = "Дьявол Бездны",
+            level = 50, maxHp = 115000, damage = 2200, dropRate = 1.0f,
+            imageRes = "boss_dib", isBoss = true, dropRarityMin = "legendary"),
         )
 
     /** Каждые 10 убийств — босс. Каждые 50 — Ancient Dragon. */

@@ -123,6 +123,7 @@ data class GameStateEntity(
 
     // Онбординг и аналитика
     val isFirstLaunch: Boolean = true,
+    val prestigeLevel: Int = 0,
     val installDate: Long = System.currentTimeMillis(),
 
     // Защита от читеров
@@ -133,7 +134,38 @@ data class GameStateEntity(
 
     // Rate Us Dialog
     val rateUsLastShowDate: Long = 0L,
-    val rateUsDoNotShowAgain: Boolean = false
+    val rateUsDoNotShowAgain: Boolean = false,
+
+    // Reroll cost escalation (resets every 5 min)
+    val shopRerollCount: Int = 0,
+    val shopRerollResetTime: Long = 0L,
+
+    // Ad quest reroll (once per day)
+    val lastAdQuestRerollDate: String = "",
+
+    // Ad cooldown escalation (resets daily)
+    val adShopViewCount: Int = 0,
+    val adShopLastViewTime: Long = 0L,
+
+    // ===== Daily Spin =====
+    val dailySpinUsedToday: Int = 0,              // Бесплатный спин: 0 (не использован) или 1 (использован)
+    val dailySpinAdViewsToday: Int = 0,           // Просмотры рекламы сегодня (макс 10)
+    val lastDailySpinReset: String = "",          // Дата последнего сброса спинов
+    val lastHourlySpinGrantTime: Long = 0L,       // Timestamp последнего начисления часового спина
+
+    // ===== Spin Generation Counters (Total) =====
+    val totalShopPurchases: Int = 0,              // Всего покупок в магазине (для отслеживания каждые 40)
+    val totalEnchantAttempts: Int = 0,            // Всего попыток заточки (для каждые 25)
+    val totalMergeAttempts: Int = 0,              // Всего попыток слияния (для каждые 25)
+
+    // ===== Spin Token Wallet =====
+    val spinTokens: Int = 0,                      // Кошелёк токенов спина (накапливается, тратится по 1 за спин)
+
+    // ===== Teeth Sources =====
+    val teethFromQuests: Int = 0,                 // Зубы с квестов
+    val teethFromAds: Int = 0,                    // Зубы с рекламы
+    val teethFromSpin: Int = 0,                   // Зубы с вращения ленты
+    val itemsFromSpin: Int = 0                    // Предметы с вращения ленты
 )
 
 @Entity(tableName = "pushup_records")

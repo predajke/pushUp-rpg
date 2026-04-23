@@ -22,6 +22,9 @@ import com.ninthbalcony.pushuprpg.utils.AppStrings
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.Preview
+import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
 @Composable
 fun LogsScreen(
@@ -102,19 +105,23 @@ fun LogItem(
 ) {
     val message = if (language == "ru") log.messageRu else log.message
     val logColor = when {
-        message.contains("BURST", ignoreCase = true) ||
-                message.contains("BURST", ignoreCase = true) -> GoldAccent
-        message.contains("eliminated", ignoreCase = true) ||
-                message.contains("уничтожен", ignoreCase = true) -> HealthColor
-        message.contains("fallen", ignoreCase = true) ||
-                message.contains("пал", ignoreCase = true) -> HpBarLow
+        message.contains("★LEGENDARY★") -> GoldAccent
+        message.startsWith("💪") -> HealthColor
+        message.contains("Auto-attack", ignoreCase = true) ||
+                message.contains("Авто-атака", ignoreCase = true) -> HealthColor
+        message.contains("strikes back", ignoreCase = true) ||
+                message.contains("бьёт в ответ", ignoreCase = true) ||
+                message.startsWith("⚔️") ||
+                message.startsWith("🪓") -> HpBarLow
+        message.contains("BURST", ignoreCase = true) -> GoldAccent
+        message.contains("CRIT", ignoreCase = true) -> GoldAccent
         message.contains("Level Up", ignoreCase = true) ||
                 message.contains("уровня", ignoreCase = true) -> OrangeAccent
         message.contains("dropped", ignoreCase = true) ||
-                message.contains("выпал", ignoreCase = true) -> EpicColor
+                message.contains("выпал", ignoreCase = true) ||
+                message.contains("дроп", ignoreCase = true) -> EpicColor
         message.contains("revived", ignoreCase = true) ||
                 message.contains("воскрешён", ignoreCase = true) -> HealthColor
-        message.contains("CRIT", ignoreCase = true) -> GoldAccent
         else -> LogText
     }
 
@@ -143,4 +150,11 @@ fun LogItem(
 private fun formatLogTime(timestamp: Long): String {
     val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
     return sdf.format(Date(timestamp))
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 920)
+@Composable
+private fun LogsScreenPreview() {
+    val vm = remember { GameViewModel(FakeGameRepository()) }
+    LogsScreen(viewModel = vm, onBack = {})
 }

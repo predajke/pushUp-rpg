@@ -18,6 +18,9 @@ import com.ninthbalcony.pushuprpg.data.model.EventType
 import com.ninthbalcony.pushuprpg.utils.EventUtils
 import com.ninthbalcony.pushuprpg.utils.MonsterUtils
 import com.ninthbalcony.pushuprpg.utils.ShopUtils
+import com.ninthbalcony.pushuprpg.utils.SpinUtils
+import com.ninthbalcony.pushuprpg.utils.SpinReward
+import com.ninthbalcony.pushuprpg.utils.SpinResult
 import com.ninthbalcony.pushuprpg.data.model.PeriodStats
 import com.ninthbalcony.pushuprpg.data.model.EnchantResult
 import com.ninthbalcony.pushuprpg.data.model.ForgeResult
@@ -29,17 +32,22 @@ import com.ninthbalcony.pushuprpg.utils.AchievementSystem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
-class GameRepository(private val context: Context) {
+class GameRepository(private val context: Context) : IGameRepository {
 
     private val db = AppDatabase.getDatabase(context)
     private val dao = db.pushUpDao()
     private val maxPushUpsDao = db.maxPushUpsDao()
     private val antiCheatManager = AntiCheatManager()
+    private var playGamesManager: com.ninthbalcony.pushuprpg.managers.PlayGamesManager? = null
     private val saveMutex = Mutex()
 
     init {
         // Загружаем все предметы сразу — иначе getItemById() вернёт null до первого действия
         ItemUtils.loadItems(context)
+    }
+
+    override fun setPlayGamesManager(manager: com.ninthbalcony.pushuprpg.managers.PlayGamesManager) {
+        playGamesManager = manager
     }
 
     // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
@@ -81,17 +89,22 @@ class GameRepository(private val context: Context) {
 
     // ==================== GAMESTATE ====================
 
-    fun getGameStateFlow(): Flow<GameStateEntity?> {
+    override fun getGameStateFlow(): Flow<GameStateEntity?> {
         return dao.getGameStateFlow()
     }
 
-    suspend fun getGameState(): GameStateEntity {
+    override suspend fun getGameState(): GameStateEntity {
         return dao.getGameState() ?: createInitialGameState()
     }
 
-    suspend fun saveGameState(state: GameStateEntity) {
+    override suspend fun saveGameState(state: GameStateEntity) {
         saveMutex.withLock {
-            dao.saveGameState(state)
+            // isFirstLaunch переходит только в одну сторону: true → false.
+            // Если в БД уже false — сохраняем false независимо от того,
+            // какое значение несёт stale-копия state (race condition protection).
+            val existing = dao.getGameState()
+            val toSave = if (existing?.isFirstLaunch == false) state.copy(isFirstLaunch = false) else state
+            dao.saveGameState(toSave)
         }
     }
 
@@ -110,8 +123,17 @@ class GameRepository(private val context: Context) {
     // ==================== PUSH UPS ====================
 
     /** Возвращает новый уровень если произошёл level-up, иначе 0 */
-    suspend fun addPushUps(count: Int): Int {
+    override suspend fun addPushUps(count: Int): Int {
         val today = DateUtils.getTodayString()
+
+        // Anti-cheat: кулдаун при быстром повторном сохранении (любое кол-во < 99)
+        if (count in 1..98) {
+            val remaining = antiCheatManager.checkGeneralCooldown(count)
+            if (remaining > 0) {
+                addLog("⚠️ Save too fast", "⚠️ Слишком быстрое сохранение")
+                throw CheatCooldownException(remaining, antiCheatManager.generalAdType(count), 0)
+            }
+        }
 
         // Anti-cheat: проверка максимума 99 отжиманий
         if (count == 99) {
@@ -154,8 +176,14 @@ class GameRepository(private val context: Context) {
         val newLevel = GameCalculations.getLevelFromXp(newTotalXp)
         val oldLevel = GameCalculations.getLevelFromXp(state.totalXp)
         val leveledUp = newLevel > oldLevel
+        val didPrestige = newLevel >= 50
+        val actualPrestige = if (didPrestige) state.prestigeLevel + 1 else state.prestigeLevel
+        val actualXp = if (didPrestige) 0 else newTotalXp
+        val actualLevel = if (didPrestige) 1 else newLevel
+        val pointsPerLevel = GameCalculations.STAT_POINTS_PER_LEVEL * (1 + state.prestigeLevel)
+        val prestigeBonus = if (didPrestige) 10 else 0
         val newStatPoints = if (leveledUp)
-            state.unspentStatPoints + GameCalculations.STAT_POINTS_PER_LEVEL
+            state.unspentStatPoints + pointsPerLevel + prestigeBonus
         else state.unspentStatPoints
 
         val maxHp = GameCalculations.getMaxHp(newLevel, state.baseHealth, 0)
@@ -164,28 +192,39 @@ class GameRepository(private val context: Context) {
         var workingState = state.copy(
             pushUpsToday = newPushUpsToday,
             lastResetDate = today,
-            totalXp = newTotalXp,
-            playerLevel = newLevel,
+            totalXp = actualXp,
+            playerLevel = actualLevel,
             unspentStatPoints = newStatPoints,
+            prestigeLevel = actualPrestige,
             totalPushUpsAllTime = state.totalPushUpsAllTime + count,
             currentStreak = newStreak,
             longestStreak = maxOf(state.longestStreak, newStreak),
             lastLoginDate = today,
-            currentHp = if (wasRevived) maxHp else state.currentHp,
+            currentHp = if (wasRevived || didPrestige) maxHp else state.currentHp,
             isPlayerDead = false,
             bestSingleSession = maxOf(state.bestSingleSession, count)
         )
 
-        // Level-up: спавним нового монстра с полным HP
-        if (leveledUp) {
-            val newMonster = MonsterUtils.rollNextMonster(newLevel)
+        // Level-up или Prestige: спавним нового монстра с полным HP
+        if (leveledUp || didPrestige) {
+            val spawnLevel = if (didPrestige) 1 else actualLevel
+            val newMonster = MonsterUtils.rollNextMonster(spawnLevel)
+            val prestigeMult = 1 + actualPrestige
+            if (didPrestige) addLog("🏅 Prestige $actualPrestige! Monsters are now ${prestigeMult}x stronger.", "🏅 Prestige $actualPrestige! Монстры теперь в ${prestigeMult}x сильнее.")
+
+            // Add 3 spin tokens for level up
+            val spinBonus = 3
             workingState = workingState.copy(
                 monsterName = newMonster.name,
                 monsterLevel = newMonster.level,
-                monsterMaxHp = newMonster.maxHp,
-                monsterCurrentHp = newMonster.maxHp,
-                monsterDamage = newMonster.damage
+                monsterMaxHp = newMonster.maxHp * prestigeMult,
+                monsterCurrentHp = newMonster.maxHp * prestigeMult,
+                monsterDamage = newMonster.damage * prestigeMult,
+                spinTokens = workingState.spinTokens + spinBonus
             )
+            if (leveledUp && !didPrestige) {
+                addLog("⬆️ Level Up! +3 Spins", "⬆️ Уровень выше! +3 Вращения")
+            }
         }
 
         // Боевая обработка отжиманий (пропускаем если только что воскресли)
@@ -223,6 +262,18 @@ class GameRepository(private val context: Context) {
             }
         }
 
+        // Play Games achievements
+        val pushupIncrease = count
+        if ((state.totalPushUpsAllTime + pushupIncrease) % 100 >= state.totalPushUpsAllTime % 100) {
+            val milestones = (state.totalPushUpsAllTime + pushupIncrease) / 100 - state.totalPushUpsAllTime / 100
+            if (milestones > 0) {
+                playGamesManager?.incrementAchievementMasterPushups(milestones)
+            }
+        }
+        if (workingState.teeth >= 5000 && state.teeth < 5000) {
+            playGamesManager?.unlockAchievementRich()
+        }
+
         try {
             dao.saveGameState(workingState)
             dao.insertPushUpRecord(PushUpRecordEntity(date = today, count = count))
@@ -231,6 +282,7 @@ class GameRepository(private val context: Context) {
             throw e
         }
 
+        antiCheatManager.recordGeneralSave()
         if (wasRevived) addLog("🌅 Hero was revived after push-ups!", "🌅 Герой воскрешён после отжиманий!")
         if (leveledUp) addLog("⬆️ Level Up! Now level $newLevel!", "⬆️ Повышение уровня! Теперь уровень $newLevel!")
         return if (leveledUp) newLevel else 0
@@ -241,7 +293,9 @@ class GameRepository(private val context: Context) {
     /** Обрабатывает урон от отжиманий + контратаку монстра */
     private suspend fun processPushUpCombat(state: GameStateEntity, count: Int): GameStateEntity {
         val (equippedItems, enchantLevels) = getEquippedWithEnchant(state)
-        val totalStats = GameCalculations.calculateTotalStats(state, equippedItems, enchantLevels)
+        val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
+        val setBonuses = ItemUtils.getSetBonuses(equippedItems)
+        val totalStats = GameCalculations.calculateTotalStats(state, equippedItems, enchantLevels, achBonuses, setBonuses)
 
         val isBurst = GameCalculations.isBurstAttack(count)
         val burstMult = if (isBurst) GameCalculations.BURST_MULTIPLIER else 1
@@ -310,7 +364,7 @@ class GameRepository(private val context: Context) {
     }
 
     /** Авто-бой: один тик каждые 5 минут */
-    suspend fun processBattleTick() {
+    override suspend fun processBattleTick() {
         try {
             val state = getGameState()
             val now = System.currentTimeMillis()
@@ -324,7 +378,7 @@ class GameRepository(private val context: Context) {
             val tickMs = 5 * 60 * 1000L  // 5 минут
             if (elapsed < tickMs) return
 
-            val ticks = (elapsed / tickMs).toInt().coerceAtMost(3)
+            val ticks = (elapsed / tickMs).toInt().coerceAtMost(288)
             var current = state
             repeat(ticks) {
                 if (!current.isPlayerDead) {
@@ -340,7 +394,9 @@ class GameRepository(private val context: Context) {
     /** Один раунд авто-боя: игрок атакует → монстр отвечает → реген HP */
     private suspend fun processAutoAttackTick(state: GameStateEntity): GameStateEntity {
         val (equippedItems, enchantLevels) = getEquippedWithEnchant(state)
-        val totalStats = GameCalculations.calculateTotalStats(state, equippedItems, enchantLevels)
+        val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
+        val setBonuses = ItemUtils.getSetBonuses(equippedItems)
+        val totalStats = GameCalculations.calculateTotalStats(state, equippedItems, enchantLevels, achBonuses, setBonuses)
 
         // Авто-атака игрока
         val isCrit = GameCalculations.isCriticalHit(totalStats.luck)
@@ -366,8 +422,7 @@ class GameRepository(private val context: Context) {
 
         // Монстр атакует + реген игрока за 5 минут
         val monsterDmg = GameCalculations.calculateDamageTaken(state.monsterDamage, totalStats.armor)
-        val maxHp = GameCalculations.getMaxHp(state.playerLevel, state.baseHealth,
-            equippedItems.sumOf { it.stats.health })
+        val maxHp = totalStats.health
         val regenMult = if (activeEvent?.type == EventType.REGEN_BONUS &&
             EventUtils.isEventActive(state.eventEndTime)) 2f else 1f
         val hpRegen = (GameCalculations.calculateHpRegen(maxHp, 5L) * regenMult).toInt()
@@ -403,7 +458,9 @@ class GameRepository(private val context: Context) {
 
     /** Обрабатывает смерть монстра: дроп лута/зубов, спавн нового */
     private suspend fun handleMonsterKill(state: GameStateEntity): GameStateEntity {
-        val teethFromKill = GameCalculations.getTeethFromMonster(state.monsterLevel)
+        val baseTeeth = GameCalculations.getTeethFromMonster(state.monsterLevel)
+        val bossMult = if (state.isCurrentBoss) kotlin.random.Random.nextInt(2, 5) else 1
+        val teethFromKill = baseTeeth * bossMult
         val monster = MonsterUtils.getMonsterByLevel(state.monsterLevel)
 
         // Бонус дропа от достижений и сетов
@@ -435,9 +492,10 @@ class GameRepository(private val context: Context) {
                 logList.add(0, uniqueId)
                 if (logList.size > 50) logList.removeAt(logList.lastIndex)
                 newItemLog = Gson().toJson(logList)
+                val legTag = if (dropped.rarity == "legendary") " ★LEGENDARY★" else ""
                 addLog(
-                    "🎁 ${state.monsterName} dropped ${dropped.name_en}!",
-                    "🎁 ${state.monsterName} дроп: ${dropped.name_ru}!"
+                    "🎁 ${state.monsterName} dropped ${dropped.name_en}!$legTag",
+                    "🎁 ${state.monsterName} дроп: ${dropped.name_ru}!$legTag"
                 )
             }
         }
@@ -490,13 +548,14 @@ class GameRepository(private val context: Context) {
             MonsterUtils.rollNextMonster(state.playerLevel)
         }
 
+        val prestigeMult = 1 + state.prestigeLevel
         val today = DateUtils.getTodayString()
         var updated = state.copy(
             monsterName = next.name,
             monsterLevel = next.level,
-            monsterMaxHp = next.maxHp,
-            monsterCurrentHp = next.maxHp,
-            monsterDamage = next.damage,
+            monsterMaxHp = next.maxHp * prestigeMult,
+            monsterCurrentHp = next.maxHp * prestigeMult,
+            monsterDamage = next.damage * prestigeMult,
             isCurrentBoss = spawnBoss,
             currentBossId = if (spawnBoss) next.id else 0,
             monstersKilled = newKillCount,
@@ -518,6 +577,17 @@ class GameRepository(private val context: Context) {
         if ((droppedRarity == "epic" || droppedRarity == "legendary") && unlocked.none { it.defId == "ach_epic_catch" })
             unlocked.add(com.ninthbalcony.pushuprpg.utils.UnlockedAchievement("ach_epic_catch", today))
         updated = updated.copy(achievementsJson = AchievementSystem.serializeUnlocked(unlocked))
+
+        // Play Games achievements
+        if (state.monstersKilled == 0) {
+            playGamesManager?.unlockAchievementFirstFight()
+        }
+        if (droppedRarity == "epic") {
+            playGamesManager?.unlockAchievementEpicCatch()
+        }
+        if (droppedRarity == "legendary") {
+            playGamesManager?.unlockAchievementLegendaryCatch()
+        }
 
         return AchievementSystem.checkAndUnlock(updated, today)
     }
@@ -550,7 +620,7 @@ class GameRepository(private val context: Context) {
         }
     }
 
-    suspend fun updateStreakOnLogin() {
+    override suspend fun updateStreakOnLogin() {
         val state = getGameState()
         val today = DateUtils.getTodayString()
         if (state.lastLoginDate == today) return
@@ -570,7 +640,7 @@ class GameRepository(private val context: Context) {
 
     // ==================== СТАТИСТИКА ====================
 
-    suspend fun getStatsForPeriod(): PeriodStats {
+    override suspend fun getStatsForPeriod(): PeriodStats {
         return PeriodStats(
             lastWeek = dao.getPushUpsSince(DateUtils.getDateStringDaysAgo(7)) ?: 0,
             lastMonth = dao.getPushUpsSince(DateUtils.getDateStringMonthsAgo(1)) ?: 0,
@@ -580,14 +650,16 @@ class GameRepository(private val context: Context) {
         )
     }
 
-    suspend fun getLast7DaysStats() = dao.getLast7DaysStats()
+    override suspend fun getLast7DaysStats() = dao.getLast7DaysStats()
+
+    override suspend fun getLast12MonthsStats() = dao.getLast12MonthsStats()
 
     // ==================== ЛОГИ ====================
 
-    fun getRecentLogsFlow(): Flow<List<LogEntryEntity>> = dao.getRecentLogs()
-    fun getAllLogsFlow(): Flow<List<LogEntryEntity>> = dao.getAllLogs()
+    override fun getRecentLogsFlow(): Flow<List<LogEntryEntity>> = dao.getRecentLogs()
+    override fun getAllLogsFlow(): Flow<List<LogEntryEntity>> = dao.getAllLogs()
 
-    suspend fun addLog(message: String, messageRu: String) {
+    override suspend fun addLog(message: String, messageRu: String) {
         dao.insertLog(LogEntryEntity(message = message, messageRu = messageRu))
     }
 
@@ -609,7 +681,7 @@ class GameRepository(private val context: Context) {
 
     // ==================== ЭКИПИРОВКА ====================
 
-    suspend fun equipItem(itemId: String, slot: String) {
+    override suspend fun equipItem(itemId: String, slot: String) {
         val state = getGameState()
         val entries = parseInventory(state.inventoryItems)
 
@@ -655,10 +727,21 @@ class GameRepository(private val context: Context) {
             "boots" -> state.copy(equippedBoots = itemEntry, inventoryItems = newInventory)
             else -> state
         }
+
+        // Play Games: Full Wardrobe achievement
+        if (updatedState.equippedHead.isNotEmpty() &&
+            updatedState.equippedNecklace.isNotEmpty() &&
+            updatedState.equippedWeapon1.isNotEmpty() &&
+            updatedState.equippedWeapon2.isNotEmpty() &&
+            updatedState.equippedPants.isNotEmpty() &&
+            updatedState.equippedBoots.isNotEmpty()) {
+            playGamesManager?.unlockAchievementFullWardrobe()
+        }
+
         dao.saveGameState(updatedState)
     }
 
-    suspend fun unequipItem(slot: String) {
+    override suspend fun unequipItem(slot: String) {
         val state = getGameState()
 
         val slotEntry = when (slot) {
@@ -691,7 +774,7 @@ class GameRepository(private val context: Context) {
 
     // ==================== ПРОДАЖА ====================
 
-    suspend fun sellItem(itemId: String) {
+    override suspend fun sellItem(itemId: String) {
         val state = getGameState()
         val entries = parseInventory(state.inventoryItems)
 
@@ -723,7 +806,7 @@ class GameRepository(private val context: Context) {
 
     // ==================== СБРОС ====================
 
-    suspend fun resetAllProgress() {
+    override suspend fun resetAllProgress() {
         dao.deleteAllLogs()
         dao.deleteAllPushUpRecords()
         val today = DateUtils.getTodayString()
@@ -738,7 +821,7 @@ class GameRepository(private val context: Context) {
 
     // ==================== ОЧКИ ====================
 
-    suspend fun spendStatPoint(stat: String) {
+    override suspend fun spendStatPoint(stat: String) {
         val state = getGameState()
         if (state.unspentStatPoints <= 0) return
 
@@ -760,7 +843,7 @@ class GameRepository(private val context: Context) {
         dao.saveGameState(updatedState)
     }
 
-    suspend fun useFreePoints(): Boolean {
+    override suspend fun useFreePoints(): Boolean {
         val state = getGameState()
         if (state.freePointsUsedToday >= 2) return false
 
@@ -774,7 +857,7 @@ class GameRepository(private val context: Context) {
 
     // ==================== СОБЫТИЯ ====================
 
-    suspend fun checkAndUpdateEvent(): GameStateEntity {
+    override suspend fun checkAndUpdateEvent(): GameStateEntity {
         val state = getGameState()
         val now = System.currentTimeMillis()
 
@@ -821,7 +904,7 @@ class GameRepository(private val context: Context) {
 
     // ==================== МАГАЗИН ====================
 
-    suspend fun getOrRefreshShop(): List<com.ninthbalcony.pushuprpg.data.model.Item> {
+    override suspend fun getOrRefreshShop(): List<com.ninthbalcony.pushuprpg.data.model.Item> {
         val state = getGameState()
         val allItems = ItemUtils.loadItems(context)
 
@@ -839,17 +922,17 @@ class GameRepository(private val context: Context) {
         }
     }
 
-    suspend fun buyShopItem(itemId: String): Boolean {
+    override suspend fun buyShopItem(itemId: String): Boolean {
         return saveMutex.withLock {
             val state = getGameState()
             val item = ItemUtils.getItemById(itemId) ?: return@withLock false
             val price = ShopUtils.getBuyPrice(item.rarity)
             if (state.teeth < price) return@withLock false
 
-            val newShopItems = state.shopItems
-                .split(",")
-                .filter { it.isNotEmpty() && it != itemId }
-                .joinToString(",")
+            val shopList = state.shopItems.split(",").filter { it.isNotEmpty() }.toMutableList()
+            val removeIndex = shopList.indexOf(itemId)
+            if (removeIndex >= 0) shopList.removeAt(removeIndex)
+            val newShopItems = shopList.joinToString(",")
 
             val uniqueId = "${itemId}_${System.currentTimeMillis()}"
             val entries = parseInventory(state.inventoryItems)
@@ -864,6 +947,7 @@ class GameRepository(private val context: Context) {
                 inventoryItems = buildInventory(entries),
                 itemsCollected = state.itemsCollected + 1,
                 totalTeethSpent = state.totalTeethSpent + price,
+                totalShopPurchases = state.totalShopPurchases + 1,
                 activeQuestsJson = QuestSystem.serialize(buyQuests)
             ))
 
@@ -875,9 +959,26 @@ class GameRepository(private val context: Context) {
         }
     }
 
-    suspend fun rerollShop(): Boolean {
+    override suspend fun addTeeth(amount: Int) {
+        saveMutex.withLock {
+            val state = getGameState()
+            dao.saveGameState(state.copy(
+                teeth = state.teeth + amount,
+                teethFromAds = state.teethFromAds + amount,
+                adShopViewCount = state.adShopViewCount + 1,
+                adShopLastViewTime = System.currentTimeMillis()
+            ))
+            addLog("🎬 Ad reward: +$amount 🦷", "🎬 Награда за рекламу: +$amount 🦷")
+        }
+    }
+
+    override suspend fun rerollShop(): Boolean {
         val state = getGameState()
-        if (state.teeth < 1) return false
+        val now = System.currentTimeMillis()
+        val resetIntervalMs = 5L * 60 * 1000
+        val currentCount = if (now - state.shopRerollResetTime >= resetIntervalMs) 0 else state.shopRerollCount
+        val cost = (currentCount + 1) * 3
+        if (state.teeth < cost) return false
 
         val allItems = ItemUtils.loadItems(context)
         val baseItems = ShopUtils.generateShopItems(allItems).toMutableList()
@@ -885,16 +986,18 @@ class GameRepository(private val context: Context) {
         if (activeEvent?.type == EventType.ENCHANTERS_LUCK &&
             EventUtils.isEventActive(state.eventEndTime) &&
             kotlin.random.Random.nextFloat() < 0.03f) {
-            allItems.filter { it.rarity == "legendary" }.randomOrNull()?.let { baseItems.add(it) }
+            allItems.filter { it.rarity == "epic" }.randomOrNull()?.let { baseItems.add(it) }
         }
         val newItemsStr = ShopUtils.shopItemsToString(baseItems)
         var rerollQuests = QuestSystem.deserialize(state.activeQuestsJson)
-        rerollQuests = QuestSystem.addProgress(rerollQuests, QuestType.TEETH_SPENT, 1)
+        rerollQuests = QuestSystem.addProgress(rerollQuests, QuestType.TEETH_SPENT, cost)
         dao.saveGameState(state.copy(
             shopItems = newItemsStr,
-            shopLastRefresh = System.currentTimeMillis(),
-            teeth = state.teeth - 1,
-            totalTeethSpent = state.totalTeethSpent + 1,
+            shopLastRefresh = now,
+            teeth = state.teeth - cost,
+            totalTeethSpent = state.totalTeethSpent + cost,
+            shopRerollCount = currentCount + 1,
+            shopRerollResetTime = if (currentCount == 0) now else state.shopRerollResetTime,
             activeQuestsJson = QuestSystem.serialize(rerollQuests)
         ))
         return true
@@ -902,7 +1005,7 @@ class GameRepository(private val context: Context) {
 
     // ==================== КУЗНИЦА ====================
 
-    suspend fun setForgeSlot(slot: Int, itemId: String) {
+    override suspend fun setForgeSlot(slot: Int, itemId: String) {
         val state = getGameState()
         val updatedState = if (slot == 1) {
             state.copy(forgeSlot1 = itemId)
@@ -912,7 +1015,47 @@ class GameRepository(private val context: Context) {
         dao.saveGameState(updatedState)
     }
 
-    suspend fun mergeItems(): ForgeResult {
+    /** Вставляет случайные вещи наименьшей редкости (кроме epic/legendary) в пустые слоты Forge */
+    override suspend fun recycleToForgeSlots() {
+        val state = getGameState()
+        val entries = parseInventory(state.inventoryItems)
+        val occupied = setOf(state.forgeSlot1, state.forgeSlot2).filter { it.isNotEmpty() }
+        val rarityPriority = listOf("common", "uncommon", "rare")
+
+        // Записи инвентаря по редкости, исключая уже занятые слоты и epic/legendary
+        val eligible = entries.filter { entry ->
+            val uniqueId = getUniqueId(entry)
+            if (uniqueId in occupied) return@filter false
+            val item = ItemUtils.getItemById(getBaseId(entry)) ?: return@filter false
+            item.rarity in rarityPriority
+        }
+        if (eligible.isEmpty()) return
+
+        val lowestRarity = rarityPriority.firstOrNull { rarity ->
+            eligible.any { entry ->
+                ItemUtils.getItemById(getBaseId(entry))?.rarity == rarity
+            }
+        } ?: return
+
+        val pool = eligible.filter { entry ->
+            ItemUtils.getItemById(getBaseId(entry))?.rarity == lowestRarity
+        }.shuffled()
+
+        var poolIdx = 0
+        var newSlot1 = state.forgeSlot1
+        var newSlot2 = state.forgeSlot2
+
+        if (newSlot1.isEmpty() && poolIdx < pool.size) {
+            newSlot1 = getUniqueId(pool[poolIdx++])
+        }
+        if (newSlot2.isEmpty() && poolIdx < pool.size) {
+            newSlot2 = getUniqueId(pool[poolIdx])
+        }
+
+        dao.saveGameState(state.copy(forgeSlot1 = newSlot1, forgeSlot2 = newSlot2))
+    }
+
+    override suspend fun mergeItems(): ForgeResult {
         return saveMutex.withLock {
             val state = getGameState()
             if (state.forgeSlot1.isEmpty() || state.forgeSlot2.isEmpty()) return@withLock ForgeResult.NoItems
@@ -947,7 +1090,7 @@ class GameRepository(private val context: Context) {
                     inventoryItems = buildInventory(entries),
                     forgeSlot1 = "",
                     forgeSlot2 = "",
-                    totalItemsMerged = state.totalItemsMerged + 1,
+                    totalMergeAttempts = state.totalMergeAttempts + 1,
                     activeQuestsJson = forgeQuests
                 ))
                 addLog("Forge: FAIL! Both items destroyed.", "Кузница: FAIL! Оба предмета уничтожены.")
@@ -970,6 +1113,7 @@ class GameRepository(private val context: Context) {
                 forgeSlot2 = "",
                 itemsCollected = state.itemsCollected + 1,
                 totalItemsMerged = state.totalItemsMerged + 1,
+                totalMergeAttempts = state.totalMergeAttempts + 1,
                 activeQuestsJson = forgeQuests
             ))
 
@@ -983,19 +1127,162 @@ class GameRepository(private val context: Context) {
 
     // ==================== CLOVER BOX ====================
 
-    suspend fun checkAndResetDaily() {
+    override suspend fun checkAndResetDaily() {
         val state = getGameState()
         val today = DateUtils.getTodayString()
         if (state.lastDailyReset != today) {
             dao.saveGameState(state.copy(
                 cloverBoxUsedToday = 0,
                 freePointsUsedToday = 0,
+                adShopViewCount = 0,
+
+                // ===== Daily Spin Reset =====
+                dailySpinUsedToday = 0,
+                dailySpinAdViewsToday = 0,
+                lastDailySpinReset = today,
+                spinTokens = state.spinTokens + 1,  // +1 бесплатный спин каждый день
+
                 lastDailyReset = today
             ))
         }
     }
 
-    suspend fun useCloverBox(): com.ninthbalcony.pushuprpg.data.model.Item? {
+    // ==================== HOURLY SPIN ACCUMULATION ====================
+
+    /** Начисляет +1 спин за каждые 3 часа отсутствия (макс 5). Возвращает количество начисленных спинов. */
+    override suspend fun checkAndGrantHourlySpins(): Int {
+        return saveMutex.withLock {
+            val state = getGameState()
+            val now = System.currentTimeMillis()
+            val threeHoursMs = 3L * 60L * 60L * 1000L
+            val lastGrant = if (state.lastHourlySpinGrantTime == 0L) now else state.lastHourlySpinGrantTime
+            val elapsedMs = now - lastGrant
+            val blocks = (elapsedMs / threeHoursMs).toInt().coerceIn(0, 5)
+            if (blocks > 0) {
+                dao.saveGameState(state.copy(
+                    spinTokens = state.spinTokens + blocks,
+                    lastHourlySpinGrantTime = lastGrant + blocks * threeHoursMs
+                ))
+                addLog("+$blocks hourly spin(s)", "+$blocks часовой(-ых) спин(-ов)")
+            }
+            blocks
+        }
+    }
+
+    // ==================== DAILY SPIN ====================
+
+    /** Тратит 1 спин-токен, генерирует награду и сохраняет её в инвентарь */
+    override suspend fun performDailySpin(): SpinResult? {
+        return saveMutex.withLock {
+            val state = getGameState()
+            if (state.spinTokens <= 0) {
+                addLog("❌ No spins available", "❌ Спинов больше нет")
+                return@withLock null
+            }
+
+            val reward = SpinUtils.generateSpinResult()
+            var updatedState = state.copy(spinTokens = state.spinTokens - 1)
+            val wonItemIds = mutableListOf<String>()
+
+            when (reward.type) {
+                "clover_box" -> {
+                    val allItems = ItemUtils.loadItems(context)
+                    val epicItem = allItems.filter { it.rarity == "epic" }.randomOrNull()
+                    if (epicItem != null) {
+                        val uid = "${epicItem.id}_${System.currentTimeMillis()}"
+                        val entries = parseInventory(updatedState.inventoryItems)
+                        entries.add("$uid:0")
+                        updatedState = updatedState.copy(
+                            inventoryItems = buildInventory(entries),
+                            itemsCollected = updatedState.itemsCollected + 1,
+                            itemsFromSpin = updatedState.itemsFromSpin + 1
+                        )
+                        wonItemIds.add(epicItem.id)
+                        addLog("🎁 Won: ${epicItem.name_en} (Epic)!", "🎁 Выиграл: ${epicItem.name_ru} (Epic)!")
+                    }
+                }
+                "boss_cube" -> {
+                    val allItems = ItemUtils.loadItems(context)
+                    val legendaryItem = allItems.filter { it.rarity == "legendary" }.randomOrNull()
+                    if (legendaryItem != null) {
+                        val uid = "${legendaryItem.id}_${System.currentTimeMillis()}"
+                        val entries = parseInventory(updatedState.inventoryItems)
+                        entries.add("$uid:0")
+                        updatedState = updatedState.copy(
+                            inventoryItems = buildInventory(entries),
+                            itemsCollected = updatedState.itemsCollected + 1,
+                            itemsFromSpin = updatedState.itemsFromSpin + 1
+                        )
+                        wonItemIds.add(legendaryItem.id)
+                        addLog("🎁 Won: ${legendaryItem.name_en} (Legendary)!", "🎁 Выиграл: ${legendaryItem.name_ru} (Legendary)!")
+                    } else {
+                        // Fallback: добавляем boss_cube как предмет
+                        val uid = "boss_cube_${System.currentTimeMillis()}"
+                        val entries = parseInventory(updatedState.inventoryItems)
+                        entries.add("$uid:0")
+                        updatedState = updatedState.copy(
+                            inventoryItems = buildInventory(entries),
+                            itemsCollected = updatedState.itemsCollected + 1,
+                            itemsFromSpin = updatedState.itemsFromSpin + 1
+                        )
+                        wonItemIds.add("boss_cube")
+                        addLog("🎁 Won: Boss Cube (Legendary)!", "🎁 Выиграл: Boss Cube (Legendary)!")
+                    }
+                }
+                "rare_spin", "uncommon_spin", "common_spin" -> {
+                    val allItems = ItemUtils.loadItems(context)
+                    val rarity = when (reward.type) {
+                        "rare_spin"     -> "rare"
+                        "uncommon_spin" -> "uncommon"
+                        else            -> "common"
+                    }
+                    val item = allItems.filter { it.rarity == rarity }.randomOrNull()
+                    if (item != null) {
+                        val uid = "${item.id}_${System.currentTimeMillis()}"
+                        val entries = parseInventory(updatedState.inventoryItems)
+                        entries.add("$uid:0")
+                        updatedState = updatedState.copy(
+                            inventoryItems = buildInventory(entries),
+                            itemsCollected = updatedState.itemsCollected + 1,
+                            itemsFromSpin = updatedState.itemsFromSpin + 1
+                        )
+                        wonItemIds.add(item.id)
+                        addLog("🎁 Won: ${item.name_en} (${item.rarity})!", "🎁 Выиграл: ${item.name_ru} (${item.rarity})!")
+                    }
+                }
+                "teeth" -> {
+                    updatedState = updatedState.copy(
+                        teeth = updatedState.teeth + reward.amount,
+                        totalTeethEarned = updatedState.totalTeethEarned + reward.amount,
+                        teethFromSpin = updatedState.teethFromSpin + reward.amount
+                    )
+                    addLog("🎁 Won: ${reward.amount} 🦷", "🎁 Выиграл: ${reward.amount} 🦷")
+                }
+            }
+
+            dao.saveGameState(updatedState)
+            SpinResult(reward = reward, wonItemIds = wonItemIds)
+        }
+    }
+
+    /** Смотрит рекламу → добавляет 1 спин-токен (не запускает спин) */
+    override suspend fun addSpinFromAd(): Boolean {
+        return saveMutex.withLock {
+            val state = getGameState()
+            if (!SpinUtils.canWatchAd(state)) return@withLock false
+            dao.saveGameState(state.copy(
+                dailySpinAdViewsToday = state.dailySpinAdViewsToday + 1,
+                spinTokens = state.spinTokens + 1
+            ))
+            addLog("🎬 Watched ad: +1 Spin token", "🎬 Реклама просмотрена: +1 Спин")
+            true
+        }
+    }
+
+    /** Возвращает количество доступных спинов (= spinTokens) */
+    override suspend fun getAvailableSpins(): Int = getGameState().spinTokens
+
+    override suspend fun useCloverBox(): com.ninthbalcony.pushuprpg.data.model.Item? {
         val state = getGameState()
         if (state.cloverBoxUsedToday >= 2) return null
 
@@ -1025,22 +1312,23 @@ class GameRepository(private val context: Context) {
 
     // ==================== ЗАТОЧКА ====================
 
-    fun calculateEnchantChance(luck: Float, streak: Int, achBonus: Float = 0f): Float {
+    override fun calculateEnchantChance(luck: Float, streak: Int, achBonus: Float): Float {
         return minOf(90f, 7f + (luck * 3f) + (streak * 0.07f) + achBonus)
     }
 
-    fun calculateEnchantCost(rarity: String, currentEnchantLevel: Int): Int {
+    override fun calculateEnchantCost(rarity: String, currentEnchantLevel: Int): Int {
         val basePrice = when (rarity) {
             "common" -> 1
             "uncommon" -> 2
             "rare" -> 3
-            "epic" -> 5
+            "epic" -> 8
+            "legendary" -> 14
             else -> 1
         }
         return basePrice * (currentEnchantLevel + 1)
     }
 
-    suspend fun enchantItem(itemId: String): EnchantResult {
+    override suspend fun enchantItem(itemId: String): EnchantResult {
         return saveMutex.withLock {
             val state = getGameState()
             val entries = parseInventory(state.inventoryItems)
@@ -1083,6 +1371,7 @@ class GameRepository(private val context: Context) {
                     teeth = newTeeth,
                     totalTeethSpent = state.totalTeethSpent + cost,
                     totalEnchantmentsSuccess = state.totalEnchantmentsSuccess + 1,
+                    totalEnchantAttempts = state.totalEnchantAttempts + 1,
                     activeQuestsJson = enchantQuests
                 )
                 if (newLevel >= 9) {
@@ -1098,6 +1387,7 @@ class GameRepository(private val context: Context) {
                     "⚡ ${item.name_en} successfully enchanted to +$newLevel!",
                     "⚡ ${item.name_ru} успешно заточен до +$newLevel!"
                 )
+                playGamesManager?.incrementAchievementAlchemist(1)
                 EnchantResult.SUCCESS
             } else {
                 var failQuests = QuestSystem.deserialize(state.activeQuestsJson)
@@ -1105,25 +1395,27 @@ class GameRepository(private val context: Context) {
                 dao.saveGameState(state.copy(
                     teeth = newTeeth,
                     totalTeethSpent = state.totalTeethSpent + cost,
+                    totalEnchantAttempts = state.totalEnchantAttempts + 1,
                     activeQuestsJson = QuestSystem.serialize(failQuests)
                 ))
                 addLog(
                     "💔 Enchanting ${item.name_en} failed...",
                     "💔 Заточка ${item.name_ru} не удалась..."
                 )
+                playGamesManager?.incrementAchievementFailedEnchants(1)
                 EnchantResult.FAILED
             }
         }
     }
 
-    suspend fun setActiveAchievements(ids: List<String>) {
+    override suspend fun setActiveAchievements(ids: List<String>) {
         val state = getGameState()
         dao.saveGameState(state.copy(activeAchievementIds = ids.take(3).joinToString(",")))
     }
 
     // ==================== КВЕСТЫ ====================
 
-    suspend fun checkAndRefreshQuests() {
+    override suspend fun checkAndRefreshQuests() {
         val state = getGameState()
         val today = DateUtils.getTodayString()
         var quests = QuestSystem.deserialize(state.activeQuestsJson)
@@ -1151,7 +1443,7 @@ class GameRepository(private val context: Context) {
         }
     }
 
-    suspend fun claimQuestReward(defId: String): Boolean {
+    override suspend fun claimQuestReward(defId: String): Boolean {
         return saveMutex.withLock {
             val state = getGameState()
             val quests = QuestSystem.deserialize(state.activeQuestsJson).toMutableList()
@@ -1164,7 +1456,8 @@ class GameRepository(private val context: Context) {
             var newState = state.copy(
                 activeQuestsJson = QuestSystem.serialize(quests),
                 teeth = state.teeth + def.rewardTeeth,
-                totalTeethEarned = state.totalTeethEarned + def.rewardTeeth
+                totalTeethEarned = state.totalTeethEarned + def.rewardTeeth,
+                teethFromQuests = state.teethFromQuests + def.rewardTeeth
             )
 
             if (def.rewardItemRarity != null) {
@@ -1191,9 +1484,23 @@ class GameRepository(private val context: Context) {
         }
     }
 
+    override suspend fun adRerollDailyQuests(): Boolean {
+        val state = getGameState()
+        val today = DateUtils.getTodayString()
+        if (state.lastAdQuestRerollDate == today) return false
+        val quests = QuestSystem.deserialize(state.activeQuestsJson)
+        val weekly = quests.firstOrNull { QuestSystem.getDefById(it.defId)?.isWeekly == true }
+        val updated = QuestSystem.rollDailyQuests() + listOfNotNull(weekly)
+        dao.saveGameState(state.copy(
+            activeQuestsJson = QuestSystem.serialize(updated),
+            lastAdQuestRerollDate = today
+        ))
+        return true
+    }
+
     // ==================== ЕЖЕДНЕВНАЯ НАГРАДА ====================
 
-    suspend fun claimDailyReward(): DailyRewardUtils.DailyReward? {
+    override suspend fun claimDailyReward(): DailyRewardUtils.DailyReward? {
         return try {
             val state = getGameState()
             val today = DateUtils.getTodayString()
@@ -1249,7 +1556,7 @@ class GameRepository(private val context: Context) {
      * Добавляет 10 тестовых вещей (по 2 каждого слота) и 100000 зубов.
      * Использовать ТОЛЬКО для тестирования!
      */
-    suspend fun addDebugItemsForTest() {
+    override suspend fun addDebugItemsForTest() {
         val allItems = ItemUtils.loadItems(context)
         val slots = listOf("head", "necklace", "weapon", "pants", "boots")
         val entries = mutableListOf<String>()
@@ -1273,7 +1580,7 @@ class GameRepository(private val context: Context) {
 
     // ==================== RATE US ====================
 
-    suspend fun updateRateUsState(action: RateUsAction) {
+    override suspend fun updateRateUsState(action: RateUsAction) {
         val state = getGameState()
         val newState = when (action) {
             RateUsAction.RATE_NOW -> {

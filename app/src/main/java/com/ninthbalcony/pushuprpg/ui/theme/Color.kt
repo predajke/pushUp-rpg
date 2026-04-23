@@ -40,6 +40,11 @@ val TextMuted = Color(0xFF666666)
 val LogBackground = Color(0xFF0A1628)
 val LogText = Color(0xFF88CCFF)
 
+// Столбчатые графики (тир-окраска)
+val ChartHigh = Color(0xFF34D17A) // top ⅓
+val ChartMid  = Color(0xFFFF9F3B) // middle ⅓
+val ChartLow  = Color(0xFFFF4D5E) // bottom ⅓
+
 // Кнопки
 val ButtonGreen = Color(0xFF2E7D32)
 val ButtonGreenLight = Color(0xFF43A047)

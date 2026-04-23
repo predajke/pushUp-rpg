@@ -25,6 +25,9 @@ import com.ninthbalcony.pushuprpg.ui.GameViewModel
 import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.AchievementSystem
 import com.ninthbalcony.pushuprpg.utils.AppStrings
+import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.Preview
+import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +35,7 @@ fun ProgressScreen(
     viewModel: GameViewModel,
     onNavigateToAchievements: () -> Unit,
     onNavigateToBestiary: () -> Unit,
+    onNavigateToBosses: () -> Unit,
     onNavigateToItemLog: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -42,6 +46,7 @@ fun ProgressScreen(
     val unlockedCount = viewModel.getUnlockedAchievements(state).size
     val totalCount = AchievementSystem.ALL.size
     val bestiaryCount = viewModel.getBestiary(state).size
+    val bossKillsCount = viewModel.getBossKills(state).size
     val itemLogCount = viewModel.getItemLog(state).size
 
     Column(
@@ -91,6 +96,14 @@ fun ProgressScreen(
                 accentColor = RareColor,
                 backgroundRes = "bg_bestiary",
                 onClick = onNavigateToBestiary
+            )
+
+            ProgressNavCard(
+                title = AppStrings.t(language, "bosses"),
+                subtitle = "$bossKillsCount ${AppStrings.t(language, "encountered")}",
+                accentColor = LuckColor,
+                backgroundRes = "bg_bosstiary",
+                onClick = onNavigateToBosses
             )
 
             ProgressNavCard(
@@ -164,4 +177,18 @@ private fun ProgressNavCard(
             }
         }
     }
+}
+
+@Preview(showBackground = true, widthDp = 412, heightDp = 920)
+@Composable
+private fun ProgressScreenPreview() {
+    val vm = remember { GameViewModel(FakeGameRepository()) }
+    ProgressScreen(
+        viewModel = vm,
+        onNavigateToAchievements = {},
+        onNavigateToBestiary = {},
+        onNavigateToBosses = {},
+        onNavigateToItemLog = {},
+        onBack = {}
+    )
 }

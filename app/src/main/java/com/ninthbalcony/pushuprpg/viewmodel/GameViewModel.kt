@@ -8,7 +8,7 @@ import com.ninthbalcony.pushuprpg.data.model.EnchantResult
 import com.ninthbalcony.pushuprpg.data.model.ForgeResult
 import com.ninthbalcony.pushuprpg.data.model.Item
 import com.ninthbalcony.pushuprpg.data.model.PeriodStats
-import com.ninthbalcony.pushuprpg.data.repository.GameRepository
+import com.ninthbalcony.pushuprpg.data.repository.IGameRepository
 import com.ninthbalcony.pushuprpg.managers.OnboardingManager
 import com.ninthbalcony.pushuprpg.managers.AdType
 import com.ninthbalcony.pushuprpg.utils.ItemUtils
@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class GameViewModel(private val repository: GameRepository) : ViewModel() {
+class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
     val gameState = repository.getGameStateFlow()
     val recentLogs = repository.getRecentLogsFlow()
@@ -43,6 +43,9 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
     fun initializeOnboarding(gameState: GameStateEntity?) {
         if (gameState != null && gameState.isFirstLaunch) {
             onboardingManager.startOnboarding()
+            viewModelScope.launch {
+                repository.saveGameState(gameState.copy(isFirstLaunch = false))
+            }
         }
     }
 
@@ -95,6 +98,56 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
     private val _showRateUsDialog = MutableStateFlow(false)
     val showRateUsDialog: StateFlow<Boolean> = _showRateUsDialog.asStateFlow()
 
+    // ==================== REWARDED ADS ====================
+    private var adManager: com.ninthbalcony.pushuprpg.managers.AdManager? = null
+
+    fun setAdManager(manager: com.ninthbalcony.pushuprpg.managers.AdManager) {
+        adManager = manager
+    }
+
+    fun setPlayGamesManager(manager: com.ninthbalcony.pushuprpg.managers.PlayGamesManager) {
+        viewModelScope.launch {
+            repository.setPlayGamesManager(manager)
+        }
+    }
+
+    private val _adRewardPending = MutableStateFlow(0)
+    val adRewardPending: StateFlow<Int> = _adRewardPending.asStateFlow()
+
+    fun requestAdReward(teeth: Int) { _adRewardPending.value = teeth }
+
+    fun playRewardedAd(activity: android.app.Activity) {
+        adManager?.showRewardedAd(
+            activity,
+            onRewardEarned = {
+                val amount = _adRewardPending.value
+                _adRewardPending.value = 0
+                viewModelScope.launch { repository.addTeeth(amount) }
+            },
+            onAdDismissed = { _adRewardPending.value = 0 }
+        )
+    }
+
+    fun dismissAdReward() { _adRewardPending.value = 0 }
+
+    private val _adQuestRerollPending = MutableStateFlow(false)
+    val adQuestRerollPending: StateFlow<Boolean> = _adQuestRerollPending.asStateFlow()
+
+    fun requestAdQuestReroll() { _adQuestRerollPending.value = true }
+
+    fun playAdQuestReroll(activity: android.app.Activity) {
+        adManager?.showRewardedAd(
+            activity,
+            onRewardEarned = {
+                _adQuestRerollPending.value = false
+                viewModelScope.launch { repository.adRerollDailyQuests() }
+            },
+            onAdDismissed = { _adQuestRerollPending.value = false }
+        )
+    }
+
+    fun dismissAdQuestReroll() { _adQuestRerollPending.value = false }
+
     val totalStats: StateFlow<com.ninthbalcony.pushuprpg.utils.TotalStats?> = gameState.filterNotNull().map { state ->
         val slots = listOf(
             state.equippedHead, state.equippedNecklace, state.equippedWeapon1,
@@ -102,7 +155,9 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
         ).filter { it.isNotEmpty() }
         val items = slots.mapNotNull { ItemUtils.getItemById(it.split(":")[0]) }
         val levels = slots.map { it.split(":").getOrNull(1)?.toIntOrNull() ?: 0 }
-        com.ninthbalcony.pushuprpg.utils.GameCalculations.calculateTotalStats(state, items, levels)
+        val achBonuses = com.ninthbalcony.pushuprpg.utils.AchievementSystem.getActiveBonuses(state.activeAchievementIds)
+        val setBonuses = ItemUtils.getSetBonuses(items)
+        com.ninthbalcony.pushuprpg.utils.GameCalculations.calculateTotalStats(state, items, levels, achBonuses, setBonuses)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _isLoading = MutableStateFlow(false)
@@ -290,9 +345,7 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
 
     fun loadShop() {
         viewModelScope.launch {
-            val state = repository.getGameState()
-            val itemIds = state.shopItems.split(",").filter { it.isNotEmpty() }
-            _shopItems.value = itemIds.mapNotNull { ItemUtils.getItemById(it) }
+            _shopItems.value = repository.getOrRefreshShop()
         }
     }
 
@@ -328,6 +381,12 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
         }
     }
 
+    fun recycleForgeSlots() {
+        viewModelScope.launch {
+            repository.recycleToForgeSlots()
+        }
+    }
+
     fun selectEnchantItem(item: Item?) {
         _selectedEnchantItem.value = item
     }
@@ -339,6 +398,52 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
         }
     }
 
+    // ==================== DAILY SPIN ====================
+    private val _availableSpins = MutableStateFlow(0)
+    val availableSpins: StateFlow<Int> = _availableSpins.asStateFlow()
+
+    private val _spinResult = MutableStateFlow<com.ninthbalcony.pushuprpg.utils.SpinResult?>(null)
+    val spinResult: StateFlow<com.ninthbalcony.pushuprpg.utils.SpinResult?> = _spinResult.asStateFlow()
+
+    private val _isSpinning = MutableStateFlow(false)
+    val isSpinning: StateFlow<Boolean> = _isSpinning.asStateFlow()
+
+    private val _adViewsToday = MutableStateFlow(0)
+    val adViewsToday: StateFlow<Int> = _adViewsToday.asStateFlow()
+
+    /** Тратит 1 токен, запускает анимацию спина */
+    fun performDailySpin() {
+        viewModelScope.launch {
+            _isSpinning.value = true
+            _spinResult.value = repository.performDailySpin()
+            _availableSpins.value = repository.getAvailableSpins()
+            _adViewsToday.value = repository.getGameState().dailySpinAdViewsToday
+            _isSpinning.value = false
+        }
+    }
+
+    /** Смотрит рекламу → добавляет 1 токен (без запуска анимации) */
+    fun watchAdForSpin() {
+        viewModelScope.launch {
+            repository.addSpinFromAd()
+            _availableSpins.value = repository.getAvailableSpins()
+            _adViewsToday.value = repository.getGameState().dailySpinAdViewsToday
+        }
+    }
+
+    fun refreshSpinCounters() {
+        viewModelScope.launch {
+            repository.checkAndResetDaily()
+            repository.checkAndGrantHourlySpins()
+            _availableSpins.value = repository.getAvailableSpins()
+            _adViewsToday.value = repository.getGameState().dailySpinAdViewsToday
+        }
+    }
+
+    fun clearSpinResult() {
+        _spinResult.value = null
+    }
+
     // ==================== ПЕРЕМЕННЫЕ ДЛЯ СТАТИСТИКИ (STATISTICS) ====================
     private val _periodStats = MutableStateFlow<PeriodStats?>(null)
     val periodStats: StateFlow<PeriodStats?> = _periodStats.asStateFlow()
@@ -346,10 +451,28 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
     private val _weekStats = MutableStateFlow<List<Pair<String, Int>>>(emptyList())
     val weekStats: StateFlow<List<Pair<String, Int>>> = _weekStats.asStateFlow()
 
+    private val _yearStats = MutableStateFlow<List<Pair<String, Int>>>(emptyList())
+    val yearStats: StateFlow<List<Pair<String, Int>>> = _yearStats.asStateFlow()
+
     fun loadPeriodStats() {
         viewModelScope.launch {
             _periodStats.value = repository.getStatsForPeriod()
-            _weekStats.value = repository.getLast7DaysStats().map { it.date to it.count }
+
+            val rawWeek = repository.getLast7DaysStats().associate { it.date to it.count }
+            val today = java.time.LocalDate.now()
+            _weekStats.value = (6 downTo 0).map { i ->
+                val d = today.minusDays(i.toLong())
+                val label = d.format(java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.ENGLISH)).take(3)
+                label to (rawWeek[d.toString()] ?: 0)
+            }
+
+            val rawYear = repository.getLast12MonthsStats().associate { it.date to it.count }
+            _yearStats.value = (11 downTo 0).map { i ->
+                val m = today.minusMonths(i.toLong())
+                val key = m.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"))
+                val label = m.format(java.time.format.DateTimeFormatter.ofPattern("MMM", java.util.Locale.ENGLISH))
+                label to (rawYear[key] ?: 0)
+            }
         }
     }
 
@@ -468,10 +591,36 @@ class GameViewModel(private val repository: GameRepository) : ViewModel() {
         } catch (e: Exception) { emptyMap() }
     }
 
+    fun getBossKills(state: GameStateEntity): Map<String, Int> {
+        if (state.bossKillsJson.isBlank()) return emptyMap()
+        return try {
+            Gson().fromJson(state.bossKillsJson, object : TypeToken<Map<String, Int>>() {}.type) ?: emptyMap()
+        } catch (e: Exception) { emptyMap() }
+    }
+
     fun getItemLog(state: GameStateEntity): List<String> {
         if (state.itemLogJson.isBlank()) return emptyList()
         return try {
             Gson().fromJson(state.itemLogJson, object : TypeToken<List<String>>() {}.type) ?: emptyList()
         } catch (e: Exception) { emptyList() }
+    }
+
+    /** Возвращает Set базовых ID предметов, которые когда-либо были у игрока (из лога + инвентаря) */
+    fun getCollectedItemBaseIds(state: GameStateEntity): Set<String> {
+        // itemLogJson — это JSON-массив строк-идентификаторов
+        val fromLog: Set<String> = if (state.itemLogJson.isBlank()) emptySet() else try {
+            val type = object : TypeToken<List<String>>() {}.type
+            val list: List<String>? = Gson().fromJson(state.itemLogJson, type)
+            list?.map { ItemUtils.getBaseItemId(it) }?.toSet() ?: emptySet()
+        } catch (_: Exception) { emptySet() }
+
+        // inventoryItems — это CSV-строка вида "id1:0,id2:3,..."
+        val fromInventory: Set<String> = state.inventoryItems
+            .split(",")
+            .filter { it.isNotBlank() }
+            .map { ItemUtils.getBaseItemId(it.substringBefore(":")) }
+            .toSet()
+
+        return fromLog + fromInventory
     }
 }

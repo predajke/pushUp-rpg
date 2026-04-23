@@ -10,35 +10,31 @@ object GameCalculations {
     // --- Уровень и XP ---
     const val HP_PER_LEVEL = 10
     const val STAT_POINTS_PER_LEVEL = 3
-    private val XP_THRESHOLDS = listOf(
-        0,    // Уровень 1
-        100,  // Уровень 2
-        200,  // Уровень 3
-        300,  // Уровень 4
-        500,  // Уровень 5
-        1000, // Уровень 6
-        1500, // Уровень 7
-        2000, // Уровень 8
-        2500, // Уровень 9
-        3000,  // Уровень 10
-        3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000,
-        10500, 11100, 11700, 12300, 12900, 13500, 14100, 14700, 15300, 15900, 16600, 17300,
-        17900, 18500, 19000, 19700, 20300, 21000, 22000, 23000, 24000, 25000, 26000, 27000, 28000,
-        29000, 30000, 31000, 32000, 33000, 34000
-    )
+    // XP для перехода с level на level+1:
+    // Уровни 1-9: начинаем с 200, каждый +100 (200, 300, ..., 1000)
+    // Уровни 10+: каждый +150 (1150, 1300, 1450, ...)
+    private fun xpPerLevel(level: Int): Int = when {
+        level < 10 -> 200 + (level - 1) * 100
+        else       -> 1000 + (level - 9) * 150
+    }
+
     fun getLevelFromXp(xp: Int): Int {
-        for (i in XP_THRESHOLDS.indices.reversed()) {
-            if (xp >= XP_THRESHOLDS[i]) return i + 1
+        var level = 1
+        var threshold = 0
+        while (true) {
+            val next = threshold + xpPerLevel(level)
+            if (xp < next) return level
+            threshold = next
+            level++
+            if (level > 10_000) return level
         }
-        return 1
     }
 
     fun getXpThresholdForLevel(level: Int): Int {
-        return if (level <= XP_THRESHOLDS.size) {
-            XP_THRESHOLDS[level - 1]
-        } else {
-            XP_THRESHOLDS.last() + (level - XP_THRESHOLDS.size) * 500
-        }
+        if (level <= 1) return 0
+        var total = 0
+        for (l in 1 until level) total += xpPerLevel(l)
+        return total
     }
 
     fun getXpForNextLevel(currentXp: Int): Int {
@@ -100,11 +96,13 @@ object GameCalculations {
         return MonsterUtils.getMonsterByLevel(monsterLevel).damage
     }
 
-    // --- Суммарные статы с учётом вещей и уровней заточки ---
+    // --- Суммарные статы с учётом вещей, уровней заточки, бонусов ачивок и сетов ---
     fun calculateTotalStats(
         state: GameStateEntity,
         equippedItems: List<Item>,
-        enchantLevels: List<Int> = emptyList()
+        enchantLevels: List<Int> = emptyList(),
+        achBonuses: AchievementBonuses = AchievementBonuses(),
+        setBonuses: SetBonuses = SetBonuses()
     ): TotalStats {
         var itemPower = 0; var itemArmor = 0; var itemHealth = 0; var itemLuck = 0f
         equippedItems.forEachIndexed { i, item ->
@@ -115,10 +113,10 @@ object GameCalculations {
             itemLuck   += item.stats.luck   + lvl
         }
         return TotalStats(
-            power  = state.basePower  + itemPower,
-            armor  = state.baseArmor  + itemArmor,
-            health = state.baseHealth + itemHealth,
-            luck   = state.baseLuck   + itemLuck
+            power  = ((state.basePower  + itemPower)  * (1f + achBonuses.damagePercent + setBonuses.damagePercent)).toInt(),
+            armor  = ((state.baseArmor  + itemArmor)  * (1f + achBonuses.armorPercent + setBonuses.armorPercent)).toInt(),
+            health = state.baseHealth + (state.playerLevel * HP_PER_LEVEL) + itemHealth + achBonuses.hpFlat,
+            luck   = state.baseLuck   + itemLuck   + achBonuses.critPercent * 100f
         )
     }
 
@@ -144,9 +142,8 @@ object GameCalculations {
     }
 
     fun getTeethFromMonster(monsterLevel: Int): Int {
-        // За убийство монстра: от 1 до monsterLevel зубов
-        val max = monsterLevel.coerceAtLeast(2)
-        return Random.nextInt(1, max + 1)
+        val base = (monsterLevel * 0.5f).roundToInt().coerceAtLeast(1)
+        return Random.nextInt(base, (base * 2) + 1)
     }
 
     // --- Стрик-бонус XP (постоянный пока стрик активен) ---
@@ -171,9 +168,9 @@ object GameCalculations {
         return when (rarity) {
             "common" -> 1
             "uncommon" -> 2
-            "rare" -> 3
-            "epic" -> 5
-            "legendary" -> 10
+            "rare" -> 4
+            "epic" -> 8
+            "legendary" -> 15
             else -> 1
         }
     }
