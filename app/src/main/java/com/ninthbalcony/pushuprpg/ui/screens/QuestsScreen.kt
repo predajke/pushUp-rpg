@@ -1,7 +1,10 @@
 package com.ninthbalcony.pushuprpg.ui.screens
 
+import androidx.activity.compose.LocalActivity
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +27,7 @@ import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.ActiveQuest
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.QuestSystem
+import com.ninthbalcony.pushuprpg.utils.SoundManager
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
@@ -42,7 +46,17 @@ fun QuestsScreen(
     val weekly = quests.filter { QuestSystem.getDefById(it.defId)?.isWeekly == true }
 
     val adQuestRerollPending by viewModel.adQuestRerollPending.collectAsState()
-    val activity = LocalContext.current as? android.app.Activity
+    val activity = LocalActivity.current
+
+    val context = LocalContext.current
+    val soundEnabled = remember {
+        context.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE)
+            .getBoolean("sounds_enabled", true)
+    }
+    val vibrationEnabled = remember {
+        context.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE)
+            .getBoolean("vibration_enabled", true)
+    }
 
     if (adQuestRerollPending) {
         com.ninthbalcony.pushuprpg.ui.dialogs.RewardedAdDialog(
@@ -100,7 +114,9 @@ fun QuestsScreen(
             }
 
             itemsIndexed(daily) { index, quest ->
-                QuestCard(quest = quest, language = language, index = index) {
+                QuestCard(quest = quest, language = language, index = index, soundEnabled = soundEnabled, vibrationEnabled = vibrationEnabled, context = context) {
+                    SoundManager.playSave(soundEnabled)
+                    if (vibrationEnabled) vibrate(context)
                     viewModel.claimQuestReward(quest.defId)
                 }
             }
@@ -152,7 +168,9 @@ fun QuestsScreen(
             }
 
             items(weekly) { quest ->
-                QuestCard(quest = quest, language = language) {
+                QuestCard(quest = quest, language = language, soundEnabled = soundEnabled, vibrationEnabled = vibrationEnabled, context = context) {
+                    SoundManager.playSave(soundEnabled)
+                    if (vibrationEnabled) vibrate(context)
                     viewModel.claimQuestReward(quest.defId)
                 }
             }
@@ -174,6 +192,9 @@ private fun QuestCard(
     quest: ActiveQuest,
     language: String,
     index: Int = 0,
+    soundEnabled: Boolean = true,
+    vibrationEnabled: Boolean = false,
+    context: android.content.Context? = null,
     onClaim: () -> Unit
 ) {
     val context = LocalContext.current
@@ -193,16 +214,26 @@ private fun QuestCard(
         context.resources.getIdentifier(bgImageName, "drawable", context.packageName)
     }
 
-    val borderColor = when {
+    val baseBorderColor = when {
         isClaimed -> TextMuted
         isCompleted -> HealthColor
         def.isWeekly -> GoldAccent
         else -> OrangeAccent
     }
 
+    val infiniteTransition = rememberInfiniteTransition(label = "questBorder")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = if (isCompleted && !isClaimed) 0.4f else 1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "questAlpha"
+    )
+    val borderColor = if (isCompleted && !isClaimed) baseBorderColor.copy(alpha = pulseAlpha) else baseBorderColor
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .border(2.dp, borderColor, RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp))
     ) {
         // Слой 1: фон
@@ -300,6 +331,23 @@ private fun QuestCard(
         }
         } // Column (контент)
     } // Box (карточка)
+}
+
+private fun vibrate(context: android.content.Context) {
+    val vib = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        val vm = context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE)
+                as android.os.VibratorManager
+        vm.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+    }
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        vib.vibrate(android.os.VibrationEffect.createOneShot(80, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+    } else {
+        @Suppress("DEPRECATION")
+        vib.vibrate(80)
+    }
 }
 
 @Preview(showBackground = true, widthDp = 412, heightDp = 920)

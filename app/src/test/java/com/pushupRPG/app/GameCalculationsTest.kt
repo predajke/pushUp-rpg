@@ -96,8 +96,8 @@ class GameCalculationsTest {
     @Test
     fun `getMaxHp - суммирует базу, уровень и предметы`() {
         val maxHp = GameCalculations.getMaxHp(level = 5, baseHealth = 100, itemHealthBonus = 20)
-        // 100 + 5*10 + 20 = 170
-        assertEquals(170, maxHp)
+        // 100 + 5*15 + 20 = 195
+        assertEquals(195, maxHp)
     }
 
     @Test

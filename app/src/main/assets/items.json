@@ -1815,7 +1815,7 @@
       "id": "set_pro_amulet",
       "name_ru": "Амулет Singularity",
       "name_en": "Singularity Amulet",
-      "slot": "amulet",
+      "slot": "necklace",
       "rarity": "legendary",
       "setId": "singularity",
       "stats": {
@@ -1849,7 +1849,7 @@
       "id": "set_pro_helm",
       "name_ru": "Шлем Singularity",
       "name_en": "Singularity Helm",
-      "slot": "helm",
+      "slot": "head",
       "rarity": "legendary",
       "setId": "singularity",
       "stats": {

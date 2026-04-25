@@ -46,6 +46,14 @@ object MonsterUtils {
         Monster(id = 38, name = "Slime Mass", nameRu = "Слизевое Образование", level = 40, maxHp = 45000, damage = 2300, dropRate = 0.73f, imageRes = "monster_38"),
         Monster(id = 39, name = "Furious Orc", nameRu = "Недовольный Орк", level = 41, maxHp = 52000, damage = 2500, dropRate = 0.74f, imageRes = "monster_39"),
         Monster(id = 40, name = "Ember Fiend", nameRu = "Огненный Бес", level = 42, maxHp = 56000, damage = 2700, dropRate = 0.74f, imageRes = "monster_40"),
+        // Уровни 43–49: усиленные версии существующих монстров
+        Monster(id = 41, name = "Dark Ninja+", nameRu = "Тёмный Ниндзя+", level = 43, maxHp = 63000, damage = 2900, dropRate = 0.75f, imageRes = "monster_35"),
+        Monster(id = 42, name = "Werewolf+", nameRu = "Волк-Оборотень+", level = 44, maxHp = 70000, damage = 3100, dropRate = 0.75f, imageRes = "monster_36"),
+        Monster(id = 43, name = "Gargoyle+", nameRu = "Гаргулья+", level = 45, maxHp = 78000, damage = 3350, dropRate = 0.76f, imageRes = "monster_37"),
+        Monster(id = 44, name = "Orc Warlord", nameRu = "Орк-Военачальник", level = 46, maxHp = 86000, damage = 3600, dropRate = 0.76f, imageRes = "monster_39"),
+        Monster(id = 45, name = "Demon Emperor", nameRu = "Демон-Владыка", level = 47, maxHp = 95000, damage = 3900, dropRate = 0.77f, imageRes = "monster_28"),
+        Monster(id = 46, name = "Void Titan", nameRu = "Титан Пустоты", level = 48, maxHp = 105000, damage = 4200, dropRate = 0.77f, imageRes = "monster_40"),
+        Monster(id = 47, name = "The Abyss", nameRu = "Бездна", level = 49, maxHp = 115000, damage = 4500, dropRate = 0.78f, imageRes = "monster_40"),
         )
 
 

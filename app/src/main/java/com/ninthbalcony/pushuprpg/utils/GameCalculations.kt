@@ -8,7 +8,7 @@ import kotlin.random.Random
 object GameCalculations {
 
     // --- Уровень и XP ---
-    const val HP_PER_LEVEL = 10
+    const val HP_PER_LEVEL = 15
     const val STAT_POINTS_PER_LEVEL = 3
     // XP для перехода с level на level+1:
     // Уровни 1-9: начинаем с 200, каждый +100 (200, 300, ..., 1000)

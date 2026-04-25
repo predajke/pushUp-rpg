@@ -10,13 +10,13 @@ class OnboardingManager {
     companion object {
         private const val TAG = "OnboardingManager"
 
-        // Onboarding steps (matched to Main Menu screens)
-        const val STEP_WELCOME = 0              // Total Pushups today
-        const val STEP_INVENTORY = 1            // Inventory window
-        const val STEP_SHOP = 2                 // Shop button
-        const val STEP_BATTLE = 3               // Current Battle
-        const val STEP_LOGS = 4                 // Battle Logs
-        const val STEP_QUESTS = 5               // Quests + Progress + Achievements
+        // Onboarding steps — visual top-to-bottom order on MainMenuScreen
+        const val STEP_BATTLE = 0               // BattleArena   (top)
+        const val STEP_WELCOME = 1              // PushUpCounter
+        const val STEP_SHOP = 2                 // Shop button (inside PushUpCounter)
+        const val STEP_INVENTORY = 3            // StatsPanel / Inventory
+        const val STEP_LOGS = 4                 // MiniLog
+        const val STEP_QUESTS = 5               // QuestShortcutButton (bottom)
         const val TOTAL_STEPS = 6
     }
 
@@ -56,25 +56,25 @@ class OnboardingManager {
 
     fun getStepTitleKey(step: Int): String {
         return when (step) {
-            STEP_WELCOME -> "onboard_step_title_0"
+            STEP_BATTLE    -> "onboard_step_title_3"
+            STEP_WELCOME   -> "onboard_step_title_0"
+            STEP_SHOP      -> "onboard_step_title_2"
             STEP_INVENTORY -> "onboard_step_title_1"
-            STEP_SHOP -> "onboard_step_title_2"
-            STEP_BATTLE -> "onboard_step_title_3"
-            STEP_LOGS -> "onboard_step_title_4"
-            STEP_QUESTS -> "onboard_step_title_5"
-            else -> "onboard_step_title_0"
+            STEP_LOGS      -> "onboard_step_title_4"
+            STEP_QUESTS    -> "onboard_step_title_5"
+            else           -> "onboard_step_title_0"
         }
     }
 
     fun getStepDescriptionKey(step: Int): String {
         return when (step) {
-            STEP_WELCOME -> "onboard_step_desc_0"
+            STEP_BATTLE    -> "onboard_step_desc_3"
+            STEP_WELCOME   -> "onboard_step_desc_0"
+            STEP_SHOP      -> "onboard_step_desc_2"
             STEP_INVENTORY -> "onboard_step_desc_1"
-            STEP_SHOP -> "onboard_step_desc_2"
-            STEP_BATTLE -> "onboard_step_desc_3"
-            STEP_LOGS -> "onboard_step_desc_4"
-            STEP_QUESTS -> "onboard_step_desc_5"
-            else -> "onboard_step_desc_0"
+            STEP_LOGS      -> "onboard_step_desc_4"
+            STEP_QUESTS    -> "onboard_step_desc_5"
+            else           -> "onboard_step_desc_0"
         }
     }
 

@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -120,8 +122,16 @@ fun HighlightTourGuideDialog(
                 )
             }
 
-            // Info box: bottom for steps 0-2, top for steps 3-5 (Battle/Logs/Quests)
-            val infoAlignment = if (currentStep >= 3) Alignment.TopCenter else Alignment.BottomCenter
+            // Info box: dynamically placed based on target position
+            // Element in upper half → comment at bottom; element in lower half → comment at top
+            val screenHeightPx = with(LocalDensity.current) {
+                LocalConfiguration.current.screenHeightDp.dp.toPx()
+            }
+            val infoAlignment = if (displayRect.center.y < screenHeightPx / 2f) {
+                Alignment.BottomCenter
+            } else {
+                Alignment.TopCenter
+            }
             Column(
                 modifier = Modifier
                     .align(infoAlignment)

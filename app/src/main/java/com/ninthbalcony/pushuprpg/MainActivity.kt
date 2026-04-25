@@ -27,6 +27,7 @@ import com.ninthbalcony.pushuprpg.ui.theme.DarkBackground
 import com.ninthbalcony.pushuprpg.ui.theme.PushUpRPGTheme
 import com.ninthbalcony.pushuprpg.utils.NotificationHelper
 import com.ninthbalcony.pushuprpg.utils.NotificationScheduler
+import com.ninthbalcony.pushuprpg.utils.SoundManager
 import kotlinx.coroutines.GlobalScope
 
 class MainActivity : ComponentActivity() {
@@ -61,6 +62,7 @@ class MainActivity : ComponentActivity() {
         antiCheatManager = AntiCheatManager()
         rateUsManager = RateUsManager()
         onboardingManager = OnboardingManager()
+        SoundManager.init(this)
 
         // Create notification channel
         NotificationHelper.createNotificationChannel(this)
@@ -126,12 +128,23 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        SoundManager.pauseWithFade()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        SoundManager.resumeWithFade()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         cloudSyncManager.destroy()
         adManager.destroy()
         playGamesManager.signOut(this)
         onboardingManager.reset()
+        SoundManager.release()
         Log.d(TAG, "MainActivity destroyed")
     }
 }

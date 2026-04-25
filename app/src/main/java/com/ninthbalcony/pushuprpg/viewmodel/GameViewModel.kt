@@ -192,6 +192,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     fun claimQuestReward(defId: String, callback: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
             val success = repository.claimQuestReward(defId)
+            triggerRealtimeTick()
             callback(success)
         }
     }
@@ -200,17 +201,35 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         viewModelScope.launch { repository.checkAndRefreshQuests() }
     }
 
+    // ==================== ACHIEVEMENT TOAST ====================
+    private val _achievementToast = MutableStateFlow<String?>(null)
+    val achievementToast: StateFlow<String?> = _achievementToast.asStateFlow()
+
+    fun clearAchievementToast() { _achievementToast.value = null }
+
     init {
         _isLoading.value = true
         viewModelScope.launch {
-            // Убедимся что начальное состояние создано
             repository.getGameState()
-
             gameState.filterNotNull().collect { state ->
                 _activeEvent.value = if (EventUtils.isEventActive(state.eventEndTime)) {
                     EventUtils.getEventById(state.activeEventId)
                 } else null
                 _isLoading.value = false
+            }
+        }
+        // Следим за новыми достижениями и показываем тост
+        viewModelScope.launch {
+            var known = emptySet<String>()
+            gameState.filterNotNull().collect { state ->
+                val current = AchievementSystem.getUnlocked(state.achievementsJson)
+                    .map { it.defId }.toSet()
+                if (known.isNotEmpty() && current.size > known.size) {
+                    val newId = (current - known).firstOrNull()
+                    val def = AchievementSystem.ALL.find { it.id == newId }
+                    _achievementToast.value = def?.nameEn ?: newId
+                }
+                known = current
             }
         }
     }
@@ -377,6 +396,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     fun mergeItems(callback: (ForgeResult) -> Unit) {
         viewModelScope.launch {
             val result = repository.mergeItems()
+            triggerRealtimeTick()
             callback(result)
         }
     }
@@ -394,6 +414,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     fun enchantItemWithCallback(itemId: String, callback: (EnchantResult) -> Unit) {
         viewModelScope.launch {
             val result = repository.enchantItem(itemId)
+            triggerRealtimeTick()
             callback(result)
         }
     }
@@ -418,6 +439,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
             _spinResult.value = repository.performDailySpin()
             _availableSpins.value = repository.getAvailableSpins()
             _adViewsToday.value = repository.getGameState().dailySpinAdViewsToday
+            triggerRealtimeTick()
             _isSpinning.value = false
         }
     }
@@ -553,6 +575,116 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         viewModelScope.launch {
             val success = repository.useFreePoints()
             callback(success)
+        }
+    }
+
+    // ==================== PUNCH ====================
+    private val _punchCooldownUntil = MutableStateFlow(0L)
+    val punchCooldownUntil: StateFlow<Long> = _punchCooldownUntil.asStateFlow()
+
+    private val _lastPunchDamage = MutableStateFlow<Int?>(null)
+    val lastPunchDamage: StateFlow<Int?> = _lastPunchDamage.asStateFlow()
+
+    fun performPunch() {
+        if (System.currentTimeMillis() < _punchCooldownUntil.value) return
+        viewModelScope.launch {
+            val result = repository.performPunch()
+            when {
+                result > 0 -> {
+                    _punchCooldownUntil.value = System.currentTimeMillis() + 3000L
+                    _lastPunchDamage.value = result
+                    kotlinx.coroutines.delay(900L)
+                    _lastPunchDamage.value = null
+                    triggerRealtimeTick()
+                }
+            }
+        }
+    }
+
+    fun getPunchesRemaining(state: GameStateEntity): Int {
+        val today = com.ninthbalcony.pushuprpg.utils.DateUtils.getTodayString()
+        val used = if (state.lastPunchDate == today) state.punchesUsedToday else 0
+        return (25 - used).coerceAtLeast(0)
+    }
+
+    // ==================== DEV CONSOLE ====================
+    private val _cheatFeedback = MutableStateFlow("")
+    val cheatFeedback: StateFlow<String> = _cheatFeedback.asStateFlow()
+
+    fun executeCheat(command: String) {
+        val parts = command.trim().split("\\s+".toRegex()).filter { it.isNotBlank() }
+        if (parts.isEmpty()) return
+
+        viewModelScope.launch {
+            val state = repository.getGameState()
+            val feedback = when {
+                parts[0] == "give" && parts.getOrNull(1) == "lvl" -> {
+                    val lvl = parts.getOrNull(2)?.toIntOrNull()?.coerceIn(1, 49)
+                        ?: return@launch run { _cheatFeedback.value = "Usage: give lvl <1-49>" }
+                    val xp = com.ninthbalcony.pushuprpg.utils.GameCalculations.getXpThresholdForLevel(lvl)
+                    val points = (lvl - 1) * com.ninthbalcony.pushuprpg.utils.GameCalculations.STAT_POINTS_PER_LEVEL
+                    val monster = com.ninthbalcony.pushuprpg.utils.MonsterUtils.rollNextMonster(lvl)
+                    val maxHp = com.ninthbalcony.pushuprpg.utils.GameCalculations.getMaxHp(lvl, state.baseHealth, 0)
+                    repository.saveGameState(state.copy(
+                        totalXp = xp,
+                        playerLevel = lvl,
+                        unspentStatPoints = points,
+                        currentHp = maxHp,
+                        isPlayerDead = false,
+                        monsterName = monster.name,
+                        monsterLevel = monster.level,
+                        monsterMaxHp = monster.maxHp,
+                        monsterCurrentHp = monster.maxHp,
+                        monsterDamage = monster.damage
+                    ))
+                    "✅ Level $lvl set. $points stat points granted"
+                }
+
+                parts[0] == "give" && parts.getOrNull(1) == "teeth" -> {
+                    val amount = parts.getOrNull(2)?.toIntOrNull()
+                        ?: return@launch run { _cheatFeedback.value = "Usage: give teeth <amount>" }
+                    repository.saveGameState(state.copy(teeth = state.teeth + amount))
+                    "✅ +$amount teeth (total: ${state.teeth + amount})"
+                }
+
+                parts[0] == "give" && parts.getOrNull(1) == "item" -> {
+                    val itemId = parts.getOrNull(2)
+                        ?: return@launch run { _cheatFeedback.value = "Usage: give item <item_id>" }
+                    val item = ItemUtils.getItemById(itemId)
+                        ?: return@launch run { _cheatFeedback.value = "❌ Item '$itemId' not found" }
+                    val uniqueId = "${itemId}_${System.currentTimeMillis()}"
+                    val inv = state.inventoryItems.split(",").filter { it.isNotEmpty() }.toMutableList()
+                    inv.add("$uniqueId:0")
+                    repository.saveGameState(state.copy(
+                        inventoryItems = inv.joinToString(","),
+                        itemsCollected = state.itemsCollected + 1
+                    ))
+                    "✅ Added ${item.name_en} to inventory"
+                }
+
+                parts[0] == "give" && parts.getOrNull(1) == "items" -> {
+                    repository.addDebugItemsForTest()
+                    "✅ Debug items + 100k teeth added"
+                }
+
+                parts[0] == "give" && parts.getOrNull(1) == "spins" -> {
+                    val amount = parts.getOrNull(2)?.toIntOrNull()
+                        ?: return@launch run { _cheatFeedback.value = "Usage: give spins <amount>" }
+                    repository.saveGameState(state.copy(spinTokens = state.spinTokens + amount))
+                    "✅ +$amount spins (total: ${state.spinTokens + amount})"
+                }
+
+                parts[0] == "give" && parts.getOrNull(1) == "hp" -> {
+                    val maxHp = com.ninthbalcony.pushuprpg.utils.GameCalculations.getMaxHp(
+                        state.playerLevel, state.baseHealth, 0
+                    )
+                    repository.saveGameState(state.copy(currentHp = maxHp, isPlayerDead = false))
+                    "✅ HP restored to $maxHp"
+                }
+
+                else -> "❌ Unknown command. Tap [?] for help"
+            }
+            _cheatFeedback.value = feedback
         }
     }
 

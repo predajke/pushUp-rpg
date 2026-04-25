@@ -43,6 +43,9 @@ fun SettingsScreen(
     var showRenameDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
     var nameInput by remember { mutableStateOf(gameState?.playerName ?: "") }
+    var cheatInput by remember { mutableStateOf("") }
+    var showCheatHelp by remember { mutableStateOf(false) }
+    val cheatFeedback by viewModel.cheatFeedback.collectAsState()
 
     // Диалог переименования
     if (showRenameDialog) {
@@ -57,6 +60,24 @@ fun SettingsScreen(
                 showRenameDialog = false
             },
             onDismiss = { showRenameDialog = false }
+        )
+    }
+
+    if (showCheatHelp) {
+        AlertDialog(
+            onDismissRequest = { showCheatHelp = false },
+            title = { Text("Dev Console", color = TextPrimary) },
+            text = {
+                Text(
+                    text = "give lvl <1-49>\ngive teeth <n>\ngive item <id>\ngive items\ngive spins <n>\ngive hp",
+                    color = TextSecondary,
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showCheatHelp = false }) { Text("OK", color = OrangeAccent) }
+            },
+            containerColor = DarkSurface
         )
     }
 
@@ -272,6 +293,47 @@ fun SettingsScreen(
                 }
             }
 
+            // --- Звук и вибрация ---
+            SettingsSection(title = if (language == "ru") "🔊 Звук и вибрация" else "🔊 Sound & Vibration") {
+                val context = LocalContext.current
+                val prefs = remember { context.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE) }
+                var soundsEnabled by remember { mutableStateOf(prefs.getBoolean("sounds_enabled", true)) }
+                var vibrationEnabled by remember { mutableStateOf(prefs.getBoolean("vibration_enabled", true)) }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(if (language == "ru") "Звуки и музыка" else "Sound & Music", fontSize = 15.sp, color = TextPrimary)
+                    Switch(
+                        checked = soundsEnabled,
+                        onCheckedChange = {
+                            soundsEnabled = it
+                            prefs.edit().putBoolean("sounds_enabled", it).apply()
+                            if (!it) com.ninthbalcony.pushuprpg.utils.SoundManager.stopMusic()
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = OrangeAccent, checkedTrackColor = OrangeAccent.copy(alpha = 0.4f))
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(if (language == "ru") "Вибрация" else "Vibration", fontSize = 15.sp, color = TextPrimary)
+                    Switch(
+                        checked = vibrationEnabled,
+                        onCheckedChange = {
+                            vibrationEnabled = it
+                            prefs.edit().putBoolean("vibration_enabled", it).apply()
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = OrangeAccent, checkedTrackColor = OrangeAccent.copy(alpha = 0.4f))
+                    )
+                }
+            }
+
             // --- Информация ---
             SettingsSection(
                 title = AppStrings.t(language, "sec_info")
@@ -280,6 +342,44 @@ fun SettingsScreen(
                     label = AppStrings.t(language, "info_version"),
                     value = "1.0.0"
                 )
+            }
+
+            // --- Dev Console ---
+            SettingsSection(title = "🛠 Dev Console") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = cheatInput,
+                        onValueChange = { cheatInput = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("give lvl 49", color = TextMuted) },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = OrangeAccent,
+                            unfocusedBorderColor = TextMuted,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary,
+                            cursorColor = OrangeAccent
+                        )
+                    )
+                    IconButton(onClick = { viewModel.executeCheat(cheatInput); cheatInput = "" }) {
+                        Text("▶", fontSize = 18.sp, color = OrangeAccent)
+                    }
+                    IconButton(onClick = { showCheatHelp = true }) {
+                        Text("?", fontSize = 16.sp, color = TextMuted)
+                    }
+                }
+                if (cheatFeedback.isNotEmpty()) {
+                    Text(
+                        text = cheatFeedback,
+                        color = if (cheatFeedback.startsWith("❌")) ButtonRed else HpBarFull,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
 
             // --- Выход ---

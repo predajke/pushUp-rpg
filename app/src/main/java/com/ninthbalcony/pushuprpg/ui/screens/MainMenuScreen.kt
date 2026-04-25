@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,10 +39,17 @@ import com.ninthbalcony.pushuprpg.utils.MonsterUtils
 import com.ninthbalcony.pushuprpg.utils.DailyRewardUtils
 import com.ninthbalcony.pushuprpg.ui.GameViewModel // ИСПРАВЛЕН ИМПОРТ
 import com.ninthbalcony.pushuprpg.utils.AppStrings
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset                  // + для крутого шрифта
 import androidx.compose.ui.graphics.Shadow                  // + для крутого шрифта
 import androidx.compose.ui.text.TextStyle                   // + для крутого шрифта
 import androidx.compose.ui.tooling.preview.Preview
+import com.ninthbalcony.pushuprpg.utils.SoundManager
 
 @Composable
 fun MainMenuScreen(
@@ -69,7 +77,23 @@ fun MainMenuScreen(
     val isOnboardingComplete by viewModel.isOnboardingComplete.collectAsState(initial = false)
     val antiCheatCooldown by viewModel.antiCheatCooldown.collectAsState(initial = null)
     val showRateUsDialog by viewModel.showRateUsDialog.collectAsState(initial = false)
+    val punchCooldownUntil by viewModel.punchCooldownUntil.collectAsState()
+    val lastPunchDamage by viewModel.lastPunchDamage.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { context.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE) }
+    val soundEnabled = remember(prefs) { prefs.getBoolean("sounds_enabled", true) }
+    val vibrationEnabled = remember(prefs) { prefs.getBoolean("vibration_enabled", true) }
+    val achievementToast by viewModel.achievementToast.collectAsState()
+
+    var showLevelUpFlash by remember { mutableStateOf(false) }
+    LaunchedEffect(showLevelUpDialog) {
+        if (showLevelUpDialog) {
+            showLevelUpFlash = true
+            SoundManager.playLevelUp(context, soundEnabled)
+            kotlinx.coroutines.delay(1200)
+            showLevelUpFlash = false
+        }
+    }
 
     // Scroll state extracted here so it can be used in LaunchedEffect (before early return)
     val scrollState = rememberScrollState()
@@ -85,22 +109,32 @@ fun MainMenuScreen(
 
     // Update target rect when step or any measured rect changes
     LaunchedEffect(onboardingStep, totalPushUpsRect.value, inventoryRect.value, shopRect.value, battleRect.value, logsRect.value, questsRect.value) {
+        // Visual top-to-bottom order: Battle → PushUps → Shop → Inventory → Logs → Quests
         targetRect.value = when (onboardingStep) {
-            0 -> totalPushUpsRect.value
-            1 -> inventoryRect.value
+            0 -> battleRect.value
+            1 -> totalPushUpsRect.value
             2 -> shopRect.value
-            3 -> battleRect.value
+            3 -> inventoryRect.value
             4 -> logsRect.value
             5 -> questsRect.value
             else -> androidx.compose.ui.geometry.Rect.Zero
         }
-        // Step 5 (Quests) is near bottom of scroll — scroll down so the element is visible
-        if (onboardingStep == 5) {
-            scrollState.animateScrollTo(scrollState.maxValue)
+        when (onboardingStep) {
+            0 -> scrollState.animateScrollTo(0)                        // BattleArena — scroll to top
+            5 -> scrollState.animateScrollTo(scrollState.maxValue)     // Quests — scroll to bottom
         }
     }
 
-    if (isLoading || gameState == null) {
+    val isInspection = LocalInspectionMode.current
+    DisposableEffect(Unit) {
+        if (!isInspection) {
+            val enabled = context.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE)
+                .getBoolean("sounds_enabled", true)
+            SoundManager.playMusic(context, "music_main", enabled)
+        }
+        onDispose {}
+    }
+    if (!isInspection && (isLoading || gameState == null)) {
         Box(
             modifier = Modifier.fillMaxSize().background(DarkBackground),
             contentAlignment = Alignment.Center
@@ -110,7 +144,7 @@ fun MainMenuScreen(
         return
     }
 
-    val state = gameState!!
+    val state = gameState ?: com.ninthbalcony.pushuprpg.data.db.GameStateEntity()
 
     LaunchedEffect(Unit) {
         viewModel.updateStreakOnLogin()
@@ -276,6 +310,14 @@ fun MainMenuScreen(
             BattleArena(
                 state = state,
                 maxHp = maxHp,
+                punchesRemaining = viewModel.getPunchesRemaining(state),
+                punchCooldownUntil = punchCooldownUntil,
+                lastPunchDamage = lastPunchDamage,
+                onPunch = {
+                    viewModel.performPunch()
+                    SoundManager.playPunch(soundEnabled)
+                    if (vibrationEnabled) vibrate(context)
+                },
                 modifier = Modifier
                     .heightIn(min = 220.dp)
                     .onGloballyPositioned { battleRect.value = it.boundsInWindow() }
@@ -289,7 +331,11 @@ fun MainMenuScreen(
                 language = language,
                 onAddToInput = { viewModel.addToInput(it) },
                 onReset = { viewModel.resetInput() },
-                onSave = { viewModel.savePushUps() },
+                onSave = {
+                    viewModel.savePushUps()
+                    SoundManager.playSave(soundEnabled)
+                    if (vibrationEnabled) vibrate(context)
+                },
                 onTotalClick = onNavigateToStatistics,
                 onShopClick = onNavigateToShop,
                 modifier = Modifier.onGloballyPositioned { totalPushUpsRect.value = it.boundsInWindow() },
@@ -333,7 +379,70 @@ fun MainMenuScreen(
             )
         }
     } // Column
+
+    // Achievement toast overlay
+    achievementToast?.let { toastText ->
+        AchievementToast(text = toastText, onDismiss = { viewModel.clearAchievementToast() })
+    }
+
+    // Level-up flash overlay
+    AnimatedVisibility(
+        visible = showLevelUpFlash,
+        enter = fadeIn(tween(200)),
+        exit = fadeOut(tween(500)),
+        modifier = Modifier.matchParentSize()
+    ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Color(0xFFFFD700).copy(alpha = 0.25f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "LEVEL UP!",
+                color = Color(0xFFFFD700),
+                fontSize = 48.sp,
+                fontWeight = FontWeight.ExtraBold,
+                style = TextStyle(shadow = Shadow(Color.Black, Offset(3f, 4f), 8f))
+            )
+        }
+    }
     } // Box (фон)
+}
+
+@Composable
+private fun AchievementToast(text: String, onDismiss: () -> Unit) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(text) {
+        visible = true
+        kotlinx.coroutines.delay(2500)
+        visible = false
+        kotlinx.coroutines.delay(400)
+        onDismiss()
+    }
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .background(Color(0xFFFFD700), RoundedCornerShape(8.dp))
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "🏆 $text",
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -350,6 +459,13 @@ fun QuestShortcutButton(
     val readyCount = quests.count { it.isCompleted && !it.claimed }
     val label = AppStrings.t(language, "quests")
     val badge = if (readyCount > 0) " ($readyCount ✓)" else ""
+
+    val infiniteTransition = rememberInfiniteTransition(label = "questPulse")
+    val pulseDot by infiniteTransition.animateFloat(
+        initialValue = 0.3f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(600, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "questDot"
+    )
 
     Box(
         modifier = modifier
@@ -382,6 +498,14 @@ fun QuestShortcutButton(
                 fontSize = 15.sp
             )
             Spacer(modifier = Modifier.weight(1f))
+            if (readyCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .background(GoldAccent.copy(alpha = pulseDot), CircleShape)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Text("›", color = TextMuted, fontSize = 18.sp)
         }
     }
@@ -510,6 +634,24 @@ fun TopBar(
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
+            if (state.prestigeLevel > 0) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 8.dp, y = (-8).dp)
+                        .size(20.dp)
+                        .background(GoldAccent, CircleShape)
+                        .border(1.dp, Color.White, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = state.prestigeLevel.toString(),
+                        color = Color.Black,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.width(10.dp))
@@ -723,7 +865,7 @@ fun PushUpCounter(
         ) {
             Text(
                 text = AppStrings.t(language, "counter_today"),
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 color = TextSecondary,
                 textAlign = TextAlign.Center
             )
@@ -780,7 +922,7 @@ fun PushUpCounter(
                         contentPadding = PaddingValues(0.dp),
                         border = BorderStroke(1.dp, Color.Black)
                     ) {
-                        Text(text = "-1", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "-1", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     Box(
                         modifier = Modifier
@@ -863,7 +1005,7 @@ fun PushUpCounter(
                             Text(
                                 text = AppStrings.t(language, "btn_save"),
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 16.sp,
                                 maxLines = 1
                             )
                         }
@@ -893,7 +1035,7 @@ fun PushUpCounter(
                         contentPadding = PaddingValues(0.dp),
                         border = BorderStroke(1.dp, Color.Black)
                     ) {
-                        Text(text = "+1", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "+1", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     // > кнопка — 0.5 ширины колонки, по центру, была, сейчас будет как и все и не > а Stats
                     Box(
@@ -1009,6 +1151,10 @@ fun StatItem(icon: String, value: String, color: Color) {
 fun BattleArena(
     state: GameStateEntity,
     maxHp: Int,
+    punchesRemaining: Int = 25,
+    punchCooldownUntil: Long = 0L,
+    lastPunchDamage: Int? = null,
+    onPunch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -1017,6 +1163,40 @@ fun BattleArena(
         context.resources.getIdentifier("bg_fight_$index", "drawable", context.packageName)
     }
 
+    // Анимация урона от Punch
+    var showDmg by remember { mutableStateOf(false) }
+    var dmgVal by remember { mutableStateOf(0) }
+    val dmgAlpha by animateFloatAsState(if (showDmg) 1f else 0f, tween(200), label = "da")
+    val dmgOffsetY by animateFloatAsState(if (showDmg) -36f else 0f, tween(700), label = "do")
+    LaunchedEffect(lastPunchDamage) {
+        if (lastPunchDamage != null && lastPunchDamage > 0) {
+            dmgVal = lastPunchDamage; showDmg = true
+            kotlinx.coroutines.delay(800L); showDmg = false
+        }
+    }
+
+    // Сотрясение экрана
+    val shakeX = remember { Animatable(0f) }
+    LaunchedEffect(lastPunchDamage) {
+        if (lastPunchDamage != null && lastPunchDamage > 0) {
+            val mag = if (lastPunchDamage > 50) 12f else 6f
+            repeat(3) { shakeX.animateTo(mag, tween(40)); shakeX.animateTo(-mag, tween(40)) }
+            shakeX.animateTo(0f, tween(40))
+        }
+    }
+    LaunchedEffect(state.monstersKilled) {
+        if (state.monstersKilled > 0) {
+            repeat(5) { shakeX.animateTo(16f, tween(40)); shakeX.animateTo(-16f, tween(40)) }
+            shakeX.animateTo(0f, tween(40))
+        }
+    }
+
+    // Живой счётчик кулдауна (обновляется каждые 100ms)
+    val now by produceState(System.currentTimeMillis()) {
+        while (true) { kotlinx.coroutines.delay(100L); value = System.currentTimeMillis() }
+    }
+    val cooldownSec = ((punchCooldownUntil - now) / 1000L + 1).coerceAtLeast(0)
+
     val heroImageRes = state.heroAvatar.ifEmpty { MonsterUtils.getHeroImageRes(state.playerLevel) }
 
     Box(
@@ -1024,6 +1204,7 @@ fun BattleArena(
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
             .then(modifier)
+            .graphicsLayer { translationX = shakeX.value }
             .background(DarkCard, RoundedCornerShape(12.dp))
             .clip(RoundedCornerShape(12.dp))
     ) {
@@ -1134,22 +1315,65 @@ fun BattleArena(
                 ) {
                     val monster = MonsterUtils.getMonsterByLevel(state.monsterLevel)
                     val monsterName = MonsterUtils.getMonsterName(monster, state.language)
-                    val monsterImageRes = monster.imageRes
-                    DrawableImage(
-                        name = monsterImageRes,
-                        modifier = Modifier.size(110.dp)
-                    )
+                    // Монстр + floating damage
+                    Box(contentAlignment = Alignment.TopCenter) {
+                        DrawableImage(name = state.monsterImageRes, modifier = Modifier.size(110.dp))
+                        if (dmgAlpha > 0f) {
+                            Text(
+                                text = "-$dmgVal",
+                                color = Color(0xFFFF4444).copy(alpha = dmgAlpha),
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                modifier = Modifier.offset(y = dmgOffsetY.dp),
+                                style = TextStyle(shadow = Shadow(Color.Black, Offset(1f, 2f), 4f))
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "$monsterName (${state.monsterLevel} lvl)",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
+                        fontSize = 12.sp, color = TextSecondary,
+                        textAlign = TextAlign.Center, maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+            }
+
+            // Кнопка Punch
+            Spacer(modifier = Modifier.height(0.dp))
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,  // ← центрирует по горизонтали
+                verticalArrangement = Arrangement.Center  // ← вертикальное центрирование
+            ) {
+                Button(
+                    onClick = onPunch,
+                    enabled = punchesRemaining > 0 && cooldownSec == 0L && !state.isPlayerDead,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ButtonRed,
+                        disabledContainerColor = ButtonGray
+                    ),
+                    modifier = Modifier.height(34.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Text(
+                        text = when {
+                            state.isPlayerDead -> "💀 Dead"
+                            punchesRemaining == 0 -> "No punches"
+                            cooldownSec > 0L -> "⏳ ${cooldownSec}s"
+                            else -> "👊 Punch"
+                        },
+                        fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "$punchesRemaining/25",
+                    color = if (punchesRemaining > 0) TextSecondary else TextMuted,
+                    fontSize = 8.sp
+                )
             }
         }
     }
@@ -1170,14 +1394,14 @@ fun MiniLog(
             .background(LogBackground, RoundedCornerShape(12.dp))
             .border(1.dp, LogText.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
             .clickable { onClick() }
-            .padding(12.dp)
+            .padding(6.dp)
     ) {
         val recentLogs = logs.take(4)
 
         if (recentLogs.isEmpty()) {
             Text(
                 text = AppStrings.t(language, "battle_soon"),
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 color = LogText.copy(alpha = 0.6f)
             )
         } else {
@@ -1202,10 +1426,10 @@ fun MiniLog(
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = AppStrings.t(language, "view_all_logs"),
-            fontSize = 11.sp,
+            fontSize = 10.sp,
             color = LogText.copy(alpha = 0.5f),
             modifier = Modifier.align(Alignment.End)
         )
@@ -1409,6 +1633,23 @@ fun ScreenBackground(name: String) {
 private fun formatTimestamp(timestamp: Long): String {
     val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
     return sdf.format(java.util.Date(timestamp))
+}
+
+private fun vibrate(context: android.content.Context) {
+    val vib = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        val vm = context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE)
+                as android.os.VibratorManager
+        vm.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+    }
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        vib.vibrate(android.os.VibrationEffect.createOneShot(80, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+    } else {
+        @Suppress("DEPRECATION")
+        vib.vibrate(80)
+    }
 }
 
 @Preview(showBackground = true, widthDp = 412, heightDp = 920)

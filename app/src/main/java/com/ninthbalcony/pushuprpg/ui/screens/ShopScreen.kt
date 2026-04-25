@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -38,8 +39,17 @@ import com.ninthbalcony.pushuprpg.utils.SpinReward
 import com.ninthbalcony.pushuprpg.utils.SpinResult
 import com.ninthbalcony.pushuprpg.utils.SpinUtils
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
+import com.ninthbalcony.pushuprpg.utils.SoundManager
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.fadeIn
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
 // Веса иконок для ленты (отражают вероятности наград)
@@ -67,6 +77,32 @@ fun ShopScreen(
     val gameState by viewModel.gameState.collectAsState(initial = null)
     val shopItems by viewModel.shopItems.collectAsState(initial = emptyList())
     val language = gameState?.language ?: "en"
+    val shopContext = LocalContext.current
+    val isInspection = androidx.compose.ui.platform.LocalInspectionMode.current
+    DisposableEffect(Unit) {
+        if (!isInspection) {
+            val enabled = shopContext.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE)
+                .getBoolean("sounds_enabled", true)
+            SoundManager.playMusic(shopContext, "music_shop", enabled)
+        }
+        onDispose {
+            if (!isInspection) {
+                val enabled = shopContext.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE)
+                    .getBoolean("sounds_enabled", true)
+                SoundManager.playMusic(shopContext, "music_main", enabled)
+            }
+        }
+    }
+    val shopSoundEnabled = remember {
+        if (isInspection) true
+        else shopContext.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE)
+            .getBoolean("sounds_enabled", true)
+    }
+    val shopVibrationEnabled = remember {
+        if (isInspection) false
+        else shopContext.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE)
+            .getBoolean("vibration_enabled", true)
+    }
     val state = gameState ?: return
 
     var selectedShopItem by remember { mutableStateOf<Item?>(null) }
@@ -89,6 +125,24 @@ fun ShopScreen(
     val spinResult by viewModel.spinResult.collectAsState()
     val availableSpins by viewModel.availableSpins.collectAsState()
     val adViewsToday by viewModel.adViewsToday.collectAsState()
+
+    // --- Forge flash animation trigger ---
+    var forgeFlash by remember { mutableStateOf(false) }
+    LaunchedEffect(forgeFlash) {
+        if (forgeFlash) { kotlinx.coroutines.delay(600); forgeFlash = false }
+    }
+
+    // --- Enchant shake animation trigger ---
+    var enchantShake by remember { mutableStateOf(false) }
+    LaunchedEffect(enchantShake) {
+        if (enchantShake) { kotlinx.coroutines.delay(500); enchantShake = false }
+    }
+
+    // --- Spin loop sound ---
+    LaunchedEffect(isSpinAnimating) {
+        if (isSpinAnimating) SoundManager.playSpinLoop(shopSoundEnabled)
+        else SoundManager.stopSpinLoop()
+    }
 
     val forgeSlot1Item = remember(state.forgeSlot1) {
         if (state.forgeSlot1.isNotEmpty()) ItemUtils.getItemById(state.forgeSlot1) else null
@@ -291,6 +345,9 @@ fun ShopScreen(
                 slot1Item = forgeSlot1Item,
                 slot2Item = forgeSlot2Item,
                 language = language,
+                flashSuccess = forgeFlash,
+                vibrationEnabled = shopVibrationEnabled,
+                context = shopContext,
                 onSlot1Click = {
                     if (state.forgeSlot1.isNotEmpty()) {
                         // Если слот занят — очищаем его
@@ -308,11 +365,14 @@ fun ShopScreen(
                     }
                 },
                 onMerge = {
+                    SoundManager.playMerge(shopSoundEnabled)
+                    if (shopVibrationEnabled) vibrate(shopContext)
                     viewModel.mergeItems { result ->
                         when (result) {
                             is ForgeResult.Success -> {
                                 mergedItem = result.item
                                 showMergedDialog = true
+                                forgeFlash = true
                             }
                             is ForgeResult.Fail -> showMergeFailDialog = true
                             is ForgeResult.NoItems -> {
@@ -362,7 +422,12 @@ fun ShopScreen(
                 isSpinAnimating = isSpinAnimating,
                 ribbonItems = spinRibbonItems,
                 language = language,
-                onSpin = { viewModel.performDailySpin() },
+                vibrationEnabled = shopVibrationEnabled,
+                context = shopContext,
+                onSpin = {
+                    SoundManager.playSpin(shopSoundEnabled)
+                    viewModel.performDailySpin()
+                },
                 onAdSpin = { viewModel.watchAdForSpin() },
                 onAnimationEnd = {
                     isSpinAnimating = false
@@ -376,8 +441,13 @@ fun ShopScreen(
                 language = language,
                 inventoryItems = viewModel.getInventoryItems(state),
                 selectedEnchantItem = selectedEnchantItem,
+                shakeSuccess = enchantShake,
+                vibrationEnabled = shopVibrationEnabled,
+                context = shopContext,
                 onSelectItem = { item -> viewModel.selectEnchantItem(item) },
                 onEnchant = {
+                    SoundManager.playEnchant(shopSoundEnabled)
+                    if (shopVibrationEnabled && shopContext != null) vibrate(shopContext)
                     val item = selectedEnchantItem
                     if (item != null) {
                         val uniqueId = state.inventoryItems.split(",")
@@ -386,7 +456,7 @@ fun ShopScreen(
                             ?.split(":")?.get(0) ?: item.id
                         viewModel.enchantItemWithCallback(uniqueId) { result ->
                             when (result) {
-                                EnchantResult.SUCCESS        -> showEnchantedDialog = true
+                                EnchantResult.SUCCESS        -> { showEnchantedDialog = true; enchantShake = true }
                                 EnchantResult.FAILED         -> showCursedDialog = true
                                 EnchantResult.NOT_ENOUGH_TEETH -> showNoTeethDialog = true
                                 EnchantResult.MAX_LEVEL      -> {
@@ -639,6 +709,9 @@ fun ForgeSection(
     slot1Item: Item?,
     slot2Item: Item?,
     language: String,
+    flashSuccess: Boolean = false,
+    vibrationEnabled: Boolean = false,
+    context: android.content.Context? = null,
     onSlot1Click: () -> Unit,
     onSlot2Click: () -> Unit,
     onMerge: () -> Unit,
@@ -651,6 +724,11 @@ fun ForgeSection(
     val mergeBtnBg = remember {
         context.resources.getIdentifier("bg_merge_btn", "drawable", context.packageName)
     }
+    val mergeBorderColor by animateColorAsState(
+        targetValue = if (flashSuccess) Color(0xFFFFD700) else Color(0xFFBB6307),
+        animationSpec = tween(300),
+        label = "forgeBorder"
+    )
 
     Box(
         modifier = Modifier
@@ -676,7 +754,7 @@ fun ForgeSection(
                 color = TextPrimary
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -716,22 +794,25 @@ fun ForgeSection(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
+                    // Ширина строки = 2 слота: (64+8+64)=136dp = Merge(86) + gap(6) + Recycle(44)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         // Merge button
                         Box(
                             modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
+                                .width(92.dp)
+                                .height(44.dp)
                                 .background(
-                                    if (slot1Item != null && slot2Item != null) OrangeAccent
-                                    else ButtonGray,
-                                    RoundedCornerShape(8.dp)
+                                    color = Color(0xFF0b0f02),  // новый цвет фона
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .border(
+                                    width = 2.dp,
+                                    color = mergeBorderColor,
+                                    shape = RoundedCornerShape(8.dp)
                                 )
                                 .clip(RoundedCornerShape(8.dp))
-                                .clickable(enabled = slot1Item != null && slot2Item != null) { onMerge() },
+                                .clickable(enabled = slot1Item != null && slot2Item != null) { onMerge() }
+                                .padding(horizontal = 12.dp),  // внутренние отступы слева/справа
                             contentAlignment = Alignment.Center
                         ) {
                             if (mergeBtnBg != 0 && slot1Item != null && slot2Item != null) {
@@ -746,20 +827,21 @@ fun ForgeSection(
                             Text(
                                 text = AppStrings.t(language, "btn_merge"),
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Yellow,
-                                fontSize = 13.sp
+                                color = Color(0xFFC34017),  // новый цвет текста
+                                fontSize = 15.sp
                             )
                         }
                         // Recycle button
                         Box(
                             modifier = Modifier
                                 .size(44.dp)
-                                .background(DarkSurfaceVariant, RoundedCornerShape(8.dp))
+                                .background(Color(0xFF003300), RoundedCornerShape(8.dp))
+                                .border(width = 2.dp,color = Color(0xFF145727), shape = RoundedCornerShape(8.dp))
                                 .clip(RoundedCornerShape(8.dp))
                                 .clickable { onRecycle() },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("♻", fontSize = 20.sp)
+                            Text("♻", fontSize = 26.sp, color = Color(0xFF90EE90))
                         }
                     }
                 }
@@ -894,7 +976,7 @@ fun CloverBoxSection(
                         Image(
                             painter = painterResource(id = cloverBoxRes),
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().padding(6.dp),
+                            modifier = Modifier.fillMaxSize().padding(1.dp),
                             contentScale = ContentScale.Fit
                         )
                     } else {
@@ -992,11 +1074,11 @@ fun CloverBoxSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("🎬", fontSize = 20.sp)
+                    Text("🎬", fontSize = 22.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(AppStrings.t(language, "ad_reward_title"), fontSize = 13.sp, color = TextPrimary)
-                        Text("+20 🦷", fontSize = 11.sp, color = TextSecondary)
+                        Text("+20 🦷", fontSize = 12.sp, color = TextSecondary)
                         if (onAdCooldown) {
                             Text("${adCooldownRemaining / 1000}s", fontSize = 10.sp, color = TextMuted)
                         }
@@ -1118,6 +1200,8 @@ fun MergedDialog(item: Item, language: String, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val bgResId = remember { context.resources.getIdentifier("bg_merged", "drawable", context.packageName) }
     val rarityColor = Color(ItemUtils.getRarityColor(item.rarity))
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
@@ -1144,12 +1228,17 @@ fun MergedDialog(item: Item, language: String, onDismiss: () -> Unit) {
                     color = OrangeAccent
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = if (language == "ru") item.name_ru else item.name_en,
-                    fontSize = 16.sp,
-                    color = rarityColor,
-                    textAlign = TextAlign.Center
-                )
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn()
+                ) {
+                    Text(
+                        text = if (language == "ru") item.name_ru else item.name_en,
+                        fontSize = 16.sp,
+                        color = rarityColor,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = onDismiss,
@@ -1357,6 +1446,9 @@ fun GrindstoneSection(
     language: String,
     inventoryItems: List<Item>,
     selectedEnchantItem: Item?,
+    shakeSuccess: Boolean = false,
+    vibrationEnabled: Boolean = false,
+    context: android.content.Context? = null,
     onSelectItem: (Item?) -> Unit,
     onEnchant: () -> Unit,
     getEnchantInfo: (Item) -> Pair<Float, Int>,
@@ -1369,6 +1461,23 @@ fun GrindstoneSection(
     val grindstoneRes = remember {
         context.resources.getIdentifier("img_grindstone", "drawable", context.packageName)
     }
+
+    val shakeOffset = remember { Animatable(0f) }
+    LaunchedEffect(shakeSuccess) {
+        if (shakeSuccess) {
+            repeat(4) {
+                shakeOffset.animateTo(8f, tween(50))
+                shakeOffset.animateTo(-8f, tween(50))
+            }
+            shakeOffset.animateTo(0f, tween(50))
+        }
+    }
+
+    val enchantBorderColor by animateColorAsState(
+        targetValue = if (shakeSuccess) Color(0xFFFFD700) else GoldAccent,
+        animationSpec = tween(400),
+        label = "enchantBorder"
+    )
 
     var showItemPicker by remember { mutableStateOf(false) }
 
@@ -1447,10 +1556,11 @@ fun GrindstoneSection(
                     Box(
                         modifier = Modifier
                             .size(64.dp)
+                            .graphicsLayer { translationX = shakeOffset.value }
                             .background(DarkSurfaceVariant, RoundedCornerShape(10.dp))
                             .border(
                                 2.dp,
-                                if (selectedEnchantItem != null) GoldAccent
+                                if (selectedEnchantItem != null) enchantBorderColor
                                 else OrangeAccent.copy(alpha = 0.4f),
                                 RoundedCornerShape(10.dp)
                             )
@@ -1716,6 +1826,8 @@ private fun DailySpinSection(
     isSpinAnimating: Boolean,
     ribbonItems: List<String>,
     language: String,
+    vibrationEnabled: Boolean = false,
+    context: android.content.Context? = null,
     onSpin: () -> Unit,
     onAdSpin: () -> Unit,
     onAnimationEnd: () -> Unit
@@ -1774,7 +1886,10 @@ private fun DailySpinSection(
                 // SPIN с бейджем
                 Box(modifier = Modifier.width(120.dp)) {
                     Button(
-                        onClick = onSpin,
+                        onClick = {
+                            if (vibrationEnabled && context != null) vibrate(context)
+                            onSpin()
+                        },
                         enabled = canSpin,
                         modifier = Modifier.fillMaxWidth().height(40.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -1876,16 +1991,15 @@ private fun SpinRibbon(
         }
     }
 
-    // BoxWithConstraints: maxWidth = реальная ширина ленты → item[0] по центру изначально,
-    // после прокрутки scrollItems позиций — item[scrollItems] идеально по центру маркера
-    BoxWithConstraints(
+    var containerWidthPx by remember { mutableStateOf(0) }
+    Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(Color.Black.copy(alpha = 0.4f))
             .border(1.dp, Color(0xFFFFD700).copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+            .onSizeChanged { containerWidthPx = it.width }
     ) {
-        // constraints.maxWidth уже в пикселях — явно используем скоуп BoxWithConstraints
-        val centeringOffset = constraints.maxWidth.toFloat() / 2f - itemWidthPx / 2f
+        val centeringOffset = containerWidthPx.toFloat() / 2f - itemWidthPx / 2f
 
         // ВАЖНО: align=Start, иначе дефолтный CenterHorizontally центрирует
         // Row (шириной 60*72=4320dp) внутри Box и ломает расчёт centeringOffset
@@ -2007,6 +2121,27 @@ private fun SpinResultDialog(
                 Box(modifier = Modifier.matchParentSize().background(DarkCard))
             }
 
+            // Lottie overlay for legendary/epic wins
+            val lottieAnimName = when (result.type) {
+                "boss_cube"  -> "anim_legendary"
+                "clover_box" -> "anim_epic"
+                else         -> null
+            }
+            if (lottieAnimName != null) {
+                val resId = remember(lottieAnimName) {
+                    context.resources.getIdentifier(lottieAnimName, "raw", context.packageName)
+                }
+                if (resId != 0) {
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(resId))
+                    val progress by animateLottieCompositionAsState(composition, iterations = 1)
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.matchParentSize()
+                    )
+                }
+            }
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
@@ -2086,6 +2221,23 @@ private fun SpinResultDialog(
                 }
             }
         }
+    }
+}
+
+private fun vibrate(context: android.content.Context) {
+    val vib = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        val vm = context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE)
+                as android.os.VibratorManager
+        vm.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+    }
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        vib.vibrate(android.os.VibrationEffect.createOneShot(80, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+    } else {
+        @Suppress("DEPRECATION")
+        vib.vibrate(80)
     }
 }
 

@@ -217,6 +217,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             workingState = workingState.copy(
                 monsterName = newMonster.name,
                 monsterLevel = newMonster.level,
+                monsterImageRes = newMonster.imageRes,
                 monsterMaxHp = newMonster.maxHp * prestigeMult,
                 monsterCurrentHp = newMonster.maxHp * prestigeMult,
                 monsterDamage = newMonster.damage * prestigeMult,
@@ -456,6 +457,16 @@ class GameRepository(private val context: Context) : IGameRepository {
         return afterTick
     }
 
+    private fun addItemToLog(state: GameStateEntity, uniqueId: String): String {
+        val logList: MutableList<String> = try {
+            Gson().fromJson<List<String>>(state.itemLogJson,
+                object : TypeToken<List<String>>() {}.type)?.toMutableList() ?: mutableListOf()
+        } catch (e: Exception) { mutableListOf() }
+        logList.add(0, uniqueId)
+        if (logList.size > 50) logList.removeAt(logList.lastIndex)
+        return Gson().toJson(logList)
+    }
+
     /** Обрабатывает смерть монстра: дроп лута/зубов, спавн нового */
     private suspend fun handleMonsterKill(state: GameStateEntity): GameStateEntity {
         val baseTeeth = GameCalculations.getTeethFromMonster(state.monsterLevel)
@@ -484,14 +495,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 newInventory = buildInventory(entries)
                 itemsCollectedAdd = 1
                 droppedRarity = dropped.rarity
-                // Обновляем itemLog (храним последние 50 uniqueId)
-                val logList: MutableList<String> = try {
-                    Gson().fromJson<List<String>>(newItemLog,
-                        object : TypeToken<List<String>>() {}.type)?.toMutableList() ?: mutableListOf()
-                } catch (e: Exception) { mutableListOf() }
-                logList.add(0, uniqueId)
-                if (logList.size > 50) logList.removeAt(logList.lastIndex)
-                newItemLog = Gson().toJson(logList)
+                newItemLog = addItemToLog(state, uniqueId)
                 val legTag = if (dropped.rarity == "legendary") " ★LEGENDARY★" else ""
                 addLog(
                     "🎁 ${state.monsterName} dropped ${dropped.name_en}!$legTag",
@@ -553,6 +557,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         var updated = state.copy(
             monsterName = next.name,
             monsterLevel = next.level,
+            monsterImageRes = next.imageRes,
             monsterMaxHp = next.maxHp * prestigeMult,
             monsterCurrentHp = next.maxHp * prestigeMult,
             monsterDamage = next.damage * prestigeMult,
@@ -941,6 +946,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             var buyQuests = QuestSystem.deserialize(state.activeQuestsJson)
             buyQuests = QuestSystem.addProgress(buyQuests, QuestType.BUY_ITEM, 1)
             buyQuests = QuestSystem.addProgress(buyQuests, QuestType.TEETH_SPENT, price)
+            val newItemLog = addItemToLog(state, uniqueId)
             dao.saveGameState(state.copy(
                 teeth = state.teeth - price,
                 shopItems = newShopItems,
@@ -948,6 +954,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 itemsCollected = state.itemsCollected + 1,
                 totalTeethSpent = state.totalTeethSpent + price,
                 totalShopPurchases = state.totalShopPurchases + 1,
+                itemLogJson = newItemLog,
                 activeQuestsJson = QuestSystem.serialize(buyQuests)
             ))
 
@@ -1107,6 +1114,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             val forgeQuests = QuestSystem.serialize(
                 QuestSystem.addProgress(QuestSystem.deserialize(state.activeQuestsJson), QuestType.FORGE, 1)
             )
+            val newItemLog = addItemToLog(state, uniqueId)
             dao.saveGameState(state.copy(
                 inventoryItems = buildInventory(entries),
                 forgeSlot1 = "",
@@ -1114,6 +1122,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 itemsCollected = state.itemsCollected + 1,
                 totalItemsMerged = state.totalItemsMerged + 1,
                 totalMergeAttempts = state.totalMergeAttempts + 1,
+                itemLogJson = newItemLog,
                 activeQuestsJson = forgeQuests
             ))
 
@@ -1182,6 +1191,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
             val reward = SpinUtils.generateSpinResult()
             var updatedState = state.copy(spinTokens = state.spinTokens - 1)
+            var newItemLog = state.itemLogJson
             val wonItemIds = mutableListOf<String>()
 
             when (reward.type) {
@@ -1192,6 +1202,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                         val uid = "${epicItem.id}_${System.currentTimeMillis()}"
                         val entries = parseInventory(updatedState.inventoryItems)
                         entries.add("$uid:0")
+                        newItemLog = addItemToLog(updatedState.copy(itemLogJson = newItemLog), uid)
                         updatedState = updatedState.copy(
                             inventoryItems = buildInventory(entries),
                             itemsCollected = updatedState.itemsCollected + 1,
@@ -1208,6 +1219,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                         val uid = "${legendaryItem.id}_${System.currentTimeMillis()}"
                         val entries = parseInventory(updatedState.inventoryItems)
                         entries.add("$uid:0")
+                        newItemLog = addItemToLog(updatedState.copy(itemLogJson = newItemLog), uid)
                         updatedState = updatedState.copy(
                             inventoryItems = buildInventory(entries),
                             itemsCollected = updatedState.itemsCollected + 1,
@@ -1220,6 +1232,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                         val uid = "boss_cube_${System.currentTimeMillis()}"
                         val entries = parseInventory(updatedState.inventoryItems)
                         entries.add("$uid:0")
+                        newItemLog = addItemToLog(updatedState.copy(itemLogJson = newItemLog), uid)
                         updatedState = updatedState.copy(
                             inventoryItems = buildInventory(entries),
                             itemsCollected = updatedState.itemsCollected + 1,
@@ -1241,6 +1254,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                         val uid = "${item.id}_${System.currentTimeMillis()}"
                         val entries = parseInventory(updatedState.inventoryItems)
                         entries.add("$uid:0")
+                        newItemLog = addItemToLog(updatedState.copy(itemLogJson = newItemLog), uid)
                         updatedState = updatedState.copy(
                             inventoryItems = buildInventory(entries),
                             itemsCollected = updatedState.itemsCollected + 1,
@@ -1260,7 +1274,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 }
             }
 
-            dao.saveGameState(updatedState)
+            dao.saveGameState(updatedState.copy(itemLogJson = newItemLog))
             SpinResult(reward = reward, wonItemIds = wonItemIds)
         }
     }
@@ -1297,10 +1311,12 @@ class GameRepository(private val context: Context) : IGameRepository {
         val entries = parseInventory(state.inventoryItems)
         entries.add("$uniqueId:0")
 
+        val newItemLog = addItemToLog(state, uniqueId)
         dao.saveGameState(state.copy(
             inventoryItems = buildInventory(entries),
             cloverBoxUsedToday = state.cloverBoxUsedToday + 1,
-            itemsCollected = state.itemsCollected + 1
+            itemsCollected = state.itemsCollected + 1,
+            itemLogJson = newItemLog
         ))
 
         addLog(
@@ -1460,6 +1476,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 teethFromQuests = state.teethFromQuests + def.rewardTeeth
             )
 
+            var newItemLog = state.itemLogJson
             if (def.rewardItemRarity != null) {
                 val allItems = ItemUtils.loadItems(context)
                 val eligible = allItems.filter { it.rarity == def.rewardItemRarity }
@@ -1468,6 +1485,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                     val uniqueId = "${item.id}_${System.currentTimeMillis()}"
                     val entries = parseInventory(newState.inventoryItems)
                     entries.add("$uniqueId:0")
+                    newItemLog = addItemToLog(newState.copy(itemLogJson = newItemLog), uniqueId)
                     newState = newState.copy(
                         inventoryItems = buildInventory(entries),
                         itemsCollected = newState.itemsCollected + 1
@@ -1479,7 +1497,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 addLog("🏆 Quest reward: +${def.rewardTeeth} 🦷", "🏆 Награда квеста: +${def.rewardTeeth} 🦷")
             }
 
-            dao.saveGameState(newState)
+            dao.saveGameState(newState.copy(itemLogJson = newItemLog))
             true
         }
     }
@@ -1513,6 +1531,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 teeth = state.teeth + reward.teeth,
                 totalTeethEarned = state.totalTeethEarned + reward.teeth
             )
+            var newItemLog = state.itemLogJson
 
             if (reward.isCloverBox) {
                 val allItems = ItemUtils.loadItems(context)
@@ -1522,6 +1541,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                     val uniqueId = "${item.id}_${System.currentTimeMillis()}"
                     val entries = parseInventory(newState.inventoryItems)
                     entries.add("$uniqueId:0")
+                    newItemLog = addItemToLog(newState.copy(itemLogJson = newItemLog), uniqueId)
                     newState = newState.copy(
                         inventoryItems = buildInventory(entries),
                         itemsCollected = newState.itemsCollected + 1
@@ -1534,6 +1554,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                     val uniqueId = "${item.id}_${System.currentTimeMillis()}"
                     val entries = parseInventory(newState.inventoryItems)
                     entries.add("$uniqueId:0")
+                    newItemLog = addItemToLog(newState.copy(itemLogJson = newItemLog), uniqueId)
                     newState = newState.copy(
                         inventoryItems = buildInventory(entries),
                         itemsCollected = newState.itemsCollected + 1
@@ -1542,7 +1563,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             }
 
             addLog("🎁 Daily reward claimed: Day ${reward.day}", "🎁 Ежедневная награда: День ${reward.day}")
-            dao.saveGameState(newState)
+            dao.saveGameState(newState.copy(itemLogJson = newItemLog))
             reward
         } catch (e: Exception) {
             android.util.Log.e("GameRepo", "claimDailyReward failed", e)
@@ -1551,6 +1572,47 @@ class GameRepository(private val context: Context) : IGameRepository {
     }
 
     // ==================== DEBUG / TEST HELPERS ====================
+
+    // ===== PUNCH =====
+    override suspend fun performPunch(): Int = saveMutex.withLock {
+        val state = getGameState()
+        if (state.isPlayerDead) return@withLock 0
+
+        val today = DateUtils.getTodayString()
+        val usedToday = if (state.lastPunchDate == today) state.punchesUsedToday else 0
+        if (usedToday >= 25) return@withLock -1
+
+        val (equippedItems, enchantLevels) = getEquippedWithEnchant(state)
+        val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
+        val setBonuses = ItemUtils.getSetBonuses(equippedItems)
+        val totalStats = GameCalculations.calculateTotalStats(state, equippedItems, enchantLevels, achBonuses, setBonuses)
+
+        val isCrit = GameCalculations.isCriticalHit(totalStats.luck)
+        val dmg = GameCalculations.calculatePlayerDamage(totalStats.power, isCrit)
+        val newMonsterHp = (state.monsterCurrentHp - dmg).coerceAtLeast(0)
+
+        val newState = if (newMonsterHp <= 0) {
+            val monster = MonsterUtils.rollNextMonster(state.playerLevel)
+            state.copy(
+                punchesUsedToday = usedToday + 1, lastPunchDate = today,
+                monstersKilled = state.monstersKilled + 1,
+                highestMonsterLevelKilled = maxOf(state.highestMonsterLevelKilled, state.monsterLevel),
+                monsterName = monster.name, monsterLevel = monster.level,
+                monsterImageRes = monster.imageRes,
+                monsterMaxHp = monster.maxHp, monsterCurrentHp = monster.maxHp,
+                monsterDamage = monster.damage,
+                totalDamageDealt = state.totalDamageDealt + dmg
+            )
+        } else {
+            state.copy(
+                punchesUsedToday = usedToday + 1, lastPunchDate = today,
+                monsterCurrentHp = newMonsterHp,
+                totalDamageDealt = state.totalDamageDealt + dmg
+            )
+        }
+        dao.saveGameState(newState)
+        dmg
+    }
 
     /**
      * Добавляет 10 тестовых вещей (по 2 каждого слота) и 100000 зубов.

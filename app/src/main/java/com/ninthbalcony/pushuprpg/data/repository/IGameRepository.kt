@@ -98,6 +98,10 @@ interface IGameRepository {
     // ===== Play Games =====
     fun setPlayGamesManager(manager: PlayGamesManager)
 
+    // ===== Punch =====
+    // Возвращает урон (>0), 0 если мёртв, -1 если лимит (25/день)
+    suspend fun performPunch(): Int
+
     // ===== Debug =====
     suspend fun addDebugItemsForTest()
 }

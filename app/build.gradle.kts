@@ -87,6 +87,9 @@ dependencies {
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.kotlinx.coroutines.test)
 
+    // Lottie animations
+    implementation("com.airbnb.android:lottie-compose:6.4.0")
+
     // Debug
     debugImplementation(libs.androidx.ui.tooling)
 }

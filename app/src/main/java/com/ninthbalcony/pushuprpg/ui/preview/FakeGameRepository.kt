@@ -111,5 +111,6 @@ class FakeGameRepository : IGameRepository {
     override suspend fun claimDailyReward(): DailyRewardUtils.DailyReward? = null
     override suspend fun updateRateUsState(action: RateUsAction) {}
     override fun setPlayGamesManager(manager: PlayGamesManager) {}
+    override suspend fun performPunch(): Int = 142
     override suspend fun addDebugItemsForTest() {}
 }

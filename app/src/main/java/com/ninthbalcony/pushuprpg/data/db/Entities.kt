@@ -37,6 +37,7 @@ data class GameStateEntity(
     val monsterMaxHp: Int = 50,
     val monsterCurrentHp: Int = 50,
     val monsterDamage: Int = 5,
+    val monsterImageRes: String = "monster_01",
     val monstersKilled: Int = 0,
 
     // Бой
@@ -165,7 +166,11 @@ data class GameStateEntity(
     val teethFromQuests: Int = 0,                 // Зубы с квестов
     val teethFromAds: Int = 0,                    // Зубы с рекламы
     val teethFromSpin: Int = 0,                   // Зубы с вращения ленты
-    val itemsFromSpin: Int = 0                    // Предметы с вращения ленты
+    val itemsFromSpin: Int = 0,                   // Предметы с вращения ленты
+
+    // ===== Punch Mechanic =====
+    val punchesUsedToday: Int = 0,                // Использовано панчей сегодня (макс 25)
+    val lastPunchDate: String = ""                // Дата последнего панча (для сброса в 00:00)
 )
 
 @Entity(tableName = "pushup_records")

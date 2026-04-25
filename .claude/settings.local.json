@@ -52,7 +52,24 @@
       "Bash(sed -n '1037,1042p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
       "Bash(sed -n '235,242p' /q/AndroidApp/PushUpRPG/app/src/main/java/com/pushupRPG/app/ui/screens/MainMenuScreen.kt)",
       "Bash(bash /tmp/rename_package.sh)",
-      "Bash(find app/src/main/java -name \"*.kt\" -type f -exec sed -i 's/com\\\\.pushupRPG\\\\.app/com.ninthbalcony.pushuprpg/g' {} \\\\;)"
+      "Bash(find app/src/main/java -name \"*.kt\" -type f -exec sed -i 's/com\\\\.pushupRPG\\\\.app/com.ninthbalcony.pushuprpg/g' {} \\\\;)",
+      "Bash(xargs head:*)",
+      "Bash(grep -n \"class AchievementBonuses\\\\|class SetBonuses\" /q/AndroidApp/PushUpRPG/app/src/main/java/com/ninthbalcony/pushuprpg/utils/*.kt)",
+      "Bash(./gradlew assembleDebug --no-daemon)",
+      "Bash(./gradlew testDebugUnitTest --no-daemon)",
+      "Bash(.\\\\gradlew.bat compileDebugKotlin)",
+      "Bash(cmd /c \"gradlew.bat compileDebugKotlin 2>&1\")",
+      "Bash(cmd.exe /c gradlew.bat compileDebugKotlin)",
+      "Bash(node -e ' *)",
+      "Bash(awk -F'\"' '{print $4}')",
+      "Bash(\"/c/Users/DRE Station/AppData/Local/Android/Sdk/platform-tools/adb.exe\" logcat -d)",
+      "Bash(powershell -Command ' *)",
+      "Bash(py -3 -c ' *)",
+      "Bash(./gradlew testDebugUnitTest -q --tb=short)",
+      "Bash(./gradlew testDebugUnitTest --stacktrace)",
+      "Bash(./gradlew assembleDebug -q)",
+      "Bash(./gradlew :app:compileDebugKotlin)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
