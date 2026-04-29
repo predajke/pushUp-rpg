@@ -19,6 +19,7 @@ import com.ninthbalcony.pushuprpg.ui.screens.ProgressScreen
 import com.ninthbalcony.pushuprpg.ui.screens.AchievementsScreen
 import com.ninthbalcony.pushuprpg.ui.screens.BestiaryScreen
 import com.ninthbalcony.pushuprpg.ui.screens.ItemLogScreen
+import com.ninthbalcony.pushuprpg.ui.screens.LeaderboardScreen
 
 object Routes {
     const val SPLASH = "splash"
@@ -35,6 +36,7 @@ object Routes {
     const val BESTIARY = "bestiary"
     const val BOSSES = "bosses"
     const val ITEM_LOG = "item_log"
+    const val LEADERBOARD = "leaderboard"
 }
 
 @Composable
@@ -85,7 +87,8 @@ fun AppNavigation(viewModel: GameViewModel) {
                 onNavigateToSettings = { navController.navigate(Routes.SETTINGS) },
                 onNavigateToShop = { navController.navigate(Routes.SHOP) },
                 onNavigateToQuests = { navController.navigate(Routes.QUESTS) },
-                onNavigateToProgress = { navController.navigate(Routes.PROGRESS) }
+                onNavigateToProgress = { navController.navigate(Routes.PROGRESS) },
+                onNavigateToLeaderboard = { navController.navigate(Routes.LEADERBOARD) }
             )
         }
 
@@ -180,6 +183,14 @@ fun AppNavigation(viewModel: GameViewModel) {
         // Item Log
         composable(Routes.ITEM_LOG) {
             ItemLogScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // Leaderboard
+        composable(Routes.LEADERBOARD) {
+            LeaderboardScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )

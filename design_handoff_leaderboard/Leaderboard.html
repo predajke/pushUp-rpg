@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Push UP RPG · Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #1c160f; font-family: Inter, sans-serif; }
+    /* Subtle parchment grain overlay on each device frame */
+    .device-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        radial-gradient(circle at 20% 10%, rgba(201,163,91,0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 90%, rgba(120,40,30,0.05) 0%, transparent 50%);
+    }
+    /* Custom scrollbar in board */
+    .lb-scroll::-webkit-scrollbar { width: 4px; }
+    .lb-scroll::-webkit-scrollbar-track { background: #0e0a07; }
+    .lb-scroll::-webkit-scrollbar-thumb { background: #2a1f17; border-radius: 2px; }
+    .lb-scroll::-webkit-scrollbar-thumb:hover { background: #3a2c20; }
+    button { font-family: inherit; }
+    /* hide scrollbars in webkit for the canvas itself */
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script src="data.js"></script>
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="primitives.jsx"></script>
+  <script type="text/babel" src="leaderboard.jsx"></script>
+  <script type="text/babel" src="variations.jsx"></script>
+
+  <script type="text/babel">
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "density": "comfy",
+      "showRES": true,
+      "showLVL": true,
+      "showPushUps": true,
+      "showPower": true,
+      "showArmor": true,
+      "showHP": true,
+      "showLuck": false,
+      "showAge": true
+    }/*EDITMODE-END*/;
+
+    function Variation({ title, label, Component, density, visibleCols }) {
+      return (
+        <div style={{ position: 'relative' }}>
+          <IOSDevice width={BOARD_W} height={BOARD_H} dark={true}>
+            <div className="device-bg"></div>
+            <Component density={density} visibleCols={visibleCols} />
+          </IOSDevice>
+        </div>
+      );
+    }
+
+    function App() {
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+      const visibleCols = [
+        t.showRES && 'res',
+        t.showLVL && 'lvl',
+        t.showPushUps && 'totalPushUps',
+        t.showPower && 'power',
+        t.showArmor && 'armor',
+        t.showHP && 'hp',
+        t.showLuck && 'luck',
+        t.showAge && 'age',
+      ].filter(Boolean);
+      const props = { density: t.density, visibleCols };
+
+      return (
+        <>
+          <DesignCanvas>
+            <DCSection
+              id="leaderboard"
+              title="Leaderboard · Push UP RPG"
+              subtitle="Five directions for the online leaderboard screen — same data, different command surfaces. Tap any artboard to focus.">
+
+              <DCArtboard id="tome" label="A · Tome of Champions" width={BOARD_W + 24} height={BOARD_H + 24}>
+                <Variation Component={VariationTome} {...props} />
+              </DCArtboard>
+
+              <DCArtboard id="realms" label="B · Three Realms (Global / Country / Friends)" width={BOARD_W + 24} height={BOARD_H + 24}>
+                <Variation Component={VariationRealms} {...props} />
+              </DCArtboard>
+
+              <DCArtboard id="ages" label="C · Ages of War (period tabs)" width={BOARD_W + 24} height={BOARD_H + 24}>
+                <Variation Component={VariationAges} {...props} />
+              </DCArtboard>
+
+              <DCArtboard id="oracle" label="D · The Oracle (search-first)" width={BOARD_W + 24} height={BOARD_H + 24}>
+                <Variation Component={VariationOracle} {...props} />
+              </DCArtboard>
+
+              <DCArtboard id="war" label="E · War Council (everything)" width={BOARD_W + 24} height={BOARD_H + 24}>
+                <Variation Component={VariationWarCouncil} {...props} />
+              </DCArtboard>
+
+            </DCSection>
+          </DesignCanvas>
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection label="Layout" />
+            <TweakRadio label="Density" value={t.density}
+              options={[{ value: 'compact', label: 'Compact' }, { value: 'comfy', label: 'Comfy' }]}
+              onChange={(v) => setTweak('density', v)} />
+
+            <TweakSection label="Columns" />
+            <TweakToggle label="RES (Resets)" value={t.showRES} onChange={(v) => setTweak('showRES', v)} />
+            <TweakToggle label="LVL (Level)" value={t.showLVL} onChange={(v) => setTweak('showLVL', v)} />
+            <TweakToggle label="Total Push-ups" value={t.showPushUps} onChange={(v) => setTweak('showPushUps', v)} />
+            <TweakToggle label="Power" value={t.showPower} onChange={(v) => setTweak('showPower', v)} />
+            <TweakToggle label="Armor" value={t.showArmor} onChange={(v) => setTweak('showArmor', v)} />
+            <TweakToggle label="HP" value={t.showHP} onChange={(v) => setTweak('showHP', v)} />
+            <TweakToggle label="Luck" value={t.showLuck} onChange={(v) => setTweak('showLuck', v)} />
+            <TweakToggle label="Age" value={t.showAge} onChange={(v) => setTweak('showAge', v)} />
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

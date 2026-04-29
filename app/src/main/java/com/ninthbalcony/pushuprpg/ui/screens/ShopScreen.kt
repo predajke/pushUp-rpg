@@ -33,6 +33,7 @@ import com.ninthbalcony.pushuprpg.data.model.ForgeResult
 import com.ninthbalcony.pushuprpg.data.model.Item
 import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.AppStrings
+import com.ninthbalcony.pushuprpg.utils.EventUtils
 import com.ninthbalcony.pushuprpg.utils.ItemUtils
 import com.ninthbalcony.pushuprpg.utils.ShopUtils
 import com.ninthbalcony.pushuprpg.utils.SpinReward
@@ -61,6 +62,8 @@ private val SPIN_WEIGHTED_TYPES = listOf(
     "clover_box",    "clover_box",
     "boss_cube"
 )
+
+private val NIGHT_GRINDSTONE_EVENT_IDS = setOf(6, 9, 10, 11)
 
 /** Генерирует список иконок для ленты; winnerType фиксируется на позиции 22 */
 private fun buildSpinRibbon(winnerType: String?): List<String> {
@@ -104,6 +107,9 @@ fun ShopScreen(
             .getBoolean("vibration_enabled", true)
     }
     val state = gameState ?: return
+    val isNightGrindstone = state.activeEventId in NIGHT_GRINDSTONE_EVENT_IDS &&
+        EventUtils.isEventActive(state.eventEndTime)
+    val grindstoneMaxEnchant = if (isNightGrindstone) 25 else 9
 
     var selectedShopItem by remember { mutableStateOf<Item?>(null) }
     var showForgeItemPicker by remember { mutableStateOf(0) }
@@ -260,6 +266,7 @@ fun ShopScreen(
             inventoryItems = viewModel.getInventoryItems(state),
             language = language,
             getEnchantLevel = { item -> viewModel.getEnchantLevel(state, item.id) },
+            maxEnchant = grindstoneMaxEnchant,
             onSelect = { item ->
                 viewModel.selectEnchantItem(item)
                 showEnchantItemPicker = false
@@ -341,7 +348,7 @@ fun ShopScreen(
                 onReroll = { viewModel.rerollShop() }
             )
 
-            ForgeSection(
+            if (state.playerLevel >= 4) ForgeSection(
                 slot1Item = forgeSlot1Item,
                 slot2Item = forgeSlot2Item,
                 language = language,
@@ -383,6 +390,11 @@ fun ShopScreen(
                     }
                 },
                 onRecycle = { viewModel.recycleForgeSlots() }
+            ) else LockedSection(
+                name = AppStrings.t(language, "forge"),
+                unlockLevel = 4,
+                backgroundKey = "bg_forge_locked",
+                language = language
             )
 
             CloverBoxSection(
@@ -412,7 +424,7 @@ fun ShopScreen(
                         showResultDialog = true
                     }
                 },
-                onWatchAdReward = { viewModel.requestAdReward(20) }
+                onWatchAdReward = { viewModel.requestAdReward(25) }
             )
 
             // --- Daily Spin ---
@@ -436,18 +448,20 @@ fun ShopScreen(
             )
 
             // --- Точильный камень ---
-            GrindstoneSection(
+            if (state.playerLevel >= 6) GrindstoneSection(
                 state = state,
                 language = language,
                 inventoryItems = viewModel.getInventoryItems(state),
                 selectedEnchantItem = selectedEnchantItem,
+                isNightMode = isNightGrindstone,
+                maxEnchant = grindstoneMaxEnchant,
                 shakeSuccess = enchantShake,
                 vibrationEnabled = shopVibrationEnabled,
                 context = shopContext,
                 onSelectItem = { item -> viewModel.selectEnchantItem(item) },
                 onEnchant = {
                     SoundManager.playEnchant(shopSoundEnabled)
-                    if (shopVibrationEnabled && shopContext != null) vibrate(shopContext)
+                    if (shopVibrationEnabled) vibrate(shopContext)
                     val item = selectedEnchantItem
                     if (item != null) {
                         val uniqueId = state.inventoryItems.split(",")
@@ -460,7 +474,10 @@ fun ShopScreen(
                                 EnchantResult.FAILED         -> showCursedDialog = true
                                 EnchantResult.NOT_ENOUGH_TEETH -> showNoTeethDialog = true
                                 EnchantResult.MAX_LEVEL      -> {
-                                    resultMessage = AppStrings.t(language, "enchant_max")
+                                    resultMessage = if (isNightGrindstone) {
+                                        if (language == "ru") "Максимальный ночной уровень +25!"
+                                        else "Maximum night level +25!"
+                                    } else AppStrings.t(language, "enchant_max")
                                     showResultDialog = true
                                 }
                             }
@@ -469,10 +486,54 @@ fun ShopScreen(
                 },
                 getEnchantInfo = { item -> viewModel.getEnchantInfo(state, item) },
                 getEnchantLevel = { item -> viewModel.getEnchantLevel(state, item.id) }
+            ) else LockedSection(
+                name = AppStrings.t(language, "grindstone"),
+                unlockLevel = 6,
+                backgroundKey = "bg_grind_locked",
+                language = language
             )
         }
     } // Column
     } // Box (фон)
+}
+
+@Composable
+private fun LockedSection(name: String, unlockLevel: Int, backgroundKey: String, language: String) {
+    val context = LocalContext.current
+    val bgResId = remember(backgroundKey) {
+        context.resources.getIdentifier(backgroundKey, "drawable", context.packageName)
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(DarkCard, RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .border(1.dp, TextMuted.copy(alpha = 0.25f), RoundedCornerShape(12.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        if (bgResId != 0) {
+            Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
+            )
+        }
+        Column(
+            modifier = Modifier.padding(vertical = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = name, color = TextMuted, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = if (language == "ru") "Открывается на $unlockLevel уровне"
+                       else "Unlocks at level $unlockLevel",
+                color = TextMuted.copy(alpha = 0.6f),
+                fontSize = 13.sp
+            )
+        }
+    }
 }
 
 @Composable
@@ -1200,11 +1261,10 @@ fun MergedDialog(item: Item, language: String, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val bgResId = remember { context.resources.getIdentifier("bg_merged", "drawable", context.packageName) }
     val rarityColor = Color(ItemUtils.getRarityColor(item.rarity))
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { visible = true }
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
+                .fillMaxWidth(0.85f)
                 .background(DarkSurface, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
         ) {
@@ -1218,34 +1278,33 @@ fun MergedDialog(item: Item, language: String, onDismiss: () -> Unit) {
                 )
             }
             Column(
-                modifier = Modifier.padding(28.dp),
+                modifier = Modifier.padding(36.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "MERGED!",
-                    fontSize = 22.sp,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = OrangeAccent
+                    color = OrangeAccent,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn()
-                ) {
-                    Text(
-                        text = if (language == "ru") item.name_ru else item.name_en,
-                        fontSize = 16.sp,
-                        color = rarityColor,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = if (language == "ru") item.name_ru else item.name_en,
+                    fontSize = 18.sp,
+                    color = rarityColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = onDismiss,
                     colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth(0.65f).height(40.dp)
                 ) {
-                    Text("YES!", fontWeight = FontWeight.Bold)
+                    Text("YES!", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 }
             }
         }
@@ -1259,6 +1318,7 @@ fun MergeFailDialog(language: String, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
+                .fillMaxWidth(0.85f)
                 .background(DarkSurface, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
         ) {
@@ -1272,22 +1332,25 @@ fun MergeFailDialog(language: String, onDismiss: () -> Unit) {
                 )
             }
             Column(
-                modifier = Modifier.padding(28.dp),
+                modifier = Modifier.padding(36.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "FAIL",
-                    fontSize = 28.sp,
+                    fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Blue
+                    color = Color.Blue,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = onDismiss,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth(0.65f).height(40.dp)
                 ) {
-                    Text("Well", color = Color.White)
+                    Text("Well", color = Color.White, fontSize = 15.sp)
                 }
             }
         }
@@ -1301,6 +1364,7 @@ fun EnchantedDialog(onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
+                .fillMaxWidth(0.85f)
                 .background(DarkSurface, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
         ) {
@@ -1314,17 +1378,25 @@ fun EnchantedDialog(onDismiss: () -> Unit) {
                 )
             }
             Column(
-                modifier = Modifier.padding(28.dp),
+                modifier = Modifier.padding(36.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("ENCHANTED!", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = OrangeAccent)
-                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "ENCHANTED!",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OrangeAccent,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = onDismiss,
                     colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth(0.65f).height(40.dp)
                 ) {
-                    Text("YES!", fontWeight = FontWeight.Bold)
+                    Text("YES!", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 }
             }
         }
@@ -1338,6 +1410,7 @@ fun CursedDialog(onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
+                .fillMaxWidth(0.85f)
                 .background(DarkSurface, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
         ) {
@@ -1351,17 +1424,24 @@ fun CursedDialog(onDismiss: () -> Unit) {
                 )
             }
             Column(
-                modifier = Modifier.padding(28.dp),
+                modifier = Modifier.padding(36.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Cursed...", fontSize = 20.sp, color = TextSecondary)
-                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "Cursed...",
+                    fontSize = 24.sp,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = onDismiss,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth(0.65f).height(40.dp)
                 ) {
-                    Text("Well", color = Color.White)
+                    Text("Well", color = Color.White, fontSize = 15.sp)
                 }
             }
         }
@@ -1375,6 +1455,7 @@ fun NoTeethDialog(onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
+                .fillMaxWidth(0.85f)
                 .background(DarkSurface, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
         ) {
@@ -1388,19 +1469,20 @@ fun NoTeethDialog(onDismiss: () -> Unit) {
                 )
             }
             Column(
-                modifier = Modifier.padding(28.dp),
+                modifier = Modifier.padding(36.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Come back later", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Not enough teeth...", fontSize = 14.sp, color = TextSecondary)
-                Spacer(modifier = Modifier.height(20.dp))
+                Text("Come back later", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text("Not enough teeth...", fontSize = 16.sp, color = TextSecondary)
+                Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = onDismiss,
                     colors = ButtonDefaults.buttonColors(containerColor = ButtonGray),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(44.dp)
                 ) {
-                    Text("...", color = Color.White)
+                    Text("...", color = Color.White, fontSize = 16.sp)
                 }
             }
         }
@@ -1446,6 +1528,8 @@ fun GrindstoneSection(
     language: String,
     inventoryItems: List<Item>,
     selectedEnchantItem: Item?,
+    isNightMode: Boolean = false,
+    maxEnchant: Int = 9,
     shakeSuccess: Boolean = false,
     vibrationEnabled: Boolean = false,
     context: android.content.Context? = null,
@@ -1455,19 +1539,21 @@ fun GrindstoneSection(
     getEnchantLevel: (Item) -> Int
 ) {
     val context = LocalContext.current
-    val bgResId = remember {
-        context.resources.getIdentifier("bg_grind", "drawable", context.packageName)
+    val bgKey = if (isNightMode) "bg_grind_night" else "bg_grind"
+    val iconKey = if (isNightMode) "img_grindstone_night" else "img_grindstone"
+    val bgResId = remember(bgKey) {
+        context.resources.getIdentifier(bgKey, "drawable", context.packageName)
     }
-    val grindstoneRes = remember {
-        context.resources.getIdentifier("img_grindstone", "drawable", context.packageName)
+    val grindstoneRes = remember(iconKey) {
+        context.resources.getIdentifier(iconKey, "drawable", context.packageName)
     }
 
     val shakeOffset = remember { Animatable(0f) }
     LaunchedEffect(shakeSuccess) {
         if (shakeSuccess) {
             repeat(4) {
-                shakeOffset.animateTo(8f, tween(50))
-                shakeOffset.animateTo(-8f, tween(50))
+                shakeOffset.animateTo(4f, tween(50))
+                shakeOffset.animateTo(-4f, tween(50))
             }
             shakeOffset.animateTo(0f, tween(50))
         }
@@ -1486,6 +1572,7 @@ fun GrindstoneSection(
             inventoryItems = inventoryItems,
             language = language,
             getEnchantLevel = getEnchantLevel,
+            maxEnchant = maxEnchant,
             onSelect = { item ->
                 onSelectItem(item)
                 showItemPicker = false
@@ -1519,6 +1606,14 @@ fun GrindstoneSection(
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
+            if (isNightMode) {
+                Text(
+                    text = if (language == "ru") "🌙 Ночной режим · Макс +$maxEnchant"
+                           else "🌙 Night Mode · Max +$maxEnchant",
+                    fontSize = 11.sp,
+                    color = Color(0xFFBB86FC)
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -1627,9 +1722,12 @@ fun GrindstoneSection(
                             color = Color(0xFFE0E0E0)
                         )
                         Text(
-                            text = AppStrings.t(language, "grindstone_effect"),
+                            text = if (isNightMode) {
+                                if (language == "ru") "От +19: +2 Сила/Броня/HP"
+                                else "From +19: +2 Power/Armor/HP"
+                            } else AppStrings.t(language, "grindstone_effect"),
                             fontSize = 11.sp,
-                            color = TextSecondary
+                            color = if (isNightMode) Color(0xFFBB86FC) else TextSecondary
                         )
                     } else {
                         Text(
@@ -1643,9 +1741,12 @@ fun GrindstoneSection(
                             color = TextMuted
                         )
                         Text(
-                            text = AppStrings.t(language, "grindstone_effect"),
+                            text = if (isNightMode) {
+                                if (language == "ru") "От +19: +2 Сила/Броня/HP"
+                                else "From +19: +2 Power/Armor/HP"
+                            } else AppStrings.t(language, "grindstone_effect"),
                             fontSize = 11.sp,
-                            color = TextMuted
+                            color = if (isNightMode) Color(0xFFBB86FC).copy(alpha = 0.6f) else TextMuted
                         )
                     }
 
@@ -1655,7 +1756,7 @@ fun GrindstoneSection(
                     Button(
                         onClick = onEnchant,
                         enabled = selectedEnchantItem != null &&
-                                (getEnchantLevel(selectedEnchantItem) < 9),
+                                (getEnchantLevel(selectedEnchantItem) < maxEnchant),
                         modifier = Modifier.fillMaxWidth(0.8f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF4A1A8A), // фиолетовый
@@ -1681,13 +1782,13 @@ fun EnchantItemPickerDialog(
     inventoryItems: List<Item>,
     language: String,
     getEnchantLevel: (Item) -> Int,
+    maxEnchant: Int = 9,
     onSelect: (Item) -> Unit,
     onDismiss: () -> Unit,
     hasSelectedItem: Boolean = false,
     onRemove: () -> Unit = {}
 ) {
-    // Исключаем предметы с максимальным уровнем +9
-    val availableItems = inventoryItems.filter { getEnchantLevel(it) < 9 }
+    val availableItems = inventoryItems.filter { getEnchantLevel(it) < maxEnchant }
 
     Dialog(onDismissRequest = onDismiss) {
         Column(
@@ -1887,7 +1988,7 @@ private fun DailySpinSection(
                 Box(modifier = Modifier.width(120.dp)) {
                     Button(
                         onClick = {
-                            if (vibrationEnabled && context != null) vibrate(context)
+                            if (vibrationEnabled) vibrate(context)
                             onSpin()
                         },
                         enabled = canSpin,

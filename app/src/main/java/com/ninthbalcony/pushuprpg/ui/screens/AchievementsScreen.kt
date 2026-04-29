@@ -132,6 +132,7 @@ fun AchievementsScreen(
                     language = language,
                     isUnlocked = def.id in unlockedIds,
                     isActive = def.id in activeIds,
+                    progressText = if (def.id !in unlockedIds) AchievementSystem.getProgressText(def, state, language) else null,
                     onActiveChange = { checked ->
                         val current = activeIds.toMutableList()
                         if (checked && current.size < 3) {
@@ -160,6 +161,7 @@ fun AchievementsScreen(
                     language = language,
                     isUnlocked = def.id in unlockedIds,
                     isActive = def.id in activeIds,
+                    progressText = if (def.id !in unlockedIds) AchievementSystem.getProgressText(def, state, language) else null,
                     onActiveChange = { checked ->
                         val current = activeIds.toMutableList()
                         if (checked && current.size < 3) {
@@ -211,6 +213,7 @@ private fun AchievementRow(
     language: String,
     isUnlocked: Boolean,
     isActive: Boolean,
+    progressText: String? = null,
     onActiveChange: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -268,6 +271,9 @@ private fun AchievementRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(text = name, color = textColor, fontWeight = FontWeight.Medium, fontSize = 14.sp)
             Text(text = bonusLabel, color = subtextColor, fontSize = 12.sp)
+            if (progressText != null) {
+                Text(text = progressText, color = TextMuted, fontSize = 11.sp)
+            }
         }
 
         if (isUnlocked) {

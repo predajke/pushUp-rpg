@@ -1,6 +1,7 @@
 package com.ninthbalcony.pushuprpg.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,6 +45,8 @@ import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset                  // + для крутого шрифта
 import androidx.compose.ui.graphics.Shadow                  // + для крутого шрифта
@@ -60,7 +63,8 @@ fun MainMenuScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToShop: () -> Unit,
     onNavigateToQuests: () -> Unit = {},
-    onNavigateToProgress: () -> Unit = {}
+    onNavigateToProgress: () -> Unit = {},
+    onNavigateToLeaderboard: () -> Unit = {}
 ) {
     // ИСПРАВЛЕНО: Добавлены начальные значения (initial) и заменен logs на recentLogs
     val gameState by viewModel.gameState.collectAsState(initial = null)
@@ -79,6 +83,8 @@ fun MainMenuScreen(
     val showRateUsDialog by viewModel.showRateUsDialog.collectAsState(initial = false)
     val punchCooldownUntil by viewModel.punchCooldownUntil.collectAsState()
     val lastPunchDamage by viewModel.lastPunchDamage.collectAsState()
+    val goblinTimeRemaining by viewModel.goblinTimeRemaining.collectAsState()
+    val goblinEndTeeth by viewModel.goblinEndTeeth.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE) }
     val soundEnabled = remember(prefs) { prefs.getBoolean("sounds_enabled", true) }
@@ -195,6 +201,14 @@ fun MainMenuScreen(
         )
     }
 
+    goblinEndTeeth?.let { teeth ->
+        GoblinEndDialog(
+            teethEarned = teeth,
+            language = language,
+            onDismiss = { viewModel.clearGoblinEndTeeth() }
+        )
+    }
+
     // Show highlight onboarding if not complete
     if (state.isFirstLaunch && !isOnboardingComplete && onboardingStep < com.ninthbalcony.pushuprpg.managers.OnboardingManager.TOTAL_STEPS) {
         com.ninthbalcony.pushuprpg.ui.dialogs.HighlightTourGuideDialog(
@@ -307,16 +321,25 @@ fun MainMenuScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            val battleAnim by viewModel.battleAnimation.collectAsState()
             BattleArena(
                 state = state,
                 maxHp = maxHp,
                 punchesRemaining = viewModel.getPunchesRemaining(state),
                 punchCooldownUntil = punchCooldownUntil,
                 lastPunchDamage = lastPunchDamage,
+                goblinTimeRemaining = goblinTimeRemaining,
+                battleAnimation = battleAnim,
+                soundEnabled = soundEnabled,
                 onPunch = {
-                    viewModel.performPunch()
-                    SoundManager.playPunch(soundEnabled)
-                    if (vibrationEnabled) vibrate(context)
+                    if (state.isGoldenGoblinActive) {
+                        viewModel.performGoblinPunch()
+                        if (vibrationEnabled) vibrate(context)
+                    } else {
+                        viewModel.performPunch()
+                        SoundManager.playPunch(soundEnabled)
+                        if (vibrationEnabled) vibrate(context)
+                    }
                 },
                 modifier = Modifier
                     .heightIn(min = 220.dp)
@@ -377,12 +400,24 @@ fun MainMenuScreen(
                 totalCount = com.ninthbalcony.pushuprpg.utils.AchievementSystem.ALL.size,
                 onClick = onNavigateToProgress
             )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            LeaderboardShortcutButton(
+                language = language,
+                onClick = onNavigateToLeaderboard
+            )
         }
     } // Column
 
+    // Falling coins during Golden Goblin event
+    if (state.isGoldenGoblinActive) {
+        FallingCoinsOverlay(modifier = Modifier.matchParentSize())
+    }
+
     // Achievement toast overlay
-    achievementToast?.let { toastText ->
-        AchievementToast(text = toastText, onDismiss = { viewModel.clearAchievementToast() })
+    achievementToast?.let { def ->
+        AchievementToast(def = def, language = language, onDismiss = { viewModel.clearAchievementToast() })
     }
 
     // Level-up flash overlay
@@ -411,35 +446,98 @@ fun MainMenuScreen(
 }
 
 @Composable
-private fun AchievementToast(text: String, onDismiss: () -> Unit) {
+private fun AchievementToast(
+    def: com.ninthbalcony.pushuprpg.utils.AchievementDef,
+    language: String,
+    onDismiss: () -> Unit
+) {
     var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(text) {
+    LaunchedEffect(def.id) {
         visible = true
-        kotlinx.coroutines.delay(2500)
+        kotlinx.coroutines.delay(2800)
         visible = false
         kotlinx.coroutines.delay(400)
         onDismiss()
     }
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+    val context = LocalContext.current
+    val resId = remember(def.imageRes) {
+        context.resources.getIdentifier(def.imageRes, "drawable", context.packageName)
+    }
+    val shape = RoundedCornerShape(12.dp)
+
+    Box(
+        modifier = Modifier.fillMaxSize().padding(top = 56.dp),
+        contentAlignment = Alignment.TopCenter
+    ) {
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-            exit = fadeOut()
+            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
         ) {
             Box(
                 modifier = Modifier
+                    .padding(horizontal = 16.dp)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .background(Color(0xFFFFD700), RoundedCornerShape(8.dp))
-                    .padding(12.dp),
-                contentAlignment = Alignment.Center
+                    .height(78.dp)
+                    .clip(shape)
+                    .background(Color(0xCC1A1310))
+                    .border(2.dp, GoldAccent, shape)
             ) {
-                Text(
-                    text = "🏆 $text",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                // Background image of the achievement — semi-transparent.
+                if (resId != 0) {
+                    Image(
+                        painter = painterResource(id = resId),
+                        contentDescription = null,
+                        modifier = Modifier.matchParentSize(),
+                        contentScale = ContentScale.Crop,
+                        alpha = 0.30f
+                    )
+                }
+                // Dark gradient overlay for text legibility.
+                Box(
+                    modifier = Modifier.matchParentSize().background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xCC000000), Color(0x55000000), Color(0xCC000000))
+                        )
+                    )
                 )
+                // Foreground content.
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (resId != 0) {
+                        Image(
+                            painter = painterResource(id = resId),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(54.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(1.dp, GoldAccent, RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(Modifier.width(12.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (language == "ru") "🏆 ДОСТИЖЕНИЕ" else "🏆 ACHIEVEMENT UNLOCKED",
+                            color = GoldAccent,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 1.2.sp
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = if (language == "ru") def.nameRu else def.nameEn,
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = TextStyle(shadow = Shadow(Color.Black, Offset(1f, 1f), 3f))
+                        )
+                    }
+                }
             }
         }
     }
@@ -558,6 +656,38 @@ fun ProgressShortcutButton(
             Spacer(modifier = Modifier.weight(1f))
             Text(badge, color = GoldAccent, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.width(8.dp))
+            Text("›", color = TextMuted, fontSize = 18.sp)
+        }
+    }
+}
+
+@Composable
+fun LeaderboardShortcutButton(
+    language: String,
+    onClick: () -> Unit
+) {
+    val label = if (language == "ru") "Таблица лидеров" else "Leaderboard"
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(DarkSurface)
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("🏅", fontSize = 20.sp)
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = label,
+                color = TextPrimary,
+                fontWeight = FontWeight.Normal,
+                fontSize = 15.sp
+            )
+            Spacer(modifier = Modifier.weight(1f))
             Text("›", color = TextMuted, fontSize = 18.sp)
         }
     }
@@ -1154,6 +1284,9 @@ fun BattleArena(
     punchesRemaining: Int = 25,
     punchCooldownUntil: Long = 0L,
     lastPunchDamage: Int? = null,
+    goblinTimeRemaining: Long = 0L,
+    battleAnimation: com.ninthbalcony.pushuprpg.data.model.BattleHit? = null,
+    soundEnabled: Boolean = true,
     onPunch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -1179,14 +1312,14 @@ fun BattleArena(
     val shakeX = remember { Animatable(0f) }
     LaunchedEffect(lastPunchDamage) {
         if (lastPunchDamage != null && lastPunchDamage > 0) {
-            val mag = if (lastPunchDamage > 50) 12f else 6f
+            val mag = if (lastPunchDamage > 50) 6f else 3f
             repeat(3) { shakeX.animateTo(mag, tween(40)); shakeX.animateTo(-mag, tween(40)) }
             shakeX.animateTo(0f, tween(40))
         }
     }
     LaunchedEffect(state.monstersKilled) {
         if (state.monstersKilled > 0) {
-            repeat(5) { shakeX.animateTo(16f, tween(40)); shakeX.animateTo(-16f, tween(40)) }
+            repeat(5) { shakeX.animateTo(8f, tween(40)); shakeX.animateTo(-8f, tween(40)) }
             shakeX.animateTo(0f, tween(40))
         }
     }
@@ -1197,7 +1330,35 @@ fun BattleArena(
     }
     val cooldownSec = ((punchCooldownUntil - now) / 1000L + 1).coerceAtLeast(0)
 
-    val heroImageRes = state.heroAvatar.ifEmpty { MonsterUtils.getHeroImageRes(state.playerLevel) }
+    val heroResId = com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId(
+        avatarId = state.heroAvatar.ifEmpty { "avatar_base" },
+        gender = state.playerGender
+    )
+
+    // ── Battle chain animation (Save → серия ударов) ─────────────────────────
+    // Когда battleAnimation != null — показываем damage number и HP-bar монстра
+    // в анимированном состоянии. Звук удара играем на каждом новом хите.
+    // Когда chain заканчивается (null) — гасим damage-number через 200ms.
+    LaunchedEffect(battleAnimation) {
+        val hit = battleAnimation
+        if (hit == null) {
+            kotlinx.coroutines.delay(200L)
+            showDmg = false
+        } else {
+            SoundManager.playPunch(soundEnabled)
+            dmgVal = hit.damage
+            showDmg = true
+            val mag = if (hit.isCrit) 6f else 2f
+            shakeX.animateTo(mag, tween(30))
+            shakeX.animateTo(-mag, tween(30))
+            shakeX.animateTo(0f, tween(30))
+        }
+    }
+
+    // ── Countdown до следующего auto-tick'а (5 минут) ─────────────────────────
+    val nextTickAt = state.lastBattleTick + 5 * 60 * 1000L
+    val ticksLeftSec = ((nextTickAt - now) / 1000L).coerceAtLeast(0L)
+    val countdownText = if (state.isPlayerDead) "—:—" else "%d:%02d".format(ticksLeftSec / 60, ticksLeftSec % 60)
 
     Box(
         modifier = Modifier
@@ -1245,21 +1406,48 @@ fun BattleArena(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    val monsterHpPercent = if (state.monsterMaxHp > 0)
-                        state.monsterCurrentHp.toFloat() / state.monsterMaxHp else 0f
-                    Text(
-                        text = "${state.monsterCurrentHp}/${state.monsterMaxHp} HP",
-                        fontSize = 11.sp,
-                        color = HpBarLow,
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    LinearProgressIndicator(
-                        progress = { monsterHpPercent.coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                        color = HpBarLow,
-                        trackColor = HpBarBackground
-                    )
+                    if (state.isGoldenGoblinActive) {
+                        Text(
+                            text = "∞ HP",
+                            fontSize = 11.sp, color = GoldAccent,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        LinearProgressIndicator(
+                            progress = { 1f },
+                            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                            color = GoldAccent,
+                            trackColor = HpBarBackground
+                        )
+                    } else {
+                        // Если идёт chain-анимация — показываем "анимированное" HP монстра
+                        // (включая переход на нового монстра при killed-хите).
+                        val displayHp = battleAnimation?.monsterHpAfter ?: state.monsterCurrentHp
+                        val displayMaxHp = battleAnimation?.monsterMaxHp ?: state.monsterMaxHp
+                        val monsterHpPercent = if (displayMaxHp > 0)
+                            displayHp.toFloat() / displayMaxHp else 0f
+                        Text(
+                            text = "$displayHp/$displayMaxHp HP",
+                            fontSize = 11.sp, color = HpBarLow,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        LinearProgressIndicator(
+                            progress = { monsterHpPercent.coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                            color = HpBarLow,
+                            trackColor = HpBarBackground
+                        )
+                        // Countdown до следующей атаки монстра в auto-tick.
+                        Text(
+                            text = if (state.language == "ru") "След. атака: $countdownText"
+                                   else "Next attack: $countdownText",
+                            fontSize = 10.sp,
+                            color = TextMuted,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth().padding(top = 2.dp)
+                        )
+                    }
                 }
             }
 
@@ -1277,12 +1465,16 @@ fun BattleArena(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f)
                 ) {
-                    DrawableImage(
-                        name = heroImageRes,
-                        modifier = Modifier
-                            .size(110.dp)
-                            .alpha(if (state.isPlayerDead) 0.4f else 1f)
-                    )
+                    if (heroResId != 0) {
+                        Image(
+                            painter = painterResource(id = heroResId),
+                            contentDescription = "Hero",
+                            modifier = Modifier
+                                .size(110.dp)
+                                .alpha(if (state.isPlayerDead) 0.4f else 1f),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = state.playerName,
@@ -1313,30 +1505,53 @@ fun BattleArena(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.weight(1f)
                 ) {
-                    val monster = MonsterUtils.getMonsterByLevel(state.monsterLevel)
-                    val monsterName = MonsterUtils.getMonsterName(monster, state.language)
-                    // Монстр + floating damage
-                    Box(contentAlignment = Alignment.TopCenter) {
-                        DrawableImage(name = state.monsterImageRes, modifier = Modifier.size(110.dp))
-                        if (dmgAlpha > 0f) {
-                            Text(
-                                text = "-$dmgVal",
-                                color = Color(0xFFFF4444).copy(alpha = dmgAlpha),
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                modifier = Modifier.offset(y = dmgOffsetY.dp),
-                                style = TextStyle(shadow = Shadow(Color.Black, Offset(1f, 2f), 4f))
-                            )
+                    if (state.isGoldenGoblinActive) {
+                        val secondsLeft = (goblinTimeRemaining / 1000L).coerceAtLeast(0L)
+                        Text(
+                            text = "⏱ ${secondsLeft}s",
+                            fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                            color = GoldAccent
+                        )
+                        DrawableImage(name = "monster_goblin_gold", modifier = Modifier.size(110.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (state.language == "ru") "Золотой Гоблин" else "Golden Goblin",
+                            fontSize = 12.sp, color = GoldAccent,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        val monster = MonsterUtils.getMonsterByLevel(state.monsterLevel)
+                        // Во время chain-анимации показываем имя/картинку из текущего хита —
+                        // если убили на 17-м хите, кадры 18..30 покажут уже нового монстра.
+                        val monsterName = battleAnimation?.monsterName ?: MonsterUtils.getMonsterName(monster, state.language)
+                        Box(contentAlignment = Alignment.TopCenter) {
+                            val imageRes = battleAnimation?.monsterImageRes
+                                ?: state.monsterImageRes.takeIf { it.isNotBlank() && it != "monster_01" }
+                                ?: monster.imageRes
+                            DrawableImage(name = imageRes, modifier = Modifier.size(110.dp))
+                            if (dmgAlpha > 0f) {
+                                val isCritHit = battleAnimation?.isCrit == true
+                                Text(
+                                    text = if (isCritHit) "💥 -$dmgVal CRIT!" else "-$dmgVal",
+                                    color = (if (isCritHit) Color(0xFFFFCC00) else Color(0xFFFF4444))
+                                        .copy(alpha = dmgAlpha),
+                                    fontSize = if (isCritHit) 24.sp else 22.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    modifier = Modifier.offset(y = dmgOffsetY.dp),
+                                    style = TextStyle(shadow = Shadow(Color.Black, Offset(1f, 2f), 4f))
+                                )
+                            }
                         }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "$monsterName (${state.monsterLevel} lvl)",
+                            fontSize = 12.sp, color = TextSecondary,
+                            textAlign = TextAlign.Center, maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "$monsterName (${state.monsterLevel} lvl)",
-                        fontSize = 12.sp, color = TextSecondary,
-                        textAlign = TextAlign.Center, maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth()
-                    )
                 }
             }
 
@@ -1344,14 +1559,15 @@ fun BattleArena(
             Spacer(modifier = Modifier.height(0.dp))
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,  // ← центрирует по горизонтали
-                verticalArrangement = Arrangement.Center  // ← вертикальное центрирование
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 Button(
                     onClick = onPunch,
-                    enabled = punchesRemaining > 0 && cooldownSec == 0L && !state.isPlayerDead,
+                    enabled = if (state.isGoldenGoblinActive) !state.isPlayerDead
+                              else punchesRemaining > 0 && cooldownSec == 0L && !state.isPlayerDead,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = ButtonRed,
+                        containerColor = if (state.isGoldenGoblinActive) GoldAccent else ButtonRed,
                         disabledContainerColor = ButtonGray
                     ),
                     modifier = Modifier.height(34.dp),
@@ -1361,19 +1577,34 @@ fun BattleArena(
                     Text(
                         text = when {
                             state.isPlayerDead -> "💀 Dead"
+                            state.isGoldenGoblinActive -> "👊 PUNCH!"
                             punchesRemaining == 0 -> "No punches"
                             cooldownSec > 0L -> "⏳ ${cooldownSec}s"
                             else -> "👊 Punch"
                         },
-                        fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White
+                        fontSize = if (state.isGoldenGoblinActive) 15.sp else 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (state.isGoldenGoblinActive) Color.Black else Color.White
                     )
                 }
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "$punchesRemaining/25",
-                    color = if (punchesRemaining > 0) TextSecondary else TextMuted,
-                    fontSize = 8.sp
-                )
+                if (state.isGoldenGoblinActive) {
+                    val t = (state.goldenGoblinPunchCount / 60f).coerceIn(0f, 1f)
+                    val counterColor = Color(red = 1f, green = 1f - t, blue = 1f - t)
+                    val counterScale = 1f + (state.goldenGoblinPunchCount / 10) * 0.01f
+                    Text(
+                        text = "${state.goldenGoblinPunchCount}",
+                        color = counterColor,
+                        fontSize = (14f * counterScale).sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                } else {
+                    Text(
+                        text = "$punchesRemaining/25",
+                        color = if (punchesRemaining > 0) TextSecondary else TextMuted,
+                        fontSize = 8.sp
+                    )
+                }
             }
         }
     }
@@ -1627,6 +1858,87 @@ fun ScreenBackground(name: String) {
             contentScale = ContentScale.Crop,
             alpha = 0.25f
         )
+    }
+}
+
+@Composable
+private fun GoblinEndDialog(teethEarned: Int, language: String, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val bgResId = remember {
+        context.resources.getIdentifier("bg_goblin_escape", "drawable", context.packageName)
+    }
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = androidx.compose.ui.Modifier
+                .fillMaxWidth()
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp))
+        ) {
+            if (bgResId != 0) {
+                Image(
+                    painter = painterResource(id = bgResId),
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    alpha = 0.3f
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+            Text(
+                text = if (language == "ru") "Гоблин сбежал!" else "Goblin escaped!",
+                color = GoldAccent, fontWeight = FontWeight.Bold, fontSize = 20.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = if (language == "ru") "Ты получил $teethEarned 🦷!" else "You earned $teethEarned 🦷!",
+                color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = GoldAccent),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(AppStrings.t(language, "btn_continue"), color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FallingCoinsOverlay(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition(label = "coins")
+    val phase by infiniteTransition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(4000, easing = LinearEasing)),
+        label = "coinPhase"
+    )
+    // x position (0-1), phase offset (0-1), coin radius px
+    val coinData = remember {
+        List(14) {
+            Triple(
+                kotlin.random.Random.nextFloat(),
+                kotlin.random.Random.nextFloat(),
+                7f + kotlin.random.Random.nextFloat() * 9f
+            )
+        }
+    }
+    Canvas(modifier = modifier) {
+        coinData.forEach { (x, offset, radius) ->
+            val y = ((phase + offset) % 1f) * size.height
+            drawCircle(
+                color = androidx.compose.ui.graphics.Color(0xFFFFD700).copy(alpha = 0.75f),
+                radius = radius,
+                center = androidx.compose.ui.geometry.Offset(x * size.width, y)
+            )
+        }
     }
 }
 

@@ -64,7 +64,9 @@ data class GameStateEntity(
 
     // Настройки
     val language: String = "en",
-    val heroAvatar: String = "hero_1",
+    val heroAvatar: String = "avatar_base",
+    val playerGender: String = "male",
+    val unlockedAvatarIds: String = "",
 
     // Текущее событие
     val activeEventId: Int = 0,
@@ -170,7 +172,16 @@ data class GameStateEntity(
 
     // ===== Punch Mechanic =====
     val punchesUsedToday: Int = 0,                // Использовано панчей сегодня (макс 25)
-    val lastPunchDate: String = ""                // Дата последнего панча (для сброса в 00:00)
+    val lastPunchDate: String = "",               // Дата последнего панча (для сброса в 00:00)
+
+    // ===== Golden Goblin Event =====
+    val killsSinceLastGoblin: Int = 0,            // Убийств монстров с последнего гоблина
+    val isGoldenGoblinActive: Boolean = false,    // Активно ли событие золотого гоблина
+    val goldenGoblinEndTime: Long = 0L,           // Timestamp конца события (startTime + 60s)
+    val goldenGoblinPunchCount: Int = 0,          // Нажатий Punch за текущее событие
+
+    // ===== Физические данные =====
+    val bodyWeightKg: Float = 0f                  // Вес тела (кг) для расчёта тоннажа
 )
 
 @Entity(tableName = "pushup_records")

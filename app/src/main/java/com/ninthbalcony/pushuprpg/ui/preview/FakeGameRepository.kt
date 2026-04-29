@@ -3,6 +3,7 @@ package com.ninthbalcony.pushuprpg.ui.preview
 import com.ninthbalcony.pushuprpg.data.db.DayStats
 import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
 import com.ninthbalcony.pushuprpg.data.db.LogEntryEntity
+import com.ninthbalcony.pushuprpg.data.model.BattleChain
 import com.ninthbalcony.pushuprpg.data.model.EnchantResult
 import com.ninthbalcony.pushuprpg.data.model.ForgeResult
 import com.ninthbalcony.pushuprpg.data.model.Item
@@ -13,7 +14,9 @@ import com.ninthbalcony.pushuprpg.managers.PlayGamesManager
 import com.ninthbalcony.pushuprpg.utils.DailyRewardUtils
 import com.ninthbalcony.pushuprpg.utils.SpinResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 
 internal fun mockGameState() = GameStateEntity(
     playerName = "Hero",
@@ -52,9 +55,10 @@ class FakeGameRepository : IGameRepository {
     override fun getGameStateFlow(): Flow<GameStateEntity?> = state
     override fun getRecentLogsFlow(): Flow<List<LogEntryEntity>> = logs
     override fun getAllLogsFlow(): Flow<List<LogEntryEntity>> = logs
+    override val battleChain: SharedFlow<BattleChain> = MutableSharedFlow()
 
     override suspend fun getGameState(): GameStateEntity = state.value ?: mockGameState()
-    override suspend fun saveGameState(s: GameStateEntity) { state.value = s }
+    override suspend fun saveGameState(state: GameStateEntity) { this.state.value = state }
 
     override suspend fun addPushUps(count: Int): Int = 0
     override suspend fun processBattleTick() {}
@@ -99,8 +103,8 @@ class FakeGameRepository : IGameRepository {
 
     override suspend fun useCloverBox(): Item? = null
 
-    override fun calculateEnchantChance(luck: Float, streak: Int, achBonus: Float): Float = 35f
-    override fun calculateEnchantCost(rarity: String, currentEnchantLevel: Int): Int = 5
+    override fun calculateEnchantChance(luck: Float, streak: Int, achBonus: Float, isNight: Boolean): Float = 35f
+    override fun calculateEnchantCost(rarity: String, currentEnchantLevel: Int, isNight: Boolean): Int = 5
     override suspend fun enchantItem(itemId: String): EnchantResult = EnchantResult.SUCCESS
 
     override suspend fun setActiveAchievements(ids: List<String>) {}
@@ -112,5 +116,7 @@ class FakeGameRepository : IGameRepository {
     override suspend fun updateRateUsState(action: RateUsAction) {}
     override fun setPlayGamesManager(manager: PlayGamesManager) {}
     override suspend fun performPunch(): Int = 142
+    override suspend fun performGoblinPunch(): Int = 0
+    override suspend fun endGoldenGoblin(): Int = 0
     override suspend fun addDebugItemsForTest() {}
 }

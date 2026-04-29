@@ -115,10 +115,21 @@ class GameCalculationsTest {
 
     @Test
     fun `getTeethFromSell - редкость определяет цену`() {
-        assertEquals(1, GameCalculations.getTeethFromSell("common"))
-        assertEquals(2, GameCalculations.getTeethFromSell("uncommon"))
-        assertEquals(4, GameCalculations.getTeethFromSell("rare"))
-        assertEquals(8, GameCalculations.getTeethFromSell("epic"))
+        assertEquals(2, GameCalculations.getTeethFromSell("common"))
+        assertEquals(4, GameCalculations.getTeethFromSell("uncommon"))
+        assertEquals(8, GameCalculations.getTeethFromSell("rare"))
+        assertEquals(15, GameCalculations.getTeethFromSell("epic"))
+        assertEquals(25, GameCalculations.getTeethFromSell("legendary"))
+    }
+
+    @Test
+    fun `getLuckFromSell - только epic и legendary дают удачу`() {
+        assertEquals(0f, GameCalculations.getLuckFromSell("common"), 0.0001f)
+        assertEquals(0f, GameCalculations.getLuckFromSell("uncommon"), 0.0001f)
+        assertEquals(0f, GameCalculations.getLuckFromSell("rare"), 0.0001f)
+        assertEquals(0.10f, GameCalculations.getLuckFromSell("epic"), 0.0001f)
+        assertEquals(0.25f, GameCalculations.getLuckFromSell("legendary"), 0.0001f)
+        assertEquals(0f, GameCalculations.getLuckFromSell("unknown"), 0.0001f)
     }
 
     @Test

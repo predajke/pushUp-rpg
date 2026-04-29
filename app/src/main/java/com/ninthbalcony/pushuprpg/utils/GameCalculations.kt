@@ -107,9 +107,11 @@ object GameCalculations {
         var itemPower = 0; var itemArmor = 0; var itemHealth = 0; var itemLuck = 0f
         equippedItems.forEachIndexed { i, item ->
             val lvl = enchantLevels.getOrElse(i) { 0 }
-            itemPower  += item.stats.power  + lvl
-            itemArmor  += item.stats.armor  + lvl
-            itemHealth += item.stats.health + lvl
+            // Уровни 19–25 (ночная заточка): +2 к Power/Armor/Health за уровень вместо +1
+            val pahBonus = if (lvl >= 19) 18 + (lvl - 18) * 2 else lvl
+            itemPower  += item.stats.power  + pahBonus
+            itemArmor  += item.stats.armor  + pahBonus
+            itemHealth += item.stats.health + pahBonus
             itemLuck   += item.stats.luck   + lvl
         }
         return TotalStats(
@@ -166,13 +168,24 @@ object GameCalculations {
 
     fun getTeethFromSell(rarity: String): Int {
         return when (rarity) {
-            "common" -> 1
-            "uncommon" -> 2
-            "rare" -> 4
-            "epic" -> 8
-            "legendary" -> 15
-            else -> 1
+            "common" -> 2
+            "uncommon" -> 4
+            "rare" -> 8
+            "epic" -> 15
+            "legendary" -> 25
+            else -> 2
         }
+    }
+
+    /**
+     * Luck-бонус за продажу. Только epic/legendary дают удачу — иначе массовая
+     * продажа ширпотреба превращается в эксплойт (60 продаж × 0.05 = +3 Luck).
+     * Шкала привязана к spendStatPoint("luck") = +0.10.
+     */
+    fun getLuckFromSell(rarity: String): Float = when (rarity) {
+        "epic" -> 0.10f
+        "legendary" -> 0.25f
+        else -> 0f
     }
 }
 

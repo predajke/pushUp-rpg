@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,6 +35,11 @@ import com.ninthbalcony.pushuprpg.utils.ItemUtils
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
+
+private enum class SortOrder { NONE, ASC, DESC }
+private fun rarityOrder(rarity: String) = when (rarity) {
+    "common" -> 0; "uncommon" -> 1; "rare" -> 2; "epic" -> 3; "legendary" -> 4; else -> 0
+}
 
 // --- Экипировка ---
 @Composable
@@ -83,10 +89,10 @@ private fun EquipmentSection(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.width(130.dp)
             ) {
-                val heroAvatar = state.heroAvatar.ifEmpty { "hero_1" }
-                val heroResId = remember(heroAvatar) {
-                    context.resources.getIdentifier(heroAvatar, "drawable", context.packageName)
-                }
+                val heroResId = com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId(
+                    avatarId = state.heroAvatar.ifEmpty { "avatar_base" },
+                    gender = state.playerGender
+                )
 
                 Box(
                     modifier = Modifier
@@ -254,10 +260,21 @@ private fun InventoryGrid(
     items: List<Item>,
     selectedItem: Item?,
     language: String,
+    sortOrder: SortOrder,
+    onSortChange: () -> Unit,
+    multiSelectMode: Boolean,
+    selectedIds: Set<String>,
     onItemClick: (Item) -> Unit,
+    onMultiSelectToggle: () -> Unit,
     onNavigateToShop: () -> Unit,
     getEnchantLevel: (Item) -> Int = { 0 }
 ) {
+    val sortedItems = when (sortOrder) {
+        SortOrder.ASC  -> items.sortedBy { rarityOrder(it.rarity) }
+        SortOrder.DESC -> items.sortedByDescending { rarityOrder(it.rarity) }
+        SortOrder.NONE -> items
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -265,14 +282,33 @@ private fun InventoryGrid(
             .background(DarkCard, RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
-        Text(
-            text = "${AppStrings.t(language, "inventory")} (${items.size})",
-            fontSize = 14.sp,
-            color = TextSecondary,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${AppStrings.t(language, "inventory")} (${items.size})",
+                fontSize = 14.sp,
+                color = TextSecondary
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = when (sortOrder) { SortOrder.NONE -> "↕"; SortOrder.ASC -> "↑"; SortOrder.DESC -> "↓" },
+                    fontSize = 18.sp,
+                    color = if (sortOrder == SortOrder.NONE) TextMuted else TextPrimary,
+                    modifier = Modifier.clickable { onSortChange() }.padding(4.dp)
+                )
+                Text(
+                    text = "☑",
+                    fontSize = 16.sp,
+                    color = if (multiSelectMode) OrangeAccent else TextMuted,
+                    modifier = Modifier.clickable { onMultiSelectToggle() }.padding(4.dp)
+                )
+            }
+        }
 
-        if (items.isEmpty()) {
+        if (sortedItems.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxWidth().height(80.dp),
                 contentAlignment = Alignment.Center
@@ -285,7 +321,7 @@ private fun InventoryGrid(
                 )
             }
         } else {
-            val rows = items.chunked(5)
+            val rows = sortedItems.chunked(5)
             rows.forEach { rowItems ->
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -294,7 +330,8 @@ private fun InventoryGrid(
                     rowItems.forEach { item ->
                         InventoryItemCell(
                             item = item,
-                            isSelected = selectedItem?.id == item.id,
+                            isSelected = if (multiSelectMode) item.id in selectedIds else selectedItem?.id == item.id,
+                            isMultiSelected = multiSelectMode && item.id in selectedIds,
                             onClick = { onItemClick(item) },
                             enchantLevel = getEnchantLevel(item),
                             modifier = Modifier.weight(1f)
@@ -315,11 +352,13 @@ private fun InventoryItemCell(
     isSelected: Boolean,
     onClick: () -> Unit,
     enchantLevel: Int = 0,
+    isMultiSelected: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val rarityColor = Color(ItemUtils.getRarityColor(item.rarity))
 
     val borderColor = when {
+        isMultiSelected -> OrangeAccent
         isSelected -> GoldAccent
         enchantLevel in 7..9 -> Color(0xFFFF4444)
         enchantLevel in 4..6 -> OrangeAccent
@@ -377,6 +416,19 @@ private fun InventoryItemCell(
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
+            }
+        }
+
+        if (isMultiSelected) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(2.dp)
+                    .size(14.dp)
+                    .background(OrangeAccent, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("✓", fontSize = 8.sp, color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -754,6 +806,26 @@ private fun InventoryStatsPanel(
                 }
             }
 
+            // ===== EVENT BONUS =====
+            val activeEvent = if (com.ninthbalcony.pushuprpg.utils.EventUtils.isEventActive(state.eventEndTime))
+                com.ninthbalcony.pushuprpg.utils.EventUtils.getEventById(state.activeEventId) else null
+            if (activeEvent != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = if (language == "ru") "🎉 Бонус события:" else "🎉 Event Bonus:",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF64B5F6)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = com.ninthbalcony.pushuprpg.utils.EventUtils.getEventDescription(activeEvent, language),
+                    fontSize = 12.sp,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+
             // ===== SET MODIFIERS =====
             if (setBonuses.damagePercent > 0 || setBonuses.armorPercent > 0) {
                 Spacer(modifier = Modifier.height(12.dp))
@@ -781,6 +853,31 @@ private fun InventoryStatsPanel(
                             color = TextSecondary
                         )
                     }
+                }
+            }
+
+            // ===== TONNAGE =====
+            if (state.bodyWeightKg > 0f) {
+                val tonnage = state.totalPushUpsAllTime * state.bodyWeightKg / 1000f
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "🏋️", fontSize = 16.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (language == "ru") "Тоннаж" else "Tonnage",
+                        fontSize = 14.sp,
+                        color = TextSecondary,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "${String.format("%.1f", tonnage)} т",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF80DEEA)
+                    )
                 }
             }
         } // Column
@@ -934,7 +1031,10 @@ fun InventoryScreen(
     val state = gameState!!
     val language = state.language
     val inventoryItems = viewModel.getInventoryItems(state)
-    val equippedItems = viewModel.getEquippedItems(state)
+
+    var sortOrder by remember { mutableStateOf(SortOrder.NONE) }
+    var multiSelectMode by remember { mutableStateOf(false) }
+    var selectedIds by remember { mutableStateOf(setOf<String>()) }
 
     Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
         ScreenBackground("bg_inventory_overall")
@@ -976,82 +1076,146 @@ fun InventoryScreen(
                 }
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .navigationBarsPadding()
-            ) {
-                // Экипировка персонажа
-                EquipmentSection(
-                    state = state,
-                    language = language,
-                    onSlotClick = { slot ->
-                        val equippedEntry = when (slot) {
-                            "head" -> state.equippedHead
-                            "necklace" -> state.equippedNecklace
-                            "weapon1" -> state.equippedWeapon1
-                            "weapon2" -> state.equippedWeapon2
-                            "pants" -> state.equippedPants
-                            "boots" -> state.equippedBoots
-                            else -> ""
-                        }
-                        if (equippedEntry.isNotEmpty()) {
-                            val uniqueId = equippedEntry.split(":")[0]
-                            val item = ItemUtils.getItemById(equippedEntry)?.copy(id = uniqueId)
-                            viewModel.selectInventoryItem(item)
-                        }
-                    },
-                    onNavigateToShop = onNavigateToShop,
-                    viewModel = viewModel,
-                    onNavigateToAchievements = onNavigateToAchievements
-                )
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .navigationBarsPadding()
+                        .padding(bottom = when {
+                            !multiSelectMode && selectedItem != null -> 180.dp
+                            multiSelectMode && selectedIds.isNotEmpty() -> 80.dp
+                            else -> 0.dp
+                        })
+                ) {
+                    // Экипировка персонажа
+                    EquipmentSection(
+                        state = state,
+                        language = language,
+                        onSlotClick = { slot ->
+                            if (!multiSelectMode) {
+                                val equippedEntry = when (slot) {
+                                    "head" -> state.equippedHead
+                                    "necklace" -> state.equippedNecklace
+                                    "weapon1" -> state.equippedWeapon1
+                                    "weapon2" -> state.equippedWeapon2
+                                    "pants" -> state.equippedPants
+                                    "boots" -> state.equippedBoots
+                                    else -> ""
+                                }
+                                if (equippedEntry.isNotEmpty()) {
+                                    val uniqueId = equippedEntry.split(":")[0]
+                                    val item = ItemUtils.getItemById(equippedEntry)?.copy(id = uniqueId)
+                                    viewModel.selectInventoryItem(item)
+                                }
+                            }
+                        },
+                        onNavigateToShop = onNavigateToShop,
+                        viewModel = viewModel,
+                        onNavigateToAchievements = onNavigateToAchievements
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                // Инвентарь
-                InventoryGrid(
-                    items = inventoryItems,
-                    selectedItem = selectedItem,
-                    language = language,
-                    onItemClick = { item ->
-                        viewModel.selectInventoryItem(
-                            if (selectedItem?.id == item.id) null else item
+                    // Инвентарь
+                    InventoryGrid(
+                        items = inventoryItems,
+                        selectedItem = selectedItem,
+                        language = language,
+                        sortOrder = sortOrder,
+                        onSortChange = {
+                            sortOrder = when (sortOrder) {
+                                SortOrder.NONE -> SortOrder.ASC
+                                SortOrder.ASC  -> SortOrder.DESC
+                                SortOrder.DESC -> SortOrder.NONE
+                            }
+                        },
+                        multiSelectMode = multiSelectMode,
+                        selectedIds = selectedIds,
+                        onItemClick = { item ->
+                            if (multiSelectMode) {
+                                selectedIds = if (item.id in selectedIds) selectedIds - item.id else selectedIds + item.id
+                            } else {
+                                viewModel.selectInventoryItem(if (selectedItem?.id == item.id) null else item)
+                            }
+                        },
+                        onMultiSelectToggle = {
+                            multiSelectMode = !multiSelectMode
+                            selectedIds = emptySet()
+                            if (multiSelectMode) viewModel.selectInventoryItem(null)
+                        },
+                        onNavigateToShop = onNavigateToShop,
+                        getEnchantLevel = { item -> viewModel.getEnchantLevel(state, item.id) }
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Статы
+                    val achBonuses = com.ninthbalcony.pushuprpg.utils.AchievementSystem.getActiveBonuses(state.activeAchievementIds)
+                    val setBonuses = ItemUtils.getSetBonuses(viewModel.getEquippedItems(state))
+
+                    InventoryStatsPanel(
+                        state = state,
+                        totalStats = totalStats,
+                        language = language,
+                        onSpendPoint = { stat -> viewModel.spendStatPoint(stat) },
+                        achBonuses = achBonuses,
+                        setBonuses = setBonuses
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Sticky: описание выбранного предмета
+                if (!multiSelectMode && selectedItem != null) {
+                    Surface(
+                        color = DarkSurface,
+                        shadowElevation = 8.dp,
+                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                    ) {
+                        ItemInfoSection(
+                            selectedItem = selectedItem,
+                            state = state,
+                            language = language,
+                            onEquip = { item -> viewModel.equipItem(item.id, item.slot) },
+                            onUnequip = { slot -> viewModel.unequipItem(slot) },
+                            onSell = { item ->
+                                viewModel.sellItem(item.id)
+                                viewModel.selectInventoryItem(null)
+                            },
+                            getEnchantLevel = { item -> viewModel.getEnchantLevel(state, item.id) }
                         )
-                    },
-                    onNavigateToShop = onNavigateToShop,
-                    getEnchantLevel = { item -> viewModel.getEnchantLevel(state, item.id) }
-                )
+                    }
+                }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Описание предмета
-                ItemInfoSection(
-                    selectedItem = selectedItem,
-                    state = state,
-                    language = language,
-                    onEquip = { item -> viewModel.equipItem(item.id, item.slot) },
-                    onUnequip = { slot -> viewModel.unequipItem(slot) },
-                    onSell = { item -> viewModel.sellItem(item.id) },
-                    getEnchantLevel = { item -> viewModel.getEnchantLevel(state, item.id) }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Статы
-                val achBonuses = com.ninthbalcony.pushuprpg.utils.AchievementSystem.getActiveBonuses(state.activeAchievementIds)
-                val setBonuses = ItemUtils.getSetBonuses(viewModel.getEquippedItems(state))
-
-                InventoryStatsPanel(
-                    state = state,
-                    totalStats = totalStats,
-                    language = language,
-                    onSpendPoint = { stat -> viewModel.spendStatPoint(stat) },
-                    achBonuses = achBonuses,
-                    setBonuses = setBonuses
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
+                // Sticky: кнопка продажи нескольких вещей
+                if (multiSelectMode && selectedIds.isNotEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .background(DarkSurface)
+                            .navigationBarsPadding()
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                viewModel.sellItems(selectedIds.toList())
+                                selectedIds = emptySet()
+                                multiSelectMode = false
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C)),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            val sellLabel = if (language == "ru")
+                                "Продать ${selectedIds.size} предм."
+                            else
+                                "Sell ${selectedIds.size} items"
+                            Text(sellLabel, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        }
+                    }
+                }
             }
         }
     }

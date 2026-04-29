@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -122,6 +123,9 @@ fun LogItem(
                 message.contains("дроп", ignoreCase = true) -> EpicColor
         message.contains("revived", ignoreCase = true) ||
                 message.contains("воскрешён", ignoreCase = true) -> HealthColor
+        message.startsWith("Forge:") ||
+                message.startsWith("Кузница:") -> OrangeAccent
+        message.startsWith("⚡") -> Color(0xFFFF80AB)
         else -> LogText
     }
 

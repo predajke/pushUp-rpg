@@ -11,11 +11,11 @@ object ShopUtils {
     // Цены покупки в магазине
     fun getBuyPrice(rarity: String): Int {
         return when (rarity) {
-            "common" -> 2
-            "uncommon" -> 4
-            "rare" -> 10
+            "common" -> 5
+            "uncommon" -> 10
+            "rare" -> 20
             "legendary" -> 50
-            else -> 2
+            else -> 5
         }
     }
 

@@ -202,10 +202,24 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     }
 
     // ==================== ACHIEVEMENT TOAST ====================
-    private val _achievementToast = MutableStateFlow<String?>(null)
-    val achievementToast: StateFlow<String?> = _achievementToast.asStateFlow()
+    private val _achievementToast = MutableStateFlow<com.ninthbalcony.pushuprpg.utils.AchievementDef?>(null)
+    val achievementToast: StateFlow<com.ninthbalcony.pushuprpg.utils.AchievementDef?> = _achievementToast.asStateFlow()
 
     fun clearAchievementToast() { _achievementToast.value = null }
+
+    // ==================== BATTLE ANIMATION (Save → серия ударов) ====================
+    /**
+     * Текущий "кадр" анимации серии ударов от Save отжиманий.
+     * UI читает это вместо real state'а пока анимация идёт, чтобы HP-bar монстра
+     * и damage-number плавно обновлялись по 1 хиту.
+     */
+    private val _battleAnimation = MutableStateFlow<com.ninthbalcony.pushuprpg.data.model.BattleHit?>(null)
+    val battleAnimation: StateFlow<com.ninthbalcony.pushuprpg.data.model.BattleHit?> = _battleAnimation.asStateFlow()
+
+    private var battleAnimationJob: kotlinx.coroutines.Job? = null
+
+    /** Длительность одного хита в анимации, мс. */
+    private val battleHitDelayMs = 80L
 
     init {
         _isLoading.value = true
@@ -218,6 +232,20 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                 _isLoading.value = false
             }
         }
+        // Подписка на серии ударов от Save отжиманий → проигрываем анимацию.
+        viewModelScope.launch {
+            repository.battleChain.collect { chain ->
+                battleAnimationJob?.cancel()
+                battleAnimationJob = viewModelScope.launch {
+                    for (hit in chain.hits) {
+                        _battleAnimation.value = hit
+                        kotlinx.coroutines.delay(battleHitDelayMs)
+                    }
+                    _battleAnimation.value = null
+                }
+            }
+        }
+
         // Следим за новыми достижениями и показываем тост
         viewModelScope.launch {
             var known = emptySet<String>()
@@ -227,9 +255,24 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                 if (known.isNotEmpty() && current.size > known.size) {
                     val newId = (current - known).firstOrNull()
                     val def = AchievementSystem.ALL.find { it.id == newId }
-                    _achievementToast.value = def?.nameEn ?: newId
+                    if (def != null) _achievementToast.value = def
                 }
                 known = current
+            }
+        }
+
+        // Запускаем таймер гоблина при старте события, останавливаем при завершении
+        viewModelScope.launch {
+            var wasGoblinActive = false
+            gameState.filterNotNull().collect { state ->
+                if (state.isGoldenGoblinActive && !wasGoblinActive) {
+                    wasGoblinActive = true
+                    startGoblinTimer(state.goldenGoblinEndTime)
+                } else if (!state.isGoldenGoblinActive && wasGoblinActive) {
+                    wasGoblinActive = false
+                    goblinTimerJob?.cancel()
+                    _goblinTimeRemaining.value = 0L
+                }
             }
         }
     }
@@ -518,6 +561,10 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         }
     }
 
+    fun sellItems(itemIds: List<String>) {
+        viewModelScope.launch { itemIds.forEach { repository.sellItem(it) } }
+    }
+
     fun spendStatPoint(stat: String) {
         viewModelScope.launch { repository.spendStatPoint(stat) }
     }
@@ -549,10 +596,24 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         }
     }
 
+    fun updatePlayerGender(gender: String) {
+        viewModelScope.launch {
+            val state = repository.getGameState()
+            repository.saveGameState(state.copy(playerGender = gender))
+        }
+    }
+
     fun updateLanguage(lang: String) {
         viewModelScope.launch {
             val state = repository.getGameState()
             repository.saveGameState(state.copy(language = lang))
+        }
+    }
+
+    fun updateBodyWeight(weightKg: Float) {
+        viewModelScope.launch {
+            val state = repository.getGameState()
+            repository.saveGameState(state.copy(bodyWeightKg = weightKg))
         }
     }
 
@@ -575,6 +636,38 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         viewModelScope.launch {
             val success = repository.useFreePoints()
             callback(success)
+        }
+    }
+
+    // ==================== GOLDEN GOBLIN ====================
+    private val _goblinTimeRemaining = MutableStateFlow(0L)
+    val goblinTimeRemaining: StateFlow<Long> = _goblinTimeRemaining.asStateFlow()
+
+    private val _goblinEndTeeth = MutableStateFlow<Int?>(null)
+    val goblinEndTeeth: StateFlow<Int?> = _goblinEndTeeth.asStateFlow()
+
+    fun performGoblinPunch() {
+        viewModelScope.launch { repository.performGoblinPunch() }
+    }
+
+    fun clearGoblinEndTeeth() { _goblinEndTeeth.value = null }
+
+    private var goblinTimerJob: kotlinx.coroutines.Job? = null
+
+    private fun startGoblinTimer(endTime: Long) {
+        goblinTimerJob?.cancel()
+        goblinTimerJob = viewModelScope.launch {
+            while (true) {
+                val remaining = endTime - System.currentTimeMillis()
+                if (remaining <= 0L) {
+                    _goblinTimeRemaining.value = 0L
+                    val teeth = repository.endGoldenGoblin()
+                    if (teeth > 0) _goblinEndTeeth.value = teeth
+                    break
+                }
+                _goblinTimeRemaining.value = remaining
+                kotlinx.coroutines.delay(100L)
+            }
         }
     }
 
@@ -633,9 +726,12 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                         isPlayerDead = false,
                         monsterName = monster.name,
                         monsterLevel = monster.level,
+                        monsterImageRes = monster.imageRes,
                         monsterMaxHp = monster.maxHp,
                         monsterCurrentHp = monster.maxHp,
-                        monsterDamage = monster.damage
+                        monsterDamage = monster.damage,
+                        isCurrentBoss = false,
+                        currentBossId = 0
                     ))
                     "✅ Level $lvl set. $points stat points granted"
                 }
@@ -699,9 +795,15 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
     fun getEnchantInfo(state: GameStateEntity, item: Item): Pair<Float, Int> {
         val enchantLevel = getEnchantLevel(state, item.id)
-        val chance = repository.calculateEnchantChance(state.baseLuck, state.currentStreak)
-        val cost = repository.calculateEnchantCost(item.rarity, enchantLevel)
+        val isNight = state.activeEventId in NIGHT_ENCHANT_EVENT_IDS &&
+            com.ninthbalcony.pushuprpg.utils.EventUtils.isEventActive(state.eventEndTime)
+        val chance = repository.calculateEnchantChance(state.baseLuck, state.currentStreak, isNight = isNight)
+        val cost = repository.calculateEnchantCost(item.rarity, enchantLevel, isNight)
         return Pair(chance, cost)
+    }
+
+    companion object {
+        val NIGHT_ENCHANT_EVENT_IDS = setOf(6, 9, 10, 11)
     }
 
     // ==================== ДОСТИЖЕНИЯ ====================

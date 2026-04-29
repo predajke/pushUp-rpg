@@ -3,6 +3,7 @@ package com.ninthbalcony.pushuprpg.data.repository
 import com.ninthbalcony.pushuprpg.data.db.DayStats
 import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
 import com.ninthbalcony.pushuprpg.data.db.LogEntryEntity
+import com.ninthbalcony.pushuprpg.data.model.BattleChain
 import com.ninthbalcony.pushuprpg.data.model.EnchantResult
 import com.ninthbalcony.pushuprpg.data.model.ForgeResult
 import com.ninthbalcony.pushuprpg.data.model.Item
@@ -11,6 +12,7 @@ import com.ninthbalcony.pushuprpg.managers.PlayGamesManager
 import com.ninthbalcony.pushuprpg.utils.DailyRewardUtils
 import com.ninthbalcony.pushuprpg.utils.SpinResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 
 interface IGameRepository {
 
@@ -18,6 +20,9 @@ interface IGameRepository {
     fun getGameStateFlow(): Flow<GameStateEntity?>
     fun getRecentLogsFlow(): Flow<List<LogEntryEntity>>
     fun getAllLogsFlow(): Flow<List<LogEntryEntity>>
+
+    /** Эмитится после каждого Save отжиманий — серия ударов по монстру для UI-анимации. */
+    val battleChain: SharedFlow<BattleChain>
 
     // ===== Game State =====
     suspend fun getGameState(): GameStateEntity
@@ -79,8 +84,8 @@ interface IGameRepository {
     suspend fun useCloverBox(): Item?
 
     // ===== Enchant =====
-    fun calculateEnchantChance(luck: Float, streak: Int, achBonus: Float = 0f): Float
-    fun calculateEnchantCost(rarity: String, currentEnchantLevel: Int): Int
+    fun calculateEnchantChance(luck: Float, streak: Int, achBonus: Float = 0f, isNight: Boolean = false): Float
+    fun calculateEnchantCost(rarity: String, currentEnchantLevel: Int, isNight: Boolean = false): Int
     suspend fun enchantItem(itemId: String): EnchantResult
 
     // ===== Quests =====
@@ -101,6 +106,12 @@ interface IGameRepository {
     // ===== Punch =====
     // Возвращает урон (>0), 0 если мёртв, -1 если лимит (25/день)
     suspend fun performPunch(): Int
+
+    // ===== Golden Goblin =====
+    // Возвращает новый счётчик нажатий; 0 если гоблин не активен
+    suspend fun performGoblinPunch(): Int
+    // Завершает событие, начисляет зубы; возвращает кол-во заработанных зубов
+    suspend fun endGoldenGoblin(): Int
 
     // ===== Debug =====
     suspend fun addDebugItemsForTest()

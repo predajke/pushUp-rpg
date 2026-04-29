@@ -13,6 +13,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.text.KeyboardOptions
 import android.app.Activity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +29,7 @@ import androidx.activity.compose.LocalActivity
 import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.ui.GameViewModel // ИСПРАВЛЕН ИМПОРТ
 import com.ninthbalcony.pushuprpg.utils.AppStrings
+import com.ninthbalcony.pushuprpg.utils.AvatarSystem
 import com.ninthbalcony.pushuprpg.utils.NotificationScheduler
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,6 +47,11 @@ fun SettingsScreen(
     var showRenameDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
     var nameInput by remember { mutableStateOf(gameState?.playerName ?: "") }
+    var weightInput by remember(gameState?.bodyWeightKg) {
+        mutableStateOf(
+            if ((gameState?.bodyWeightKg ?: 0f) > 0f) gameState!!.bodyWeightKg.toInt().toString() else ""
+        )
+    }
     var cheatInput by remember { mutableStateOf("") }
     var showCheatHelp by remember { mutableStateOf(false) }
     val cheatFeedback by viewModel.cheatFeedback.collectAsState()
@@ -153,44 +162,138 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                val context = LocalContext.current
+                val currentGender = gameState?.playerGender ?: "male"
+                val unlockedIds = AvatarSystem.getUnlocked(gameState?.unlockedAvatarIds ?: "")
+
+                // Gender toggle
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("hero_1", "hero_2", "hero_3").forEach { avatarId ->
-                        val isSelected = gameState?.heroAvatar == avatarId
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        val resId = context.resources.getIdentifier(
-                            avatarId, "drawable", context.packageName
-                        )
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f)
-                                .background(
-                                    if (isSelected) OrangeAccent.copy(alpha = 0.2f)
-                                    else DarkSurfaceVariant,
-                                    RoundedCornerShape(12.dp)
-                                )
-                                .border(
-                                    width = if (isSelected) 2.dp else 1.dp,
-                                    color = if (isSelected) OrangeAccent else TextMuted,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .clickable { viewModel.updateHeroAvatar(avatarId) }
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
+                    listOf("male" to "♂ Male", "female" to "♀ Female").forEach { (g, label) ->
+                        val selected = currentGender == g
+                        Button(
+                            onClick = { viewModel.updatePlayerGender(g) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (selected) OrangeAccent else DarkSurfaceVariant,
+                                contentColor = if (selected) Color.Black else TextSecondary
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(vertical = 8.dp)
                         ) {
-                            if (resId != 0) {
-                                Image(
-                                    painter = androidx.compose.ui.res.painterResource(id = resId),
-                                    contentDescription = avatarId,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Fit
-                                )
-                            }
+                            Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                         }
                     }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Avatar grid (4 columns × 2 rows)
+                AvatarSystem.AVATARS.chunked(4).forEach { rowAvatars ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        rowAvatars.forEach { def ->
+                            val isUnlocked = def.id in unlockedIds
+                            val isSelected = gameState?.heroAvatar == def.id
+                            val resId = com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId(def.id, currentGender)
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(1f)
+                                    .background(
+                                        when {
+                                            isSelected -> OrangeAccent.copy(alpha = 0.2f)
+                                            isUnlocked -> DarkSurfaceVariant
+                                            else -> DarkSurfaceVariant.copy(alpha = 0.5f)
+                                        },
+                                        RoundedCornerShape(10.dp)
+                                    )
+                                    .border(
+                                        width = if (isSelected) 2.dp else 1.dp,
+                                        color = if (isSelected) OrangeAccent else if (isUnlocked) TextMuted else TextMuted.copy(alpha = 0.4f),
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .then(
+                                        if (isUnlocked) Modifier.clickable { viewModel.updateHeroAvatar(def.id) }
+                                        else Modifier
+                                    )
+                                    .padding(6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isUnlocked) {
+                                    if (resId != 0) {
+                                        Image(
+                                            painter = androidx.compose.ui.res.painterResource(id = resId),
+                                            contentDescription = def.id,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Fit
+                                        )
+                                    }
+                                } else {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text("🔒", fontSize = 18.sp)
+                                        val cond = if (language == "ru") def.conditionRu else def.conditionEn
+                                        Text(
+                                            text = cond,
+                                            fontSize = 8.sp,
+                                            color = TextMuted,
+                                            textAlign = TextAlign.Center,
+                                            lineHeight = 10.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        // Fill remaining cells if row has < 4
+                        repeat(4 - rowAvatars.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = if (language == "ru") "⚖️ Вес тела (кг):" else "⚖️ Body weight (kg):",
+                        fontSize = 13.sp,
+                        color = TextSecondary,
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = weightInput,
+                        onValueChange = { v ->
+                            if (v.length <= 3 && v.all { it.isDigit() }) {
+                                weightInput = v
+                                v.toFloatOrNull()?.let { viewModel.updateBodyWeight(it) }
+                            }
+                        },
+                        modifier = Modifier.width(80.dp),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = OrangeAccent,
+                            unfocusedBorderColor = TextMuted,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
+                        ),
+                        textStyle = LocalTextStyle.current.copy(
+                            fontSize = 15.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    )
                 }
             }
 

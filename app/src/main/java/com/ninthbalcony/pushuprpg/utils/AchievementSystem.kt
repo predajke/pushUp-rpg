@@ -255,4 +255,34 @@ object AchievementSystem {
         if (unlocked.size == deserialize(state.achievementsJson).size) return state
         return state.copy(achievementsJson = serialize(unlocked))
     }
+
+    fun getProgressText(def: AchievementDef, state: GameStateEntity, language: String): String? {
+        val (current, target) = when {
+            def.id.startsWith("ach_kills_") -> {
+                val t = when (def.tier) { 1->10; 2->50; 3->100; 4->500; 5->1000; 6->2000; else->0 }
+                state.monstersKilled to t
+            }
+            def.id.startsWith("ach_pushups_") -> {
+                val t = when (def.tier) { 1->100; 2->500; 3->1000; 4->5000; 5->10000; 6->20000; 7->30000; else->0 }
+                state.totalPushUpsAllTime to t
+            }
+            def.id.startsWith("ach_streak_") -> {
+                val t = when (def.tier) { 1->3; 2->7; 3->14; 4->30; 5->60; else->0 }
+                state.currentStreak to t
+            }
+            def.id.startsWith("ach_enchant_done_") -> {
+                val t = when (def.tier) { 1->5; 2->20; 3->50; 4->100; 5->250; else->0 }
+                state.totalEnchantmentsSuccess to t
+            }
+            def.id.startsWith("ach_teeth_") -> {
+                val t = when (def.tier) { 1->500; 2->1000; 3->2500; 4->5000; 5->10000; else->0 }
+                state.totalTeethEarned to t
+            }
+            def.id == "ach_rich" -> state.totalTeethEarned to 5000
+            def.id == "ach_unstoppable" -> state.currentStreak to 30
+            else -> return if (language == "ru") def.descRu else def.descEn
+        }
+        if (target == 0) return if (language == "ru") def.descRu else def.descEn
+        return "$current / $target"
+    }
 }
