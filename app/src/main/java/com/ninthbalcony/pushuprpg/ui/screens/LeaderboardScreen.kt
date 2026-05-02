@@ -1,14 +1,11 @@
 package com.ninthbalcony.pushuprpg.ui.screens
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -32,33 +29,27 @@ import com.ninthbalcony.pushuprpg.ui.GameViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-// ── Design tokens (War Council dark-fantasy palette) ──────────────────────────
+// ── Design tokens (Variant A) ─────────────────────────────────────────────────
 
-private val LbBgDeep        = Color(0xFF0E0A07)
-private val LbBgCard        = Color(0xFF1A1310)
-private val LbBgCardEnd     = Color(0xFF14100C)
-private val LbBorderLeather = Color(0xFF2A1F17)
-private val LbBorderPill    = Color(0xFF3A2C20)
-private val LbGold          = Color(0xFFC9A35B)
-private val LbGoldBright    = Color(0xFFF0C869)
-private val LbGoldDim       = Color(0xFF8B6F3D)
-private val LbGoldDarker    = Color(0xFF6B5430)
-private val LbGoldDeepest   = Color(0xFF5A4525)
-private val LbSilver        = Color(0xFFCFD1D4)
-private val LbBronze        = Color(0xFFC8814A)
-private val LbParchment     = Color(0xFFE8D9B3)
-private val LbParchmentBright = Color(0xFFF5E8C8)
-private val LbParchmentDim  = Color(0xFFBBA27A)
-private val LbRowAlt        = Color(0x03FFFFFF)  // rgba(255,255,255,0.012)
-private val LbMeBgStart     = Color(0x1AF0C869)
-private val LbMeBgEnd       = Color(0x0AF0C869)
+private val LbBg       = Color(0xFF100F12)
+private val LbPanel    = Color(0xFF1C1A1E)
+private val LbLine     = Color(0x0FFFFFFF)   // rgba(255,255,255,0.06)
+private val LbText     = Color(0xFFECE6D8)
+private val LbTextDim  = Color(0xFF9B9389)
+private val LbTextMute = Color(0xFF6E675F)
+private val LbOrange   = Color(0xFFFF8A2A)
+private val LbOrange2  = Color(0xFFFFB152)
+private val LbGreen    = Color(0xFF34C759)
+private val LbGreen2   = Color(0xFF5FDF7A)
+private val LbGold     = Color(0xFFF3C969)
+private val LbSilver   = Color(0xFFCFD2D6)
+private val LbBronze   = Color(0xFFCD8C4A)
 
-// Hoisted brushes — reused across all rows / recompositions to avoid per-frame allocations.
-private val BrushMeRow       = Brush.horizontalGradient(listOf(LbMeBgStart, LbMeBgEnd))
-private val BrushAltRow      = Brush.horizontalGradient(listOf(LbRowAlt, LbRowAlt))
-private val BrushHeader      = Brush.verticalGradient(listOf(LbBgCard, LbBgCardEnd))
-private val BrushStickyMe    = Brush.verticalGradient(listOf(LbBgCard, LbBgDeep))
-private val BrushGoldRule    = Brush.horizontalGradient(listOf(Color.Transparent, LbGold, Color.Transparent))
+// Hoisted brushes
+private val BrushBg        = Brush.verticalGradient(listOf(Color(0xFF131115), Color(0xFF0C0B0E)))
+private val BrushActiveTab = Brush.horizontalGradient(listOf(LbOrange2, LbOrange))
+private val BrushStickyMe  = Brush.verticalGradient(listOf(Color(0x0DFF8A2A), Color(0x66000000)))
+private val BrushMeCard    = Brush.verticalGradient(listOf(Color(0x21FF8A2A), Color(0x0AFF8A2A)))
 
 // ── Data model ────────────────────────────────────────────────────────────────
 
@@ -80,36 +71,11 @@ data class LeaderboardPlayer(
 
 enum class LbScope { GLOBAL, COUNTRY, FRIENDS }
 enum class LbPeriod { DAY, WEEK, MONTH, ALL }
-enum class LbSortKey { TOTAL_PUSH_UPS, LVL, RES, POWER, ARMOR, HP, LUCK, AGE }
-enum class LbSortDir { ASC, DESC }
-
-data class ColDef(
-    val key: String,
-    val label: String,
-    val widthDp: Dp,
-    val align: Alignment.Horizontal,
-    val icon: String? = null,
-    val sortKey: LbSortKey? = null,
-)
-
-private val ALL_COLS = listOf(
-    ColDef("rank",  "#",    30.dp,  Alignment.CenterHorizontally),
-    ColDef("flag",  "",     22.dp,  Alignment.CenterHorizontally),
-    ColDef("name",  "NAME", 120.dp, Alignment.Start),
-    ColDef("res",   "RES",  36.dp,  Alignment.End,   "res",    LbSortKey.RES),
-    ColDef("lvl",   "LVL",  34.dp,  Alignment.End,   "lvl",    LbSortKey.LVL),
-    ColDef("push",  "PUSH", 54.dp,  Alignment.End,   "pushup", LbSortKey.TOTAL_PUSH_UPS),
-    ColDef("power", "PWR",  46.dp,  Alignment.End,   "power",  LbSortKey.POWER),
-    ColDef("armor", "ARM",  46.dp,  Alignment.End,   "armor",  LbSortKey.ARMOR),
-    ColDef("hp",    "HP",   44.dp,  Alignment.End,   "hp",     LbSortKey.HP),
-    ColDef("luck",  "LCK",  40.dp,  Alignment.End,   "luck",   LbSortKey.LUCK),
-    ColDef("age",   "AGE",  48.dp,  Alignment.End,   "age",    LbSortKey.AGE),
-)
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 
 private fun fmt(n: Int): String = when {
-    n >= 1_000_000 -> "%.1fM".format(n / 1_000_000.0).trimEnd('0').trimEnd('.')  + "M"
+    n >= 1_000_000 -> "%.1fM".format(n / 1_000_000.0).trimEnd('0').trimEnd('.') + "M"
     n >= 10_000    -> "%.1fk".format(n / 1_000.0).trimEnd('0').trimEnd('.') + "k"
     else           -> "%,d".format(n)
 }
@@ -123,19 +89,7 @@ private fun fmtAge(days: Int): String {
     return "${days}d"
 }
 
-private fun colValue(p: LeaderboardPlayer, key: String): String = when (key) {
-    "res"   -> p.res.toString()
-    "lvl"   -> p.lvl.toString()
-    "push"  -> fmt(p.totalPushUps)
-    "power" -> fmt(p.power)
-    "armor" -> fmt(p.armor)
-    "hp"    -> fmt(p.hp)
-    "luck"  -> fmt(p.luck)
-    "age"   -> fmtAge(p.ageDays)
-    else    -> ""
-}
-
-// ── Filtering & sorting ───────────────────────────────────────────────────────
+// ── Filtering ─────────────────────────────────────────────────────────────────
 
 private fun applyFilters(
     players: List<LeaderboardPlayer>,
@@ -153,24 +107,7 @@ private fun applyFilters(
     return list
 }
 
-private fun applySort(list: List<LeaderboardPlayer>, key: LbSortKey, dir: LbSortDir): List<LeaderboardPlayer> {
-    val base = compareBy<LeaderboardPlayer> { p ->
-        when (key) {
-            LbSortKey.TOTAL_PUSH_UPS -> p.totalPushUps
-            LbSortKey.LVL   -> p.lvl
-            LbSortKey.RES   -> p.res
-            LbSortKey.POWER -> p.power
-            LbSortKey.ARMOR -> p.armor
-            LbSortKey.HP    -> p.hp
-            LbSortKey.LUCK  -> p.luck
-            LbSortKey.AGE   -> p.ageDays
-        }
-    }
-    return list.sortedWith(if (dir == LbSortDir.DESC) base.reversed() else base)
-}
-
-// ── Flag (country code → emoji flag or color block) ──────────────────────────
-// Using emoji flag characters (Unicode regional indicators) — supported on Android 7+
+// ── Flag (country code → emoji flag) ─────────────────────────────────────────
 
 private fun countryToFlag(code: String): String {
     if (code.length != 2) return "🏳"
@@ -178,285 +115,208 @@ private fun countryToFlag(code: String): String {
     return String(intArrayOf(code[0].uppercaseChar().code + offset, code[1].uppercaseChar().code + offset), 0, 2)
 }
 
-// ── Avatar monogram ───────────────────────────────────────────────────────────
+// ── Avatar with rank-aware medal gradients ────────────────────────────────────
 
 @Composable
-private fun LbAvatar(name: String, isMe: Boolean, size: Dp) {
+private fun LbAvatar(
+    name: String,
+    rank: Int,
+    size: Dp = 26.dp,
+    borderColor: Color? = null,
+    bgBrush: Brush? = null,
+) {
     val initial = remember(name) { (name.firstOrNull() ?: '?').uppercaseChar().toString() }
-    val bg = remember(name) {
-        val hue = name.fold(0) { acc, c -> (acc * 31 + c.code) % 360 }.toFloat()
-        Color.hsl(hue, 0.30f, 0.18f)
+    val derivedBorder = when (rank) {
+        1    -> Color(0x66F3C969)
+        2    -> Color(0x59CFD2D6)
+        3    -> Color(0x66CD8C4A)
+        else -> Color(0x332A2428)
+    }
+    val derivedBg: Brush = when (rank) {
+        1    -> Brush.radialGradient(listOf(Color(0xFF6C4D18), Color(0xFF1A1719)))
+        2    -> Brush.radialGradient(listOf(Color(0xFF4A4D54), Color(0xFF1A1719)))
+        3    -> Brush.radialGradient(listOf(Color(0xFF5A3A1C), Color(0xFF1A1719)))
+        else -> Brush.radialGradient(listOf(Color(0xFF2A2428), Color(0xFF1A1719)))
     }
     Box(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .background(bg)
-            .border(
-                width = if (isMe) 1.5.dp else 1.dp,
-                color = if (isMe) LbGoldBright else LbGoldDeepest,
-                shape = CircleShape,
-            ),
-        contentAlignment = Alignment.Center
+            .background(bgBrush ?: derivedBg)
+            .border(1.dp, borderColor ?: derivedBorder, CircleShape),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = initial,
-            color = if (isMe) LbGoldBright else LbParchment,
+            color = LbText,
             fontSize = (size.value * 0.40f).sp,
             fontWeight = FontWeight.Bold,
         )
     }
 }
 
-// ── Rank cell ─────────────────────────────────────────────────────────────────
+// ── Column header (5 fixed cols, no scroll) ───────────────────────────────────
 
 @Composable
-private fun RankCell(rank: Int, isMe: Boolean) {
-    val medalColor = when (rank) {
-        1 -> LbGoldBright
-        2 -> LbSilver
-        3 -> LbBronze
-        else -> null
-    }
-    if (medalColor != null) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("●", color = medalColor, fontSize = 9.sp)
-            Text(
-                text = rank.toString(),
-                color = medalColor,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    } else {
+private fun LbColumnHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(
-            text = rank.toString(),
-            color = if (isMe) LbGoldBright else LbGoldDim,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.SemiBold,
+            text = "#",
+            color = LbTextMute,
+            fontSize = 9.5.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.14.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.width(36.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = "NAME",
+            color = LbTextMute,
+            fontSize = 9.5.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.14.sp,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = "LVL",
+            color = LbTextMute,
+            fontSize = 9.5.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.14.sp,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(44.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = "PUSH",
+            color = LbOrange,
+            fontSize = 9.5.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.14.sp,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(38.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = "PWR",
+            color = LbGreen,
+            fontSize = 9.5.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.14.sp,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(50.dp),
         )
     }
 }
 
-// ── Column header icon (drawn as text glyphs) ────────────────────────────────
+// ── Player row (5 fixed cols, no scroll) ─────────────────────────────────────
 
 @Composable
-private fun StatIconText(kind: String, color: Color, size: Int = 9) {
-    val glyph = when (kind) {
-        "pushup" -> "💪"
-        "power"  -> "⚔"
-        "armor"  -> "🛡"
-        "hp"     -> "❤"
-        "luck"   -> "🍀"
-        "age"    -> "⌛"
-        "lvl"    -> "★"
-        "res"    -> "↺"
-        else     -> ""
+private fun LbPlayerRow(p: LeaderboardPlayer) {
+    val rankColor = when (p.rank) {
+        1    -> LbGold
+        2    -> LbSilver
+        3    -> LbBronze
+        else -> LbTextMute
     }
-    Text(glyph, color = color, fontSize = size.sp, lineHeight = size.sp)
-}
-
-// ── Column header row ─────────────────────────────────────────────────────────
-
-@Composable
-private fun LbColumnHeader(
-    sortKey: LbSortKey,
-    sortDir: LbSortDir,
-    onSort: (LbSortKey) -> Unit,
-    hScroll: ScrollState,
-) {
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(BrushHeader)
-            .border(width = 0.5.dp, color = LbBorderLeather)
+            .padding(horizontal = 14.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        Text(
+            text = p.rank.toString(),
+            color = rankColor,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.width(36.dp),
+        )
+        Spacer(Modifier.width(6.dp))
         Row(
-            modifier = Modifier
-                .horizontalScroll(hScroll)
-                .padding(horizontal = 8.dp, vertical = 7.dp),
+            modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ALL_COLS.forEach { col ->
-                val active = col.sortKey == sortKey
-                val color = if (active) LbGoldBright else LbGoldDarker
-                Row(
-                    modifier = Modifier
-                        .width(col.widthDp)
-                        .then(if (col.sortKey != null) Modifier.clickable { onSort(col.sortKey) } else Modifier)
-                        .padding(horizontal = 2.dp),
-                    horizontalArrangement = when (col.align) {
-                        Alignment.End -> Arrangement.End
-                        Alignment.CenterHorizontally -> Arrangement.Center
-                        else -> Arrangement.Start
-                    },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (col.icon != null) {
-                        StatIconText(col.icon, color, 9)
-                        Spacer(Modifier.width(2.dp))
-                    }
-                    Text(
-                        text = col.label,
-                        color = color,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Medium,
-                        letterSpacing = 0.12.sp,
-                    )
-                    if (active) {
-                        Spacer(Modifier.width(2.dp))
-                        Text(
-                            text = if (sortDir == LbSortDir.ASC) "▲" else "▼",
-                            color = LbGoldBright,
-                            fontSize = 8.sp,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ── Single player row ─────────────────────────────────────────────────────────
-
-@Composable
-private fun LbPlayerRow(
-    p: LeaderboardPlayer,
-    alt: Boolean,
-    compact: Boolean,
-    hScroll: ScrollState,
-) {
-    val padV = if (compact) 5.dp else 8.dp
-    val avatarSize = if (compact) 16.dp else 20.dp
-    val isMe = p.isMe
-
-    val rowMod = when {
-        isMe -> Modifier.background(BrushMeRow)
-        alt  -> Modifier.background(BrushAltRow)
-        else -> Modifier
-    }
-
-    Box(modifier = Modifier.fillMaxWidth().then(rowMod)) {
-        // Gold left rail for "me" — pinned to the visible left edge (does not scroll)
-        if (isMe) {
-            Box(
-                modifier = Modifier
-                    .width(2.dp)
-                    .fillMaxHeight()
-                    .background(LbGoldBright)
-                    .align(Alignment.CenterStart)
+            LbAvatar(name = p.name, rank = p.rank)
+            Spacer(Modifier.width(7.dp))
+            Text(
+                text = p.name,
+                color = if (p.isMe) Color.White else LbText,
+                fontSize = 13.sp,
+                fontWeight = if (p.isMe) FontWeight.SemiBold else FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
-
-        Row(
-            modifier = Modifier
-                .horizontalScroll(hScroll)
-                .padding(horizontal = 8.dp, vertical = padV),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ALL_COLS.forEach { col ->
-                Box(
-                    modifier = Modifier.width(col.widthDp).padding(horizontal = 2.dp),
-                    contentAlignment = when (col.align) {
-                        Alignment.End -> Alignment.CenterEnd
-                        Alignment.CenterHorizontally -> Alignment.Center
-                        else -> Alignment.CenterStart
-                    },
-                ) {
-                    when (col.key) {
-                        "rank" -> RankCell(rank = p.rank, isMe = isMe)
-                        "flag" -> Text(countryToFlag(p.country), fontSize = 11.sp, lineHeight = 11.sp)
-                        "name" -> Row(verticalAlignment = Alignment.CenterVertically) {
-                            LbAvatar(name = p.name, isMe = isMe, size = avatarSize)
-                            Spacer(Modifier.width(5.dp))
-                            Text(
-                                text = p.name,
-                                color = if (isMe) LbGoldBright else LbParchment,
-                                fontSize = 11.sp,
-                                fontWeight = if (isMe) FontWeight.Bold else FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false),
-                            )
-                            if (p.isFriend && !isMe) {
-                                Spacer(Modifier.width(3.dp))
-                                Text("•", color = LbGoldDim, fontSize = 8.sp)
-                            }
-                        }
-                        else -> Text(
-                            text = colValue(p, col.key),
-                            color = if (isMe) LbParchmentBright else LbParchmentDim,
-                            fontSize = 11.sp,
-                            textAlign = TextAlign.End,
-                            maxLines = 1,
-                        )
-                    }
-                }
-            }
-        }
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = p.lvl.toString(),
+            color = LbTextDim,
+            fontSize = 12.5.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(44.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = fmt(p.totalPushUps),
+            color = LbOrange2,
+            fontSize = 12.5.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(38.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = fmt(p.power),
+            color = LbGreen2,
+            fontSize = 12.5.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(50.dp),
+        )
     }
-
-    // Divider
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(0.5.dp)
-            .background(LbBorderLeather.copy(alpha = 0.45f))
-    )
+    Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0x09FFFFFF)))
 }
 
-// ── Scope tab ─────────────────────────────────────────────────────────────────
+// ── Unified tab pill (scope + time tabs) ─────────────────────────────────────
 
 @Composable
-private fun ScopeTab(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(3.dp)
+private fun TabPill(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    verticalPadding: Dp,
+    cornerRadius: Dp,
+    fontSize: Float,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(cornerRadius)
     Box(
         modifier = modifier
             .clip(shape)
-            .background(if (selected) BrushHeader else SolidColor(LbBgDeep), shape)
-            .border(
-                width = if (selected) 1.dp else 0.5.dp,
-                color = if (selected) LbGold else LbBorderLeather,
-                shape = shape,
+            .then(
+                if (selected) Modifier.background(BrushActiveTab)
+                else Modifier.background(Color(0x08FFFFFF), shape)
             )
+            .border(1.dp, if (selected) Color(0x99FF8A2A) else LbLine, shape)
             .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 9.dp),
+            .padding(vertical = verticalPadding),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
-            color = if (selected) LbGoldBright else LbGoldDim,
-            fontSize = 13.sp,
+            color = if (selected) Color(0xFF15110A) else LbTextDim,
+            fontSize = fontSize.sp,
             fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.12.sp,
-        )
-    }
-}
-
-// ── Period pill ───────────────────────────────────────────────────────────────
-
-@Composable
-private fun PeriodPill(label: String, selected: Boolean, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(14.dp)
-    Box(
-        modifier = Modifier
-            .clip(shape)
-            .background(if (selected) LbGold.copy(alpha = 0.10f) else Color.Transparent)
-            .border(
-                width = if (selected) 1.dp else 0.5.dp,
-                color = if (selected) LbGold else LbBorderPill,
-                shape = shape,
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 7.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            color = if (selected) LbGoldBright else LbGoldDim,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.05.sp,
         )
     }
 }
@@ -471,223 +331,265 @@ fun LeaderboardScreen(
     val gameState by viewModel.gameState.collectAsState(initial = null)
     val language  = gameState?.language ?: "en"
 
-    // --- State ---
-    var scope    by remember { mutableStateOf(LbScope.GLOBAL) }
-    var period   by remember { mutableStateOf(LbPeriod.ALL) }
-    var query    by remember { mutableStateOf("") }
-    var sortKey  by remember { mutableStateOf(LbSortKey.TOTAL_PUSH_UPS) }
-    var sortDir  by remember { mutableStateOf(LbSortDir.DESC) }
-    var compact  by remember { mutableStateOf(false) }
-    val hScroll = rememberScrollState()
+    var scope  by remember { mutableStateOf(LbScope.GLOBAL) }
+    var period by remember { mutableStateOf(LbPeriod.ALL) }
+    var query  by remember { mutableStateOf("") }
 
-    // Mock 500-player roster is deterministic — generate once. Replace with real API later.
     val mockRoster = remember { generateMockRoster() }
     val me = remember(gameState) { buildMePlayer(gameState) }
     val players = remember(mockRoster, me) {
-        // Slot "me" at rank 364 (per design spec) without disturbing surrounding ranks.
         mockRoster.toMutableList().also { it[me.rank - 1] = me }
     }
-
     val filtered = remember(players, scope, query) { applyFilters(players, me, scope, query) }
-    val sorted = remember(filtered, sortKey, sortDir) { applySort(filtered, sortKey, sortDir) }
 
-    val onSortTap: (LbSortKey) -> Unit = { key ->
-        if (sortKey == key) {
-            sortDir = if (sortDir == LbSortDir.ASC) LbSortDir.DESC else LbSortDir.ASC
-        } else {
-            sortKey = key
-            sortDir = LbSortDir.DESC
-        }
+    val scopes = remember(language) {
+        listOf(
+            LbScope.GLOBAL  to if (language == "ru") "Глобально" else "Global",
+            LbScope.COUNTRY to if (language == "ru") "Страна"    else "Country",
+            LbScope.FRIENDS to if (language == "ru") "Друзья"    else "Friends",
+        )
+    }
+    val periods = remember(language) {
+        listOf(
+            LbPeriod.DAY   to if (language == "ru") "День"   else "Day",
+            LbPeriod.WEEK  to if (language == "ru") "Неделя" else "Week",
+            LbPeriod.MONTH to if (language == "ru") "Месяц"  else "Month",
+            LbPeriod.ALL   to if (language == "ru") "За всё" else "All Time",
+        )
     }
 
-    // ── Layout ──────────────────────────────────────────────────────────────
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LbBgDeep)
+            .background(BrushBg)
             .windowInsetsPadding(WindowInsets.statusBars)
     ) {
-        // ── Header band ─────────────────────────────────────────────────────
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(LbBgCard)
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("❖", color = LbGold, fontSize = 14.sp)
-            Spacer(Modifier.width(10.dp))
-            Text(
-                text = "LEADERBOARD",
-                color = LbGoldBright,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.34.sp,
-            )
-            Spacer(Modifier.width(10.dp))
-            Text("❖", color = LbGold, fontSize = 14.sp)
-        }
-        // Gold rule under header
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(BrushGoldRule)
-        )
+        Column(modifier = Modifier.fillMaxSize()) {
 
-        val scopes = remember(language) {
-            listOf(
-                LbScope.GLOBAL  to if (language == "ru") "Глобально" else "Global",
-                LbScope.COUNTRY to if (language == "ru") "Страна"    else "Country",
-                LbScope.FRIENDS to if (language == "ru") "Друзья"    else "Friends",
-            )
-        }
-        val periods = remember(language) {
-            listOf(
-                LbPeriod.DAY   to if (language == "ru") "День"   else "Day",
-                LbPeriod.WEEK  to if (language == "ru") "Неделя" else "Week",
-                LbPeriod.MONTH to if (language == "ru") "Месяц"  else "Month",
-                LbPeriod.ALL   to if (language == "ru") "За всё" else "All Time",
-            )
-        }
-
-        // ── Scope tabs ───────────────────────────────────────────────────────
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            scopes.forEach { (s, label) ->
-                ScopeTab(label, selected = scope == s, onClick = { scope = s }, modifier = Modifier.weight(1f))
-            }
-        }
-
-        // ── Period pills ─────────────────────────────────────────────────────
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            periods.forEach { (p, label) ->
-                PeriodPill(label, selected = period == p, onClick = { period = p })
-            }
-        }
-
-        // ── Search ───────────────────────────────────────────────────────────
-        val searchShape = RoundedCornerShape(3.dp)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 8.dp, end = 8.dp, bottom = 6.dp)
-                .background(LbBgCard, searchShape)
-                .border(0.5.dp, LbBorderLeather, searchShape)
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("🔍", color = LbGold, fontSize = 12.sp)
-            Spacer(Modifier.width(6.dp))
-            val placeholder = if (language == "ru") "Фильтр по имени…" else "Filter by name…"
-            BasicTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                cursorBrush = SolidColor(LbGold),
-                textStyle = TextStyle(color = LbParchment, fontSize = 12.sp),
-                decorationBox = { inner ->
-                    if (query.isEmpty()) {
-                        Text(placeholder, color = LbGoldDim, fontSize = 12.sp)
-                    }
-                    inner()
-                }
-            )
-        }
-
-        // ── Column header (sticky via Box structure, shares horizontal scroll) ─
-        LbColumnHeader(sortKey = sortKey, sortDir = sortDir, onSort = onSortTap, hScroll = hScroll)
-
-        // ── Scrolling list + sticky-you ──────────────────────────────────────
-        Box(modifier = Modifier.weight(1f)) {
-            if (sorted.isEmpty()) {
-                val emptyMsg = if (language == "ru") "Чемпионов не найдено." else "No champions match."
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(emptyMsg, color = LbGoldDeepest, fontSize = 12.sp)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 90.dp),
+            // ── Header ───────────────────────────────────────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 10.dp),
+            ) {
+                Text(
+                    text = "‹",
+                    color = LbTextDim,
+                    fontSize = 18.sp,
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .clickable(onClick = onBack),
+                )
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    itemsIndexed(sorted, key = { _, p -> "${p.rank}-${p.name}" }) { idx, p ->
-                        LbPlayerRow(p = p, alt = idx % 2 == 1, compact = compact, hScroll = hScroll)
-                    }
+                    Text("✦", color = LbGold.copy(alpha = 0.85f), fontSize = 12.sp)
+                    Text(
+                        text = "LEADERBOARD",
+                        color = LbGold,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.22.sp,
+                    )
+                    Text("✦", color = LbGold.copy(alpha = 0.85f), fontSize = 12.sp)
+                }
+            }
+            Box(Modifier.fillMaxWidth().height(1.dp).background(LbLine))
+
+            // ── Scope tabs ───────────────────────────────────────────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                scopes.forEach { (s, label) ->
+                    TabPill(
+                        label = label,
+                        selected = scope == s,
+                        onClick = { scope = s },
+                        verticalPadding = 9.dp,
+                        cornerRadius = 10.dp,
+                        fontSize = 12f,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
 
-            // Sticky me row pinned at bottom
-            StickyMeRow(
-                me = me,
-                sortedList = sorted,
-                compact = compact,
-                hScroll = hScroll,
-                modifier = Modifier.align(Alignment.BottomCenter),
-            )
+            // ── Time tabs ────────────────────────────────────────────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 14.dp, end = 14.dp, top = 4.dp, bottom = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                periods.forEach { (p, label) ->
+                    TabPill(
+                        label = label,
+                        selected = period == p,
+                        onClick = { period = p },
+                        verticalPadding = 6.dp,
+                        cornerRadius = 8.dp,
+                        fontSize = 11f,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+
+            // ── Search bar ───────────────────────────────────────────────────
+            val searchShape = RoundedCornerShape(10.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 14.dp, end = 14.dp, top = 6.dp, bottom = 10.dp)
+                    .background(Color(0x0AFFFFFF), searchShape)
+                    .border(1.dp, LbLine, searchShape)
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("🔍", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                Spacer(Modifier.width(6.dp))
+                val placeholder = if (language == "ru") "Фильтр по имени…" else "Filter by name…"
+                BasicTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    cursorBrush = SolidColor(LbOrange),
+                    textStyle = TextStyle(color = LbText, fontSize = 12.sp),
+                    decorationBox = { inner ->
+                        if (query.isEmpty()) Text(placeholder, color = LbTextMute, fontSize = 12.sp)
+                        inner()
+                    }
+                )
+            }
+
+            // ── Column header with top+bottom dividers ────────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0x04FFFFFF))
+            ) {
+                Box(Modifier.fillMaxWidth().height(1.dp).background(LbLine).align(Alignment.TopCenter))
+                LbColumnHeader()
+                Box(Modifier.fillMaxWidth().height(1.dp).background(LbLine).align(Alignment.BottomCenter))
+            }
+
+            // ── Scrollable list + sticky "Your Standing" ──────────────────────
+            Box(modifier = Modifier.weight(1f)) {
+                if (filtered.isEmpty()) {
+                    val emptyMsg = if (language == "ru") "Чемпионов не найдено." else "No champions match."
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(emptyMsg, color = LbTextMute, fontSize = 12.sp)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 90.dp),
+                    ) {
+                        itemsIndexed(filtered, key = { _, p -> "${p.rank}-${p.name}" }) { _, p ->
+                            LbPlayerRow(p = p)
+                        }
+                    }
+                }
+
+                StickyMeRow(
+                    me = me,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+            }
         }
     }
 }
 
-// ── Sticky me row with modifier support ──────────────────────────────────────
+// ── Sticky "Your Standing" card ───────────────────────────────────────────────
 
 @Composable
 private fun StickyMeRow(
     me: LeaderboardPlayer,
-    sortedList: List<LeaderboardPlayer>,
-    compact: Boolean,
-    hScroll: ScrollState,
     modifier: Modifier = Modifier,
 ) {
-    val meIdx = sortedList.indexOfFirst { it.isMe }
-    val above = if (meIdx > 0) sortedList[meIdx - 1] else null
-    val below = if (meIdx in 0 until sortedList.size - 1) sortedList[meIdx + 1] else null
-
+    val cardShape = RoundedCornerShape(10.dp)
     Column(
         modifier = modifier
             .fillMaxWidth()
             .background(BrushStickyMe)
+            .padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 14.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(Color.Transparent, LbGold, Color.Transparent)
-                    )
-                )
+        Box(Modifier.fillMaxWidth().height(1.dp).background(LbLine))
+        Spacer(Modifier.height(10.dp))
+        Text(
+            text = "YOUR STANDING",
+            color = LbOrange,
+            fontSize = 9.5.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.18.sp,
         )
-
+        Spacer(Modifier.height(6.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 3.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .clip(cardShape)
+                .background(BrushMeCard)
+                .border(1.dp, Color(0x66FF8A2A), cardShape)
+                .padding(horizontal = 8.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "YOUR STANDING",
-                color = LbGoldDarker,
-                fontSize = 9.sp,
-                letterSpacing = 0.18.sp,
+                text = "#${me.rank}",
+                color = LbOrange2,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(36.dp),
             )
-            val ctx = buildString {
-                above?.let { append("↑ #${it.rank} ${it.name.take(10)}") }
-                if (above != null && below != null) append("  ·  ")
-                below?.let { append("↓ #${it.rank} ${it.name.take(10)}") }
-            }
-            if (ctx.isNotBlank()) {
-                Text(text = ctx, color = LbGoldDarker, fontSize = 8.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
+            Spacer(Modifier.width(6.dp))
+            LbAvatar(
+                name = me.name,
+                rank = me.rank,
+                borderColor = Color(0x8CFF8A2A),
+                bgBrush = Brush.radialGradient(listOf(Color(0xFF4A2A10), Color(0xFF1A1108))),
+            )
+            Spacer(Modifier.width(7.dp))
+            Text(
+                text = me.name,
+                color = Color.White,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = me.lvl.toString(),
+                color = LbTextDim,
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.End,
+                modifier = Modifier.width(44.dp),
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = fmt(me.totalPushUps),
+                color = LbOrange2,
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.End,
+                modifier = Modifier.width(38.dp),
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = fmt(me.power),
+                color = LbGreen2,
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.End,
+                modifier = Modifier.width(50.dp),
+            )
         }
-
-        LbPlayerRow(p = me, alt = false, compact = compact, hScroll = hScroll)
     }
 }
 

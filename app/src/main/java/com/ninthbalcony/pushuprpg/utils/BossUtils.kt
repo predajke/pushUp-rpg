@@ -27,44 +27,49 @@ object BossUtils {
             level = 23, maxHp = 11000, damage = 350, dropRate = 1.0f,
             imageRes = "boss_skull_crusher", isBoss = true, dropRarityMin = "epic"),
         Monster(id = 108, name = "Sky Sentry", nameRu = "Страж Небес",
-            level = 27, maxHp = 16000, damage = 450, dropRate = 1.0f,
+            level = 27, maxHp = 11200, damage = 450, dropRate = 1.0f,
             imageRes = "boss_sky_sentry", isBoss = true, dropRarityMin = "epic"),
         Monster(id = 109, name = "Heat Cannon", nameRu = "Пушка Пламени",
-            level = 30, maxHp = 22000, damage = 600, dropRate = 1.0f,
+            level = 30, maxHp = 15400, damage = 600, dropRate = 1.0f,
             imageRes = "boss_heat_cannon", isBoss = true, dropRarityMin = "legendary"),
         Monster(id = 110, name = "Flesh and Meat Monster", nameRu = "Монстр Плоти и Мяса",
-            level = 32, maxHp = 28000, damage = 720, dropRate = 1.0f,
+            level = 32, maxHp = 19600, damage = 720, dropRate = 1.0f,
             imageRes = "boss_fleshmeat", isBoss = true, dropRarityMin = "legendary"),
         Monster(id = 111, name = "Underworld Demon", nameRu = "Подземный Демон",
-            level = 35, maxHp = 35000, damage = 880, dropRate = 1.0f,
+            level = 35, maxHp = 24500, damage = 880, dropRate = 1.0f,
             imageRes = "boss_underworld_demon", isBoss = true, dropRarityMin = "legendary"),
         // после уже идут эндгейм боссы.
         Monster(id = 112, name = "The Grinder", nameRu = "Скрежет",
-            level = 38, maxHp = 40000, damage = 999, dropRate = 1.0f,
+            level = 38, maxHp = 28000, damage = 999, dropRate = 1.0f,
             imageRes = "boss_the_grinder", isBoss = true, dropRarityMin = "legendary"),
         Monster(id = 113, name = "Bone Cube", nameRu = "Костяной Куб",
-            level = 41, maxHp = 60000, damage = 1300, dropRate = 1.0f,
+            level = 41, maxHp = 42000, damage = 1300, dropRate = 1.0f,
             imageRes = "boss_cube", isBoss = true, dropRarityMin = "legendary"),
         Monster(id = 114, name = "Iron Bull", nameRu = "Железный Бык",
-            level = 46, maxHp = 90000, damage = 1700, dropRate = 1.0f,
+            level = 46, maxHp = 63000, damage = 1700, dropRate = 1.0f,
             imageRes = "boss_oven", isBoss = true, dropRarityMin = "legendary"),
         Monster(id = 115, name = "Diablo", nameRu = "Дьявол Бездны",
-            level = 50, maxHp = 115000, damage = 2200, dropRate = 1.0f,
+            level = 50, maxHp = 80500, damage = 2200, dropRate = 1.0f,
             imageRes = "boss_dib", isBoss = true, dropRarityMin = "legendary"),
+        Monster(id = 116, name = "King Clone", nameRu = "Королевский Клон",
+            level = 55, maxHp = 140000, damage = 3200, dropRate = 1.0f,
+            imageRes = "boss_king", isBoss = true, dropRarityMin = "legendary"),
         )
 
-    /** Каждые 10 убийств — босс. Каждые 50 — Ancient Dragon. */
+    /** Каждые 10 убийств — босс. */
     fun shouldSpawnBoss(totalKills: Int): Boolean =
         totalKills > 0 && totalKills % 10 == 0
 
-    fun getBossForKillCount(totalKills: Int): Monster {
-        val boss = when {
-            totalKills % 50 == 0 && totalKills >= 150 -> bosses.find { it.id == 109 }!!
-            totalKills % 50 == 0 && totalKills >= 100 -> bosses.find { it.id == 108 }!!
-            totalKills % 50 == 0                      -> bosses.find { it.id == 105 }!!
-            else -> bosses[((totalKills / 10 - 1) % bosses.size).coerceAtLeast(0)]
-        }
-        return scaleToKills(boss, totalKills)
+    /**
+     * Выбирает босса с уровнем не выше `heroLevel + 5` — чтобы lvl 4 герой
+     * не получал босса lvl 20. По мере прогресса игрока пул разблокируется.
+     */
+    fun getBossForKillCount(totalKills: Int, heroLevel: Int): Monster {
+        val maxBossLevel = (heroLevel + 5).coerceAtLeast(5)
+        val candidates = bosses.filter { it.level <= maxBossLevel }
+            .ifEmpty { listOf(bosses[0]) }
+        val pickIdx = ((totalKills / 10 - 1) % candidates.size).coerceAtLeast(0)
+        return scaleToKills(candidates[pickIdx], totalKills)
     }
 
     /** Масштабируем HP и урон боссу относительно прогресса игрока */

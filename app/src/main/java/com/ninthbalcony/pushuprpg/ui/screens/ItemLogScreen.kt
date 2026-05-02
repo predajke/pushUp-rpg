@@ -264,14 +264,27 @@ private fun ItemDetailDialog(
         else -> item.rarity
     }
 
+    val context = LocalContext.current
+    val bgResId = remember { context.resources.getIdentifier("bg_quest_weekly", "drawable", context.packageName) }
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
                 .background(DarkCard, RoundedCornerShape(16.dp))
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .clip(RoundedCornerShape(16.dp))
         ) {
+            if (bgResId != 0) Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             if (imgResId != 0) {
                 Image(
                     painter = painterResource(id = imgResId),
@@ -312,6 +325,7 @@ private fun ItemDetailDialog(
             ) {
                 Text(if (language == "ru") "Закрыть" else "Close", color = TextPrimary)
             }
+        }
         }
     }
 }

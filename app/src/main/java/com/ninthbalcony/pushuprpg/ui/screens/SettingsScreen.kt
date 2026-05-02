@@ -181,20 +181,20 @@ fun SettingsScreen(
                                 contentColor = if (selected) Color.Black else TextSecondary
                             ),
                             shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(vertical = 8.dp)
+                            contentPadding = PaddingValues(vertical = 2.dp)
                         ) {
-                            Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Text(label, fontSize = 16.sp, fontWeight = FontWeight.Medium)
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // Avatar grid (4 columns × 2 rows)
                 AvatarSystem.AVATARS.chunked(4).forEach { rowAvatars ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         rowAvatars.forEach { def ->
                             val isUnlocked = def.id in unlockedIds
@@ -213,7 +213,7 @@ fun SettingsScreen(
                                         RoundedCornerShape(10.dp)
                                     )
                                     .border(
-                                        width = if (isSelected) 2.dp else 1.dp,
+                                        width = if (isSelected) 3.dp else 1.dp,
                                         color = if (isSelected) OrangeAccent else if (isUnlocked) TextMuted else TextMuted.copy(alpha = 0.4f),
                                         shape = RoundedCornerShape(10.dp)
                                     )
@@ -221,7 +221,7 @@ fun SettingsScreen(
                                         if (isUnlocked) Modifier.clickable { viewModel.updateHeroAvatar(def.id) }
                                         else Modifier
                                     )
-                                    .padding(6.dp),
+                                    .padding(4.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (isUnlocked) {
@@ -242,7 +242,7 @@ fun SettingsScreen(
                                         val cond = if (language == "ru") def.conditionRu else def.conditionEn
                                         Text(
                                             text = cond,
-                                            fontSize = 8.sp,
+                                            fontSize = 10.sp,
                                             color = TextMuted,
                                             textAlign = TextAlign.Center,
                                             lineHeight = 10.sp
@@ -262,13 +262,13 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.height(14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = if (language == "ru") "⚖️ Вес тела (кг):" else "⚖️ Body weight (kg):",
-                        fontSize = 13.sp,
+                        text = if (language == "ru") "Вес тела (кг):" else "Body weight (kg):",
+                        fontSize = 12.sp,
                         color = TextSecondary,
                         modifier = Modifier.weight(1f)
                     )
@@ -280,7 +280,7 @@ fun SettingsScreen(
                                 v.toFloatOrNull()?.let { viewModel.updateBodyWeight(it) }
                             }
                         },
-                        modifier = Modifier.width(80.dp),
+                        modifier = Modifier.width(60.dp),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -307,7 +307,7 @@ fun SettingsScreen(
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     languages.forEach { (code, flag) ->
                         LanguageButton(
@@ -361,12 +361,12 @@ fun SettingsScreen(
                                 containerColor = if (notificationsEnabled) ButtonGreen else ButtonGray
                             ),
                             shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.width(72.dp).height(36.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp)
+                            modifier = Modifier.width(56.dp).height(26.dp),
+                            contentPadding = PaddingValues(horizontal = 6.dp)
                         ) {
                             Text(
                                 text = AppStrings.t(language, "btn_on"),
-                                fontSize = 13.sp,
+                                fontSize = 14.sp,
                                 color = if (notificationsEnabled) Color.White else TextMuted
                             )
                         }
@@ -383,12 +383,12 @@ fun SettingsScreen(
                                 containerColor = if (!notificationsEnabled) ButtonRed else ButtonGray
                             ),
                             shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.width(72.dp).height(36.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp)
+                            modifier = Modifier.width(56.dp).height(26.dp),
+                            contentPadding = PaddingValues(horizontal = 6.dp)
                         ) {
                             Text(
                                 text = AppStrings.t(language, "btn_off"),
-                                fontSize = 13.sp,
+                                fontSize = 14.sp,
                                 color = if (!notificationsEnabled) Color.White else TextMuted
                             )
                         }
@@ -443,7 +443,7 @@ fun SettingsScreen(
             ) {
                 InfoRow(
                     label = AppStrings.t(language, "info_version"),
-                    value = "1.0.0"
+                    value = "0.9.0"
                 )
             }
 
@@ -590,7 +590,7 @@ fun SettingsRow(
         ) {
             Text(
                 text = value,
-                fontSize = 15.sp,
+                fontSize = 16.sp,
                 color = TextSecondary
             )
             Text(

@@ -171,13 +171,13 @@ data class GameStateEntity(
     val itemsFromSpin: Int = 0,                   // Предметы с вращения ленты
 
     // ===== Punch Mechanic =====
-    val punchesUsedToday: Int = 0,                // Использовано панчей сегодня (макс 25)
+    val punchesUsedToday: Int = 0,                // Использовано панчей сегодня (макс 30)
     val lastPunchDate: String = "",               // Дата последнего панча (для сброса в 00:00)
 
     // ===== Golden Goblin Event =====
     val killsSinceLastGoblin: Int = 0,            // Убийств монстров с последнего гоблина
     val isGoldenGoblinActive: Boolean = false,    // Активно ли событие золотого гоблина
-    val goldenGoblinEndTime: Long = 0L,           // Timestamp конца события (startTime + 60s)
+    val goldenGoblinEndTime: Long = 0L,           // Timestamp конца события (startTime + 15-25s)
     val goldenGoblinPunchCount: Int = 0,          // Нажатий Punch за текущее событие
 
     // ===== Физические данные =====

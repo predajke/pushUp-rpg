@@ -8,8 +8,11 @@ import kotlin.random.Random
 object GameCalculations {
 
     // --- Уровень и XP ---
-    const val HP_PER_LEVEL = 15
+    const val HP_PER_LEVEL = 20
     const val STAT_POINTS_PER_LEVEL = 3
+    const val DAILY_PUNCH_LIMIT = 30
+    const val PRESTIGE_STAT_BONUS_PER_LEVEL = 0.02f  // +2% power/armor/HP за каждый ресет
+    const val MONSTER_HP_BONUS_PER_PRESTIGE = 500    // Флэт +500 HP монстрам за каждый ресет
     // XP для перехода с level на level+1:
     // Уровни 1-9: начинаем с 200, каждый +100 (200, 300, ..., 1000)
     // Уровни 10+: каждый +150 (1150, 1300, 1450, ...)
@@ -53,8 +56,9 @@ object GameCalculations {
     }
 
     // --- Максимальное HP ---
-    fun getMaxHp(level: Int, baseHealth: Int, itemHealthBonus: Int, achHpFlat: Int = 0): Int {
-        return baseHealth + (level * HP_PER_LEVEL) + itemHealthBonus + achHpFlat
+    fun getMaxHp(level: Int, baseHealth: Int, itemHealthBonus: Int, achHpFlat: Int = 0, prestigeLevel: Int = 0): Int {
+        val raw = baseHealth + (level * HP_PER_LEVEL) + itemHealthBonus + achHpFlat
+        return (raw * (1f + prestigeLevel * PRESTIGE_STAT_BONUS_PER_LEVEL)).toInt()
     }
 
     // --- Урон персонажа ---
@@ -114,10 +118,12 @@ object GameCalculations {
             itemHealth += item.stats.health + pahBonus
             itemLuck   += item.stats.luck   + lvl
         }
+        val prestigeBonus = state.prestigeLevel * PRESTIGE_STAT_BONUS_PER_LEVEL
+        val rawHealth = state.baseHealth + (state.playerLevel * HP_PER_LEVEL) + itemHealth + achBonuses.hpFlat
         return TotalStats(
-            power  = ((state.basePower  + itemPower)  * (1f + achBonuses.damagePercent + setBonuses.damagePercent)).toInt(),
-            armor  = ((state.baseArmor  + itemArmor)  * (1f + achBonuses.armorPercent + setBonuses.armorPercent)).toInt(),
-            health = state.baseHealth + (state.playerLevel * HP_PER_LEVEL) + itemHealth + achBonuses.hpFlat,
+            power  = ((state.basePower  + itemPower)  * (1f + achBonuses.damagePercent + setBonuses.damagePercent + prestigeBonus)).toInt(),
+            armor  = ((state.baseArmor  + itemArmor)  * (1f + achBonuses.armorPercent + setBonuses.armorPercent + prestigeBonus)).toInt(),
+            health = (rawHealth * (1f + prestigeBonus)).toInt(),
             luck   = state.baseLuck   + itemLuck   + achBonuses.critPercent * 100f
         )
     }

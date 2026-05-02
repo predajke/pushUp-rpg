@@ -1,207 +1,201 @@
-# Handoff: Push UP RPG — Leaderboard Screen
+# Handoff: Leaderboard Redesign (Variant A)
 
 ## Overview
-Online leaderboard screen for the **Push UP RPG** mobile app. Shows the top 500 players globally, with the player's own ranking pinned at the bottom. Combines period filtering (Day/Week/Month/All-time), scope filtering (Global/Country/Friends), search, and per-column sort. Visual direction: **dark fantasy / Diablo-vibe** (leather, tarnished gold, runic typography).
-
-The selected design direction is **"War Council"** — the power-user variant that exposes every control. See `Leaderboard.html` (Variation E) for the source prototype, or `WarCouncil-standalone.html` for an isolated single-screen version that's easier to inspect.
+This is a redesign of the **Leaderboard** screen for a fitness/RPG-style mobile app (push-up tracker with gamification, levels, and competitive scoring). The new design follows the existing app's dark, golden-accent visual language and presents a compact ranked list with medal styling for the top 3 players, scoped tabs, time filters, search, and a sticky "Your Standing" card pinned to the bottom.
 
 ## About the Design Files
-The files in this bundle are **design references created in HTML** — interactive prototypes showing intended look, layout, and behavior. They are not production code to copy directly.
-
-Your task is to **recreate this design in the target codebase's existing environment** (React Native, SwiftUI, Flutter, native iOS/Android, whatever the Push UP RPG app is built with) using the codebase's established patterns, design tokens, and component library. If no environment exists yet, pick the most appropriate framework for a mobile RPG game and implement there.
-
-The `.jsx` files in this bundle use React + inline Babel just so the prototype runs in a browser — they are not meant to be the final implementation.
+The files in `reference/` are **design references created in HTML/JSX** — they are prototypes showing the intended look and behavior, **not production code to copy directly**. Your task is to **recreate this design in the existing app's codebase** (whatever framework it uses — SwiftUI, React Native, Flutter, native Android, etc.) using the codebase's established patterns, components, and libraries. The HTML mock uses React + Babel only because that's the prototyping environment; do not assume the target app is React.
 
 ## Fidelity
-**High-fidelity (hifi).** Final colors, typography, spacing, iconography, and interactions are settled. Match exactly.
+**High-fidelity (hifi)**. Colors, typography, spacing, and interactions are all final. Recreate the UI pixel-perfectly using the codebase's existing libraries and patterns.
 
-The only thing left intentionally placeholder is **flag rendering** — the prototype draws geometric stripe-flags via CSS. In production, use a real flag asset library (e.g. Twemoji flags, country-flag-icons, or platform-native flag emoji).
+## Screen: Leaderboard
 
-## Screens / Views
+### Purpose
+Let the user see how they rank globally / by country / among friends, filter by time period, search by name, and always see their own standing.
 
-### 1. Leaderboard — War Council
-**Purpose:** Browse top 500 players, filter, sort, and find your own rank.
+### Layout (top to bottom, in a 390×844 iPhone viewport)
+1. **Status bar / safe area** — 54px top inset (handled by device chrome).
+2. **Header bar** — centered title `LEADERBOARD` flanked by gold `✦` decorative glyphs, with a back chevron `‹` on the left.
+3. **Scope tabs** — segmented control: `Global` · `Country` · `Friends`. Active tab uses an orange gradient pill.
+4. **Time tabs** — smaller segmented control directly below: `Day` · `Week` · `Month` · `All Time`. Active = orange pill.
+5. **Search bar** — full-width, rounded (10px), with a magnifier icon and placeholder "Filter by name…".
+6. **Column header strip** — `# · NAME · LVL · PUSH · PWR` (uppercase, 9.5px, letter-spaced, muted).
+7. **Scrollable list of player rows** — fills remaining height.
+8. **Sticky "Your Standing" card** — pinned at the bottom above the home-indicator inset; orange-tinted to highlight the current user.
 
-**Layout (top to bottom, mobile portrait, ~390×844 viewport):**
+### Components
 
-1. **Status bar** (system, leave to platform).
-2. **Header** — 32px tall band, gold rune glyph + "LEADERBOARD" wordmark + rune glyph, centered. Subtitle line below: "WAR COUNCIL · FULL VIEW" in small uppercase letterspaced gold. Bottom edge: gold horizontal-fade rule (1px, gradient transparent→gold→transparent).
-3. **Scope segmented control** — 3 equal segments: `Global` / `Country` / `Friends`. Active segment has gold border + slightly raised gradient fill.
-4. **Period pill row** — 4 pills (rounded 14px): `Day` / `Week` / `Month` / `All Time`. Active pill has gold-tinted bg (10% gold) + gold border.
-5. **Search box** — full-width input "Filter by name…" with gold magnifier icon. Dark fill, single 1px border.
-6. **Column header row** — sticky. All-caps Cinzel labels, 9px, letterspaced. Tappable to sort. Active sort column is gold + has ▲/▼ indicator. Tiny gold stat icon precedes the label.
-7. **Scrolling player list** — alternating rows (every other row gets a 1.2% white tint). Each row 30–36px tall depending on density.
-8. **Sticky "You" row** at the bottom — gold top border, dark gradient bg, drop-shadow upward. Has a tiny "YOUR STANDING" label + "↑ #N PrevPlayer · ↓ #N NextPlayer" context line. Below it: the user's row with a 2px gold left rail + soft gold glow + bold gold name.
+#### Header
+- Padding: `14px 16px 10px`
+- Border-bottom: `1px solid rgba(255,255,255,0.06)`
+- Background: subtle gradient `linear-gradient(180deg, transparent, #0e0d10)`
+- Title `LEADERBOARD`:
+  - Font: **Cinzel**, 700, 16px
+  - Letter-spacing: `0.22em`
+  - Color: `#f3c969` (gold)
+  - Text-shadow: `0 0 12px rgba(243,201,105,0.25)` (subtle gold glow)
+- Decorative `✦` glyphs on each side of the title, gold `#f3c969`, 12px, 85% opacity
+- Back chevron `‹`: positioned left, 18px, color `#9b9389`
 
-### Row anatomy (left → right)
+#### Scope Tabs (Global / Country / Friends)
+- Container: flex row, `gap: 6px`, padding `12px 14px 8px`
+- Each tab: `flex: 1`, padding `9px 0`, border-radius `10px`, font 12px / 600 / `letter-spacing 0.04em`
+- **Inactive**: bg `rgba(255,255,255,0.03)`, border `1px solid rgba(255,255,255,0.06)`, color `#9b9389`
+- **Active**: gradient `linear-gradient(180deg, #ffb152, #ff8a2a)`, border `rgba(255,138,42,0.6)`, color `#15110a`, shadow `0 4px 14px -4px rgba(255,138,42,0.55)`
 
-| Column | Width | Align | Notes |
-|---|---|---|---|
-| `#` (rank) | 28px | center | Top-1/2/3 get a medal SVG glyph + colored numeral (gold/silver/bronze). Others: muted gold 11px tabular numeral. |
-| Flag | 24px | center | 16.5×11px flag rectangle, 2px radius, inset dark border. |
-| Name | flex | left | Avatar (20px circle, monogram on hashed-hue dark bg, gold ring) + Cinzel name 11px. Friends get a tiny gold dot suffix. |
-| `RES` | 30px | right | Resets count. |
-| `LVL` | 28px | right | Level. |
-| `PUSH` | 50px | right | Total push-ups. Formatted: 4,500 → "4.5k", 180,000 → "180k", 1.2M → "1.2M". |
-| `PWR` | 42px | right | Power. |
-| `ARM` | 42px | right | Armor. |
-| `HP` | 42px | right | Health. |
-| `LCK` | 36px | right | Luck. |
-| `AGE` | 44px | right | Character age. Format: <365 days → "23d", ≥365 → "2y 14d". |
+#### Time Tabs (Day / Week / Month / All Time)
+- Same as scope tabs but smaller: padding `6px 0`, font 11px, border-radius `8px`
+- Container padding `4px 14px 10px`
 
-Header labels carry a tiny stat icon (hammer/shield/heart/clover/hourglass/dumbbell/star/refresh) before the text.
+#### Search bar
+- Margin: `6px 14px 10px`
+- Background: `rgba(255,255,255,0.04)`
+- Border: `1px solid rgba(255,255,255,0.06)`
+- Border-radius: `10px`
+- Padding: `8px 10px`
+- Magnifier icon (50% opacity), then `<input>` with placeholder color `#6e675f`, text 12px
+
+#### Column Header
+- Grid: `36px 1fr 44px 38px 50px` (gap 6px)
+- Padding: `8px 14px`
+- Font: 9.5px / 700 / uppercase / `letter-spacing: 0.14em`
+- Default color: `#6e675f`
+- `PUSH` column label: orange `#ff8a2a`
+- `PWR` column label: green `#34c759`
+- Top + bottom 1px borders `rgba(255,255,255,0.06)`
+- Background: `rgba(255,255,255,0.015)`
+
+#### Player Row (default)
+- Same 5-column grid as header, padding `9px 14px`
+- Border-bottom: `1px solid rgba(255,255,255,0.035)`
+- Hover: bg `rgba(255,255,255,0.03)`
+- **Rank number**: JetBrains Mono, 13px / 600, color `#6e675f`, centered
+- **Avatar**: 26×26 circle, gradient `linear-gradient(135deg, #2a2428, #1a1719)`, border `rgba(255,255,255,0.10)`, emoji or image 12px inside
+- **Name**: Inter, 13px / 500, color `#ece6d8`, truncate with ellipsis
+- **Level**: JetBrains Mono, 12.5px / 600, right-aligned, color `#9b9389`
+- **PUSH** value: JetBrains Mono, 12.5px / 600, color `#ffb152` (orange-2)
+- **PWR** (wins) value: JetBrains Mono, 12.5px / 600, color `#5fdf7a` (green-2)
+
+#### Top-3 Medal Styling
+First three rows get gold/silver/bronze treatment on **rank number and avatar**:
+
+- **1st (gold)**:
+  - Rank color `#f3c969`, text-shadow `0 0 10px rgba(243,201,105,0.45)`
+  - Avatar bg `radial-gradient(circle at 30% 20%, #6c4d18, #1a1719)`
+  - Avatar border `rgba(243,201,105,0.4)`, glow `0 0 10px -2px rgba(243,201,105,0.4)`
+- **2nd (silver)**:
+  - Rank color `#cfd2d6`
+  - Avatar bg `radial-gradient(circle at 30% 20%, #4a4d54, #1a1719)`
+  - Avatar border `rgba(207,210,214,0.35)`
+- **3rd (bronze)**:
+  - Rank color `#cd8c4a`
+  - Avatar bg `radial-gradient(circle at 30% 20%, #5a3a1c, #1a1719)`
+  - Avatar border `rgba(205,140,74,0.4)`
+
+#### Sticky "Your Standing" card (bottom)
+- Padding: `10px 14px 14px`
+- Border-top: `1px solid rgba(255,255,255,0.06)`
+- Background: `linear-gradient(180deg, rgba(255,138,42,0.05), rgba(0,0,0,0.4))`
+- Backdrop blur: `6px`
+- Above the row, a tiny label:
+  - Text `YOUR STANDING`, 9.5px / 700, letter-spacing `0.18em`, color `#ff8a2a`
+- The row itself uses the same grid but is wrapped in a card:
+  - Background: `linear-gradient(180deg, rgba(255,138,42,0.13), rgba(255,138,42,0.04))`
+  - Border: `1px solid rgba(255,138,42,0.4)`
+  - Border-radius: `10px`
+  - Padding: `9px 8px`
+  - Rank: orange `#ffb152` / 700
+  - Avatar border: `rgba(255,138,42,0.55)`, bg `radial-gradient(circle at 30% 20%, #4a2a10, #1a1108)`
+  - Name: pure white `#fff` / 600
 
 ## Interactions & Behavior
-
-- **Tap column header** → sort by that column. Tap again to flip asc/desc. Default sort: `totalPushUps` desc.
-- **Tap scope tab** (Global/Country/Friends) → filter list.
-  - Global: all 500.
-  - Country: only players matching the user's country.
-  - Friends: only `isFriend === true` (plus self).
-- **Tap period pill** → switch dataset for Day/Week/Month/All-time.
-  *(In the prototype, period doesn't actually re-filter the data — it's a UI state only. In production, swap the dataset.)*
-- **Type in search** → live filter by `name.toLowerCase().includes(query)`.
-- **Tap row** → open player profile (out of scope here; wire to your existing profile navigation).
-- **Self row** is always pinned at the bottom regardless of scrolling, sorting, or filtering. Even if you sort by Luck or scope to Country, the sticky-you row still shows the user's global rank and stats.
-- **Empty state** — when filters return zero rows, show centered "No champions match." in muted Cinzel.
-- **Top-3 medals** — rank cells 1/2/3 get medal SVG + tinted numeral (gold #f0c869, silver #cfd1d4, bronze #c8814a).
-- **Friends marker** — friend rows get a small gold "•" after the name.
-
-### Animations / transitions
-The prototype is intentionally restrained — no row-reorder animation. If you want to add one in production:
-- 150ms ease-out for row reordering when sort changes.
-- Sticky-you row should NOT animate; it stays fixed.
-- Tab/pill state changes: 150ms color/border transition.
-
-### Loading state (not in prototype, recommended for production)
-Show 12 skeleton rows with a subtle gold shimmer across them.
+- **Tap scope tab** → reload list scoped to Global / Country / Friends
+- **Tap time tab** → reload list filtered by Day / Week / Month / All Time
+- **Type in search** → live client-side filter on the loaded list (case-insensitive substring on name)
+- **Tap a row** → open player profile/detail (navigation target — design out of scope here)
+- **Scroll** → list area scrolls; header, tabs, search, column-head, and "Your Standing" remain visually pinned
+- All tab transitions: 180ms ease on bg/color/shadow
+- Row hover (or pressed-state on touch): bg fades to `rgba(255,255,255,0.03)`
 
 ## State Management
+- `scope`: `'Global' | 'Country' | 'Friends'` (default `'Global'`)
+- `timeFilter`: `'Day' | 'Week' | 'Month' | 'All Time'` (default `'All Time'`)
+- `searchQuery`: string
+- `players`: array of `{ rank, name, avatar, level, push, reps, wins, country }` from API
+- `self`: `{ rank, name, avatar, level, push, reps, wins }` (current user)
 
-```ts
-type Scope = 'global' | 'country' | 'friends';
-type Period = 'day' | 'week' | 'month' | 'all';
-type SortKey = 'totalPushUps' | 'lvl' | 'res' | 'power' | 'armor' | 'hp' | 'luck' | 'age';
-type SortDir = 'asc' | 'desc';
-
-interface LeaderboardState {
-  scope: Scope;       // default: 'global'
-  period: Period;     // default: 'all'
-  query: string;      // default: ''
-  sort: { key: SortKey; dir: SortDir };  // default: { key: 'totalPushUps', dir: 'desc' }
-}
-
-interface Player {
-  rank: number;       // 1..500, server-assigned global rank
-  name: string;
-  country: string;    // ISO 3166-1 alpha-2 (e.g. 'UA')
-  isFriend: boolean;
-  isMe: boolean;
-  res: number;        // resets
-  lvl: number;        // level
-  totalPushUps: number;
-  power: number;
-  armor: number;
-  hp: number;
-  luck: number;
-  ageDays: number;    // character age in days
-}
-```
-
-Data fetching (out of scope for design but a sketch):
-- `GET /leaderboard?scope=global&period=all` → `{ players: Player[], me: Player }`
-- Refetch when scope or period changes.
-- Sort and search are client-side over the returned 500.
+Data fetch should re-run when `scope` or `timeFilter` changes. Search is local.
 
 ## Design Tokens
 
 ### Colors
-| Token | Hex | Usage |
+| Token | Value | Use |
 |---|---|---|
-| `--bg-deep` | `#0e0a07` | Page background |
-| `--bg-card` | `#1a1310` | Header bands, search bg, sort dropdowns |
-| `--bg-card-2` | `#14100c` | Header gradient end |
-| `--border-leather` | `#2a1f17` | Default borders, dividers |
-| `--border-leather-strong` | `#3a2c20` | Pill borders |
-| `--gold` | `#c9a35b` | Primary accent (rules, icons) |
-| `--gold-bright` | `#f0c869` | Active state, self highlight, top-1 medal |
-| `--gold-dim` | `#8b6f3d` | Subdued labels, inactive icons |
-| `--gold-darker` | `#6b5430` | Faintest labels |
-| `--gold-deepest` | `#5a4525` | Avatar inner ring |
-| `--silver` | `#cfd1d4` | Top-2 medal |
-| `--bronze` | `#c8814a` | Top-3 medal |
-| `--blood` | `#d4242a` | Reserved for HP-low states (future) |
-| `--parchment` | `#e8d9b3` | Default body text |
-| `--parchment-bright` | `#f5e8c8` | Self body text |
-| `--parchment-dim` | `#bba27a` | Stat numerals (non-self) |
+| `--bg` | `#100f12` | Base background |
+| `--bg-2` | `#181519` | Slightly elevated |
+| `--panel` | `#1c1a1e` | Card surfaces |
+| `--line` | `rgba(255,255,255,0.06)` | Subtle dividers |
+| `--line-2` | `rgba(255,255,255,0.10)` | Stronger dividers / borders |
+| `--text` | `#ece6d8` | Primary text |
+| `--text-dim` | `#9b9389` | Secondary text |
+| `--text-mute` | `#6e675f` | Tertiary / labels |
+| `--orange` | `#ff8a2a` | Primary accent |
+| `--orange-2` | `#ffb152` | Lighter accent / values |
+| `--green` | `#34c759` | Power / positive |
+| `--green-2` | `#5fdf7a` | Power values |
+| `--gold` | `#f3c969` | 1st place / brand decoration |
+| `--silver` | `#cfd2d6` | 2nd place |
+| `--bronze` | `#cd8c4a` | 3rd place |
 
-Row alt-stripe overlay: `rgba(255,255,255,0.012)`.
-Self-row bg gradient: `linear-gradient(90deg, rgba(240,200,105,0.10) 0%, rgba(240,200,105,0.04) 100%)`.
+Background of the screen uses a layered gradient:
+```
+radial-gradient(1200px 600px at 50% -200px, rgba(255,138,42,0.06), transparent 60%),
+linear-gradient(180deg, #131115 0%, #0c0b0e 100%)
+```
 
 ### Typography
-- **Cinzel** (Google Font, weights 400/500/600/700) — headings, labels, names, medals, all-caps UI.
-- **Inter** (Google Font, weights 400/500/600/700) — numerals, search input, body text.
-
-| Element | Font | Size | Weight | Letter-spacing | Transform |
-|---|---|---|---|---|---|
-| H1 "LEADERBOARD" | Cinzel | 16px | 700 | 0.34em | uppercase |
-| Header subtitle | Cinzel | 8.5px | 400 | 0.32em | uppercase |
-| Scope tab | Cinzel | 9.5px | 500 | 0.18em | uppercase |
-| Period pill | Inter | 10px | 600 | 0.05em | none |
-| Column header | Cinzel | 9px | 500 | 0.12em | uppercase |
-| Player name | Cinzel | 11px | 500 (700 if self) | normal | none |
-| Stat numeral | Inter | 11px | 400 | normal | none, tabular-nums |
-| Search input | Inter | 12px | 400 | normal | none |
-| "Your Standing" label | Cinzel | 8px | 400 | 0.18em | uppercase |
-| Empty state | Cinzel | 12px | 400 | normal | none |
+- **Display / brand title**: `Cinzel` 700 — used only for the screen title
+- **UI / body**: `Inter` 400/500/600/700
+- **Numbers / monospace**: `JetBrains Mono` 400/600
 
 ### Spacing
-Padding inside rows: 4px (compact) / 8px (comfy) vertical, 8px outer + 4px per cell horizontal.
-Header band: 6/16/8 padding (top/horizontal/bottom).
-Pills/segmented gap: 4–6px.
+Common values used: `4, 6, 8, 9, 10, 12, 14, 16` px.
+Row vertical padding: `9px`. Section side padding: `14px`.
 
-### Border radius
-- 2px on most rectangles (segments, search box, sort dropdown).
-- 14px on period pills.
-- 50% on avatars and the JP/KR-style flag dots.
+### Border-radius
+- Tabs: `10px` (large), `8px` (small)
+- Cards / search bar: `10px`
+- Avatar: `50%`
 
-### Shadows
-- Sticky-you separator: `0 -8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(240,200,105,0.18)`.
-- Self-row gold rail glow: `box-shadow: 0 0 8px #f0c869` on a 2px-wide left strip.
-- Avatar self-glow: `inset 0 0 0 1.5px #f0c869, 0 0 6px rgba(240,200,105,0.5)`.
-- Sort dropdown: `0 8px 24px rgba(0,0,0,0.7)`.
-
-### Density
-Two presets, surfaced as a setting (we exposed it via the prototype's Tweaks panel; in production this can be a profile/settings toggle):
-- **Compact** — row vertical pad 4px, avatar 16px.
-- **Comfy** — row vertical pad 8px, avatar 20px.
-
-### Column visibility
-Power-user toggle for showing/hiding RES, LVL, Push-ups, Power, Armor, HP, Luck, Age. The Rank, Flag, and Name columns are always visible.
+### Shadows / glows
+- Active tab: `0 4px 14px -4px rgba(255,138,42,0.55)`
+- Gold avatar: `0 0 10px -2px rgba(243,201,105,0.4)`
+- Gold rank number: text-shadow `0 0 10px rgba(243,201,105,0.45)`
 
 ## Assets
+- No bitmap assets — emoji are used as avatar placeholders. Replace with the app's existing avatar component / image URLs.
+- The `✦` character is a Unicode glyph (U+2726).
+- Icons (back chevron, magnifier) — use the codebase's existing icon set; the prototype uses Unicode/emoji.
 
-- **Stat icons** (8 SVGs, 16×16 viewBox each): hammer (Power), shield (Armor), heart (HP), clover (Luck), hourglass (Age), dumbbell (Push-ups), star (LVL), refresh (RES). Source SVG paths are in `primitives.jsx` under `StatIcon`. They're tuned for tiny sizes (9–11px); replace with your in-game icon set if you have a matching one.
-- **Decorative glyphs** in the header: a "rune" (zigzag), a "medal" (bordered circle with stem). Same `StatIcon` source.
-- **Flags**: prototype draws ~70 country flags as CSS shapes. **Replace in production** with a real flag asset library — Twemoji flags, country-flag-icons npm package, or platform native flag emoji are all fine.
-- **Fonts**: Google Fonts — Cinzel and Inter. Self-host or use Google Fonts CDN as your codebase prefers.
+## Files
+All in `reference/`:
+- **`leaderboard-variants.html`** — entry HTML (loads React, Babel, and the JSX files). Open this in a browser to see the design live.
+- **`leaderboard-app.jsx`** — the actual leaderboard UI (`VariantA` component is the chosen design; `VariantB` is included for context but **not** the chosen direction).
+- **`ios-frame.jsx`** — iPhone device chrome wrapper (used only for the prototype; ignore in implementation).
+- **`design-canvas.jsx`** — pan/zoom canvas wrapper (used only for the prototype; ignore in implementation).
 
-## Files in this bundle
+The CSS for the design lives in the `<style>` block of `leaderboard-variants.html`. The classes you care about are: `.screen`, `.app-header`, `.seg-tabs`, `.search`, `.col-head`, `.list`, `.row` (+ `.gold` / `.silver` / `.bronze` modifiers), `.standing`. Variant B's classes (`.podium`, `.pod`, `.row-b`, `.section-divider`) can be ignored.
 
-- `README.md` — this file.
-- `Leaderboard.html` — full design canvas with all 5 variations side-by-side. Use to compare directions or revisit them.
-- `WarCouncil-standalone.html` — **the chosen direction**, isolated. Open this to see the exact target screen at full size with no canvas chrome.
-- `data.js` — mock data generator. 500 deterministic players. Useful as a fixture for visual regression tests.
-- `primitives.jsx` — Flag, StatIcon, Avatar, RankCell, fmt, fmtAge. Re-implement these in your target framework.
-- `leaderboard.jsx` — `LeaderboardBoard`, `ColumnHeader`, `PlayerRow`, `StickyMeRow`, `applyFilters`, `applySort`, `ALL_COLS`. The core logic that renders the table and handles the sticky-you row.
-- `variations.jsx` — All 5 variations including `VariationWarCouncil` (the chosen one). The chrome (header, scope tabs, period pills, search) is in here.
-- `ios-frame.jsx` — iOS device bezel used for the prototype. Not part of the implementation; for reference only.
-
-## Notes for the implementer
-
-1. **Sticky-you row must always show the user's GLOBAL rank**, not their position within the currently-filtered list. (i.e. if you filter to Friends and the user is rank #364 globally but #4 among friends, sticky still says #364.)
-2. **Top-3 medals** apply only to the global rank — they're earned, not contextual to filters.
-3. **Self row visual treatment is layered**: it appears once inline (in its natural sorted position in the list) AND once pinned at the bottom. Both show the gold rail. This gives the user visual continuity when they scroll up to find themselves.
-4. **Number formatting** for the Push-ups column is critical — the row is dense and full-precision integers blow out the layout. Use `fmt()` from `primitives.jsx` as a reference.
-5. **Sort order arrows** (▲/▼) are inline in the column header next to the active label — don't put them in a separate cell.
-6. **Don't try to make all the chrome scrollable**. The header, scope tabs, period pills, search, and column header are all in fixed position above the scrolling list. Only the player list itself scrolls.
+## Mock data shape (for reference)
+```ts
+type Player = {
+  name: string;
+  avatar: string;   // emoji in mock — real app should use image URL
+  level: number;
+  push: number;     // total push-ups (primary metric)
+  reps: number;
+  wins: number;     // shown as "PWR"
+  country: string;  // emoji flag in mock
+};
+```

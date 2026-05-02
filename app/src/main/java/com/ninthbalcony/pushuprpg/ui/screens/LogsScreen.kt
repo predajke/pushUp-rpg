@@ -39,10 +39,10 @@ fun LogsScreen(
     // ИСПРАВЛЕНО 3: Используем переменную allLogs вместо функции getAllLogs()
     val allLogs by viewModel.allLogs.collectAsState(initial = emptyList())
 
+    Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
+    ScreenBackground("bg_inventory_overall")
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBackground)
+        modifier = Modifier.fillMaxSize()
     ) {
         // --- Топбар ---
         Row(
@@ -96,7 +96,8 @@ fun LogsScreen(
                 }
             }
         }
-    }
+    } // Column
+    } // Box
 }
 
 @Composable

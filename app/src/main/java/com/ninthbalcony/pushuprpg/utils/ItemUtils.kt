@@ -59,10 +59,10 @@ object ItemUtils {
 
     private fun rollRarity(): String {
         return when (Random.nextFloat() * 100f) {
-            in 0f..50f  -> "common"
-            in 50f..75f -> "uncommon"
-            in 75f..90f -> "rare"
-            in 90f..98f -> "epic"
+            in 0f..54f  -> "common"
+            in 54f..78f -> "uncommon"
+            in 78f..92f -> "rare"
+            in 92f..98f -> "epic"
             else        -> "legendary"
         }
     }
@@ -83,39 +83,54 @@ object ItemUtils {
         var dmg = 0f; var armor = 0f; var drop = 0f; var xp = 0f; var enchant = 0f
         for ((setId, count) in setCounts) {
             when (setId) {
-                // Сет-бонусы сбалансированы: снижены ~40-50% от оригинала
-                "berserker" -> { dmg  += if (count >= 3) 0.20f else if (count >= 2) 0.10f else 0f }
-                "guardian"  -> { armor += if (count >= 3) 0.25f else if (count >= 2) 0.12f else 0f }
-                "shadow"    -> { drop  += if (count >= 3) 0.20f else if (count >= 2) 0.10f else 0f }
-                "archon"    -> { xp    += if (count >= 3) 0.25f else if (count >= 2) 0.12f else 0f }
-                "smith"     -> { enchant += if (count >= 3) 0.20f else if (count >= 2) 0.10f else 0f }
-                "hellxdead" -> { dmg += if (count >= 3) 0.45f else if (count >= 2) 0.22f else 0f; drop += if (count >= 3) 0.15f else 0f }
+                // Сет-бонусы сбалансированы: снижены ещё ~20% от прошлого пасса.
+                // Все значения — целые проценты (×0.01).
+                "berserker" -> { dmg  += if (count >= 3) 0.15f else if (count >= 2) 0.08f else 0f }
+                "guardian"  -> { armor += if (count >= 3) 0.20f else if (count >= 2) 0.10f else 0f }
+                "shadow"    -> { drop  += if (count >= 3) 0.15f else if (count >= 2) 0.08f else 0f }
+                "archon"    -> { xp    += if (count >= 3) 0.20f else if (count >= 2) 0.10f else 0f }
+                "smith"     -> { enchant += if (count >= 3) 0.15f else if (count >= 2) 0.08f else 0f }
+                "hellxdead" -> { dmg += if (count >= 3) 0.35f else if (count >= 2) 0.18f else 0f; drop += if (count >= 3) 0.12f else 0f }
                 "singularity" -> {
-                    dmg += if (count >= 4) 0.50f else if (count >= 3) 0.30f else if (count >= 2) 0.15f else 0f
-                    armor += if (count >= 4) 0.25f else if (count >= 3) 0.10f else 0f
+                    dmg += if (count >= 4) 0.40f else if (count >= 3) 0.24f else if (count >= 2) 0.12f else 0f
+                    armor += if (count >= 4) 0.20f else if (count >= 3) 0.08f else 0f
                 }
                 "void"      -> {
                     dmg += when {
-                        count >= 5 -> 0.90f
-                        count >= 4 -> 0.65f
-                        count >= 3 -> 0.45f
-                        count >= 2 -> 0.22f
+                        count >= 5 -> 0.70f
+                        count >= 4 -> 0.50f
+                        count >= 3 -> 0.35f
+                        count >= 2 -> 0.18f
                         else       -> 0f
                     }
-                    drop += if (count >= 5) 0.50f else if (count >= 4) 0.30f else if (count >= 3) 0.15f else 0f
-                    xp   += if (count >= 5) 0.30f else if (count >= 3) 0.12f else 0f
+                    drop += if (count >= 5) 0.40f else if (count >= 4) 0.24f else if (count >= 3) 0.12f else 0f
+                    xp   += if (count >= 5) 0.24f else if (count >= 3) 0.10f else 0f
                 }
                 "scifi"     -> {
-                    armor += if (count >= 3) 0.18f else if (count >= 2) 0.10f else 0f
-                    dmg   += if (count >= 3) 0.15f else 0f
+                    armor += if (count >= 3) 0.15f else if (count >= 2) 0.08f else 0f
+                    dmg   += if (count >= 3) 0.12f else 0f
                 }
                 "post"      -> {
-                    dmg += if (count >= 4) 1.00f else if (count >= 3) 0.55f else if (count >= 2) 0.28f else 0f
+                    dmg += if (count >= 4) 0.80f else if (count >= 3) 0.45f else if (count >= 2) 0.22f else 0f
                 }
                 "elf"       -> {
-                    dmg   += when { count >= 5 -> 1.20f; count >= 4 -> 0.70f; count >= 3 -> 0.45f; count >= 2 -> 0.22f; else -> 0f }
-                    armor += when { count >= 5 -> 0.45f; count >= 4 -> 0.28f; count >= 3 -> 0.15f; else -> 0f }
-                    drop  += if (count >= 5) 0.40f else 0f
+                    dmg   += when { count >= 5 -> 0.95f; count >= 4 -> 0.55f; count >= 3 -> 0.35f; count >= 2 -> 0.18f; else -> 0f }
+                    armor += when { count >= 5 -> 0.35f; count >= 4 -> 0.22f; count >= 3 -> 0.12f; else -> 0f }
+                    drop  += if (count >= 5) 0.30f else 0f
+                }
+                "unrealm"   -> {
+                    dmg   += when { count >= 4 -> 0.65f; count >= 3 -> 0.40f; count >= 2 -> 0.20f; else -> 0f }
+                    armor += when { count >= 4 -> 0.30f; count >= 3 -> 0.20f; count >= 2 -> 0.10f; else -> 0f }
+                    drop  += if (count >= 4) 0.20f else 0f
+                }
+                "empyrean"  -> {
+                    dmg   += when { count >= 4 -> 0.50f; count >= 3 -> 0.30f; count >= 2 -> 0.15f; else -> 0f }
+                    armor += when { count >= 4 -> 0.45f; count >= 3 -> 0.30f; count >= 2 -> 0.15f; else -> 0f }
+                    xp    += when { count >= 4 -> 0.25f; count >= 3 -> 0.10f; else -> 0f }
+                }
+                "barbarian" -> {
+                    dmg  += if (count >= 3) 0.35f else 0f
+                    drop += if (count >= 3) 0.10f else 0f
                 }
             }
         }

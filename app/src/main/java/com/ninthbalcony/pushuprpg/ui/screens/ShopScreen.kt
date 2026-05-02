@@ -115,6 +115,10 @@ fun ShopScreen(
     var showForgeItemPicker by remember { mutableStateOf(0) }
     var resultMessage by remember { mutableStateOf("") }
     var showResultDialog by remember { mutableStateOf(false) }
+    var resultDialogCloverBg by remember { mutableStateOf(false) }
+    var boughtItem by remember { mutableStateOf<Item?>(null) }
+    var cloverBoxItem by remember { mutableStateOf<Item?>(null) }
+    var showFreePointsDialog by remember { mutableStateOf(false) }
     var showMergedDialog by remember { mutableStateOf(false) }
     var mergedItem by remember { mutableStateOf<Item?>(null) }
     var showMergeFailDialog by remember { mutableStateOf(false) }
@@ -216,7 +220,31 @@ fun ShopScreen(
     if (showResultDialog) {
         ResultDialog(
             message = resultMessage,
-            onDismiss = { showResultDialog = false }
+            showBg = resultDialogCloverBg,
+            onDismiss = { showResultDialog = false; resultDialogCloverBg = false }
+        )
+    }
+
+    boughtItem?.let { item ->
+        BuySuccessDialog(
+            item = item,
+            language = language,
+            onDismiss = { boughtItem = null }
+        )
+    }
+
+    cloverBoxItem?.let { item ->
+        CloverBoxResultDialog(
+            item = item,
+            language = language,
+            onDismiss = { cloverBoxItem = null }
+        )
+    }
+
+    if (showFreePointsDialog) {
+        FreePointsResultDialog(
+            language = language,
+            onDismiss = { showFreePointsDialog = false }
         )
     }
 
@@ -335,14 +363,13 @@ fun ShopScreen(
                 },
                 onBuy = { item ->
                     viewModel.buyShopItem(item.id) { success ->
-                        resultMessage = if (success) {
-                            if (language == "ru") "Куплено: ${item.name_ru}!"
-                            else "Bought: ${item.name_en}!"
+                        if (success) {
+                            boughtItem = item
+                            selectedShopItem = null
                         } else {
-                            AppStrings.t(language, "insufficient_teeth")
+                            resultMessage = AppStrings.t(language, "insufficient_teeth")
+                            showResultDialog = true
                         }
-                        showResultDialog = true
-                        if (success) selectedShopItem = null
                     }
                 },
                 onReroll = { viewModel.rerollShop() }
@@ -405,23 +432,24 @@ fun ShopScreen(
                 language = language,
                 onCloverBox = {
                     viewModel.useCloverBox { result ->
-                        resultMessage = if (result != null) {
-                            if (language == "ru") "Получен: ${result.name_ru}!"
-                            else "Got: ${result.name_en}!"
+                        if (result != null) {
+                            cloverBoxItem = result
                         } else {
-                            AppStrings.t(language, "clover_limit")
+                            resultMessage = AppStrings.t(language, "clover_limit")
+                            resultDialogCloverBg = true
+                            showResultDialog = true
                         }
-                        showResultDialog = true
                     }
                 },
                 onFreePoints = {
                     viewModel.useFreePoints { success ->
-                        resultMessage = if (success) {
-                            AppStrings.t(language, "clover_bonus")
+                        if (success) {
+                            showFreePointsDialog = true
                         } else {
-                            AppStrings.t(language, "clover_limit")
+                            resultMessage = AppStrings.t(language, "clover_limit")
+                            resultDialogCloverBg = true
+                            showResultDialog = true
                         }
-                        showResultDialog = true
                     }
                 },
                 onWatchAdReward = { viewModel.requestAdReward(25) }
@@ -1176,81 +1204,94 @@ fun ForgeItemPickerDialog(
     } else {
         inventoryItems
     }
+    val context = LocalContext.current
+    val bgResId = remember { context.resources.getIdentifier("bg_actach_panel", "drawable", context.packageName) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
                 .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(16.dp)
+                .clip(RoundedCornerShape(16.dp))
         ) {
-            Text(
-                text = AppStrings.t(language, "item_picker_title"),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                modifier = Modifier.padding(bottom = 12.dp)
+            if (bgResId != 0) Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
             )
-
-            if (availableItems.isEmpty()) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = AppStrings.t(language, "item_picker_empty"),
-                    color = TextMuted,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(vertical = 16.dp)
+                    text = AppStrings.t(language, "item_picker_title"),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
-            } else {
-                val rows = availableItems.chunked(4)
-                rows.forEach { rowItems ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    ) {
-                        rowItems.forEach { item ->
-                            val context = LocalContext.current
-                            val resId = remember(item.image_id) {
-                                context.resources.getIdentifier(
-                                    item.image_id, "drawable", context.packageName
-                                )
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .background(DarkSurfaceVariant, RoundedCornerShape(8.dp))
-                                    .border(
-                                        1.5.dp,
-                                        Color(ItemUtils.getRarityColor(item.rarity)),
-                                        RoundedCornerShape(8.dp)
-                                    )
-                                    .clickable { onSelect(item) },
-                                contentAlignment = Alignment.Center
+
+                if (availableItems.isEmpty()) {
+                    Text(
+                        text = AppStrings.t(language, "item_picker_empty"),
+                        color = TextMuted,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    )
+                } else {
+                    Column(modifier = Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState())) {
+                        val rows = availableItems.chunked(4)
+                        rows.forEach { rowItems ->
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.padding(bottom = 8.dp)
                             ) {
-                                if (resId != 0) {
-                                    Image(
-                                        painter = painterResource(id = resId),
-                                        contentDescription = item.name_en,
-                                        modifier = Modifier.fillMaxSize().padding(4.dp),
-                                        contentScale = ContentScale.Fit
-                                    )
-                                } else {
-                                    Text(text = getItemEmojiForShop(item.slot), fontSize = 24.sp)
+                                rowItems.forEach { item ->
+                                    val context = LocalContext.current
+                                    val resId = remember(item.image_id) {
+                                        context.resources.getIdentifier(
+                                            item.image_id, "drawable", context.packageName
+                                        )
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .size(60.dp)
+                                            .background(DarkSurfaceVariant, RoundedCornerShape(8.dp))
+                                            .border(
+                                                1.5.dp,
+                                                Color(ItemUtils.getRarityColor(item.rarity)),
+                                                RoundedCornerShape(8.dp)
+                                            )
+                                            .clickable { onSelect(item) },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (resId != 0) {
+                                            Image(
+                                                painter = painterResource(id = resId),
+                                                contentDescription = item.name_en,
+                                                modifier = Modifier.fillMaxSize().padding(4.dp),
+                                                contentScale = ContentScale.Fit
+                                            )
+                                        } else {
+                                            Text(text = getItemEmojiForShop(item.slot), fontSize = 24.sp)
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            OutlinedButton(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = AppStrings.t(language, "btn_cancel"),
-                    color = TextSecondary
-                )
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = AppStrings.t(language, "btn_cancel"),
+                        color = TextSecondary
+                    )
+                }
             }
         }
     }
@@ -1260,7 +1301,20 @@ fun ForgeItemPickerDialog(
 fun MergedDialog(item: Item, language: String, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val bgResId = remember { context.resources.getIdentifier("bg_merged", "drawable", context.packageName) }
+    val itemResId = remember(item.image_id) {
+        context.resources.getIdentifier(item.image_id, "drawable", context.packageName)
+    }
     val rarityColor = Color(ItemUtils.getRarityColor(item.rarity))
+
+    val lottieAnimName = when (item.rarity) {
+        "legendary" -> "anim_legendary"
+        "epic"      -> "anim_epic"
+        else        -> null
+    }
+    val lottieResId = remember(lottieAnimName) {
+        if (lottieAnimName != null) context.resources.getIdentifier(lottieAnimName, "raw", context.packageName) else 0
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
@@ -1277,6 +1331,15 @@ fun MergedDialog(item: Item, language: String, onDismiss: () -> Unit) {
                     alpha = 0.25f
                 )
             }
+            if (lottieResId != 0) {
+                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(lottieResId))
+                val progress by animateLottieCompositionAsState(composition, iterations = 1)
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier.matchParentSize()
+                )
+            }
             Column(
                 modifier = Modifier.padding(36.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -1290,14 +1353,34 @@ fun MergedDialog(item: Item, language: String, onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .size(88.dp)
+                        .background(DarkSurfaceVariant, RoundedCornerShape(12.dp))
+                        .border(2.dp, rarityColor, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (itemResId != 0) {
+                        Image(
+                            painter = painterResource(id = itemResId),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().padding(6.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
+                        Text(text = "?", fontSize = 36.sp, color = TextMuted)
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = if (language == "ru") item.name_ru else item.name_en,
                     fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
                     color = rarityColor,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = onDismiss,
                     colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
@@ -1492,30 +1575,307 @@ fun NoTeethDialog(onDismiss: () -> Unit) {
 @Composable
 fun ResultDialog(
     message: String,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    showBg: Boolean = false
 ) {
+    val context = LocalContext.current
+    val bgResId = remember(showBg) {
+        if (showBg) context.resources.getIdentifier("event_bg_spirit", "drawable", context.packageName)
+        else 0
+    }
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
                 .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .clip(RoundedCornerShape(16.dp))
         ) {
-            Text(text = "✨", fontSize = 40.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = message,
-                fontSize = 16.sp,
-                color = TextPrimary,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
-                shape = RoundedCornerShape(8.dp)
+            if (bgResId != 0) {
+                Image(
+                    painter = painterResource(id = bgResId),
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    alpha = 0.20f
+                )
+            }
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("OK")
+                Text(text = "✨", fontSize = 40.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = message,
+                    fontSize = 16.sp,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("OK")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BuySuccessDialog(
+    item: Item,
+    language: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val bgResId = remember {
+        context.resources.getIdentifier("bg_clover", "drawable", context.packageName)
+    }
+    val itemResId = remember(item.image_id) {
+        context.resources.getIdentifier(item.image_id, "drawable", context.packageName)
+    }
+    val rarityColor = Color(ItemUtils.getRarityColor(item.rarity))
+    val itemName = ItemUtils.getItemName(item, language)
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp))
+        ) {
+            if (bgResId != 0) {
+                Image(
+                    painter = painterResource(id = bgResId),
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    alpha = 0.25f
+                )
+            }
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = if (language == "ru") "Куплено!" else "Purchased!",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GoldAccent
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .size(88.dp)
+                        .background(DarkSurfaceVariant, RoundedCornerShape(12.dp))
+                        .border(2.dp, rarityColor, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (itemResId != 0) {
+                        Image(
+                            painter = painterResource(id = itemResId),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().padding(6.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
+                        Text(text = "?", fontSize = 36.sp, color = TextMuted)
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = itemName,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = rarityColor,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(36.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp)
+                ) {
+                    Text("OK", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CloverBoxResultDialog(
+    item: Item,
+    language: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val bgResId = remember {
+        context.resources.getIdentifier("bg_clover", "drawable", context.packageName)
+    }
+    val itemResId = remember(item.image_id) {
+        context.resources.getIdentifier(item.image_id, "drawable", context.packageName)
+    }
+    val rarityColor = Color(ItemUtils.getRarityColor(item.rarity))
+    val itemName = ItemUtils.getItemName(item, language)
+    val lottieAnimName = when (item.rarity) {
+        "legendary" -> "anim_legendary"
+        "epic"      -> "anim_epic"
+        else        -> null
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp))
+        ) {
+            if (bgResId != 0) {
+                Image(
+                    painter = painterResource(id = bgResId),
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    alpha = 0.25f
+                )
+            }
+            if (lottieAnimName != null) {
+                val lottieResId = remember(lottieAnimName) {
+                    context.resources.getIdentifier(lottieAnimName, "raw", context.packageName)
+                }
+                if (lottieResId != 0) {
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(lottieResId))
+                    val progress by animateLottieCompositionAsState(composition, iterations = 1)
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { progress },
+                        modifier = Modifier.matchParentSize()
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = if (language == "ru") "Бесплатный предмет!" else "Free Item!",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GoldAccent
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .size(88.dp)
+                        .background(DarkSurfaceVariant, RoundedCornerShape(12.dp))
+                        .border(2.dp, rarityColor, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (itemResId != 0) {
+                        Image(
+                            painter = painterResource(id = itemResId),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().padding(6.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
+                        Text(text = "?", fontSize = 36.sp, color = TextMuted)
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = itemName,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = rarityColor,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(36.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp)
+                ) {
+                    Text("OK", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FreePointsResultDialog(
+    language: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val bgResId = remember {
+        context.resources.getIdentifier("bg_record_popup", "drawable", context.packageName)
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp))
+        ) {
+            if (bgResId != 0) {
+                Image(
+                    painter = painterResource(id = bgResId),
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                    alpha = 0.35f
+                )
+            }
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = if (language == "ru") "Бесплатные очки!" else "Free Points!",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GoldAccent
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .size(88.dp)
+                        .background(DarkSurfaceVariant, RoundedCornerShape(12.dp))
+                        .border(2.dp, GoldAccent, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "+2",
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GoldAccent
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = AppStrings.t(language, "clover_bonus"),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(36.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp)
+                ) {
+                    Text("OK", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
@@ -1789,12 +2149,24 @@ fun EnchantItemPickerDialog(
     onRemove: () -> Unit = {}
 ) {
     val availableItems = inventoryItems.filter { getEnchantLevel(it) < maxEnchant }
+    val context = LocalContext.current
+    val bgResId = remember { context.resources.getIdentifier("bg_actach_panel", "drawable", context.packageName) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
                 .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(16.dp)
+                .clip(RoundedCornerShape(16.dp))
+        ) {
+            if (bgResId != 0) Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
+            )
+        Column(
+            modifier = Modifier.padding(16.dp)
         ) {
             Text(
                 text = AppStrings.t(language, "item_picker_title"),
@@ -1812,6 +2184,7 @@ fun EnchantItemPickerDialog(
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
             } else {
+                Column(modifier = Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState())) {
                 val rows = availableItems.chunked(4)
                 rows.forEach { rowItems ->
                     Row(
@@ -1828,20 +2201,16 @@ fun EnchantItemPickerDialog(
                                 )
                             }
                             val enchantLevel = getEnchantLevel(item)
+                            val borderStroke = rememberEnchantBorder(
+                                enchantLevel,
+                                Color(ItemUtils.getRarityColor(item.rarity)),
+                                1.5.dp
+                            )
                             Box(
                                 modifier = Modifier
                                     .size(60.dp)
                                     .background(DarkSurfaceVariant, RoundedCornerShape(8.dp))
-                                    .border(
-                                        1.5.dp,
-                                        when {
-                                            enchantLevel in 7..9 -> Color(0xFFFF4444)
-                                            enchantLevel in 4..6 -> OrangeAccent
-                                            enchantLevel in 1..3 -> GoldAccent
-                                            else -> Color(ItemUtils.getRarityColor(item.rarity))
-                                        },
-                                        RoundedCornerShape(8.dp)
-                                    )
+                                    .border(borderStroke, RoundedCornerShape(8.dp))
                                     .clickable { onSelect(item) },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -1860,7 +2229,7 @@ fun EnchantItemPickerDialog(
                                         modifier = Modifier
                                             .align(Alignment.BottomEnd)
                                             .padding(2.dp)
-                                            .background(GoldAccent, RoundedCornerShape(3.dp))
+                                            .background(getEnchantBadgeColor(enchantLevel), RoundedCornerShape(3.dp))
                                             .padding(horizontal = 2.dp, vertical = 1.dp)
                                     ) {
                                         Text(
@@ -1875,6 +2244,7 @@ fun EnchantItemPickerDialog(
                         }
                     }
                 }
+                } // scrollable Column
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -1904,6 +2274,7 @@ fun EnchantItemPickerDialog(
                 }
             }
         }
+        } // Box
     }
 }
 

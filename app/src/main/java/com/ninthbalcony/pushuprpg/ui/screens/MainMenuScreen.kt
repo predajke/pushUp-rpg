@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.ninthbalcony.pushuprpg.R
 import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
 import com.ninthbalcony.pushuprpg.data.db.LogEntryEntity
 import com.ninthbalcony.pushuprpg.ui.theme.*
@@ -97,6 +98,10 @@ fun MainMenuScreen(
             showLevelUpFlash = true
             SoundManager.playLevelUp(context, soundEnabled)
             kotlinx.coroutines.delay(1200)
+            showLevelUpFlash = false
+        } else {
+            // Если юзер закрыл диалог раньше 1200ms, корутина выше отменилась
+            // ДО строки `showLevelUpFlash = false` — overlay застревал. Здесь страховка.
             showLevelUpFlash = false
         }
     }
@@ -334,6 +339,7 @@ fun MainMenuScreen(
                 onPunch = {
                     if (state.isGoldenGoblinActive) {
                         viewModel.performGoblinPunch()
+                        SoundManager.playPunch(soundEnabled)
                         if (vibrationEnabled) vibrate(context)
                     } else {
                         viewModel.performPunch()
@@ -341,6 +347,7 @@ fun MainMenuScreen(
                         if (vibrationEnabled) vibrate(context)
                     }
                 },
+                onHeroClick = onNavigateToInventory,
                 modifier = Modifier
                     .heightIn(min = 220.dp)
                     .onGloballyPositioned { battleRect.value = it.boundsInWindow() }
@@ -667,14 +674,29 @@ fun LeaderboardShortcutButton(
     onClick: () -> Unit
 ) {
     val label = if (language == "ru") "Таблица лидеров" else "Leaderboard"
+    val context = LocalContext.current
+    val bgResId = remember {
+        context.resources.getIdentifier("bg_leaderboard", "drawable", context.packageName)
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(DarkSurface)
             .clickable(onClick = onClick)
     ) {
+        if (bgResId != 0) {
+            Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.35f
+            )
+            Box(modifier = Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.35f)))
+        } else {
+            Box(modifier = Modifier.matchParentSize().background(DarkSurface))
+        }
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -699,14 +721,27 @@ fun DailyRewardDialog(
     language: String,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    val bgResId = remember { context.resources.getIdentifier("bg_record_popup", "drawable", context.packageName) }
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
                 .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .clip(RoundedCornerShape(16.dp))
         ) {
+            if (bgResId != 0) Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             Text(
                 text = AppStrings.t(language, "daily_reward"),
                 color = GoldAccent,
@@ -736,6 +771,7 @@ fun DailyRewardDialog(
                 Text(AppStrings.t(language, "btn_claim"), color = Color.White)
             }
         }
+        }
     }
 }
 
@@ -753,9 +789,15 @@ fun TopBar(
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val hasPrestige = state.prestigeLevel > 0
+        val prestigeBlue = Color(0xFF3FA9F5)
         Box(
             modifier = Modifier
                 .background(OrangeAccent, RoundedCornerShape(8.dp))
+                .then(
+                    if (hasPrestige) Modifier.border(2.dp, prestigeBlue, RoundedCornerShape(8.dp))
+                    else Modifier
+                )
                 .padding(horizontal = 10.dp, vertical = 4.dp)
         ) {
             Text(
@@ -764,19 +806,18 @@ fun TopBar(
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )
-            if (state.prestigeLevel > 0) {
+            if (hasPrestige) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(x = 8.dp, y = (-8).dp)
-                        .size(20.dp)
-                        .background(GoldAccent, CircleShape)
-                        .border(1.dp, Color.White, CircleShape),
-                    contentAlignment = Alignment.Center
+                        .align(Alignment.BottomCenter)
+                        .offset(y = 10.dp)
+                        .background(prestigeBlue, RoundedCornerShape(4.dp))
+                        .border(1.dp, Color.White, RoundedCornerShape(4.dp))
+                        .padding(horizontal = 6.dp, vertical = 1.dp)
                 ) {
                     Text(
                         text = state.prestigeLevel.toString(),
-                        color = Color.Black,
+                        color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -1281,13 +1322,14 @@ fun StatItem(icon: String, value: String, color: Color) {
 fun BattleArena(
     state: GameStateEntity,
     maxHp: Int,
-    punchesRemaining: Int = 25,
+    punchesRemaining: Int = com.ninthbalcony.pushuprpg.utils.GameCalculations.DAILY_PUNCH_LIMIT,
     punchCooldownUntil: Long = 0L,
     lastPunchDamage: Int? = null,
     goblinTimeRemaining: Long = 0L,
     battleAnimation: com.ninthbalcony.pushuprpg.data.model.BattleHit? = null,
     soundEnabled: Boolean = true,
     onPunch: () -> Unit = {},
+    onHeroClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -1321,6 +1363,21 @@ fun BattleArena(
         if (state.monstersKilled > 0) {
             repeat(5) { shakeX.animateTo(8f, tween(40)); shakeX.animateTo(-8f, tween(40)) }
             shakeX.animateTo(0f, tween(40))
+        }
+    }
+
+    // Анимация летящего кулака от героя к монстру (2 варианта: сверху и снизу)
+    val fistProgress = remember { Animatable(0f) }
+    var currentFistRes by remember { mutableStateOf(R.drawable.fist) }
+    var fistFromBelow by remember { mutableStateOf(false) }
+    LaunchedEffect(lastPunchDamage) {
+        if (lastPunchDamage != null && lastPunchDamage > 0) {
+            val useFist2 = kotlin.random.Random.nextBoolean()
+            currentFistRes = if (useFist2) R.drawable.fist2 else R.drawable.fist
+            fistFromBelow = useFist2
+            fistProgress.snapTo(0f)
+            fistProgress.animateTo(1f, tween(durationMillis = 400, easing = LinearEasing))
+            fistProgress.snapTo(0f)
         }
     }
 
@@ -1463,7 +1520,7 @@ fun BattleArena(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).clickable(onClick = onHeroClick)
                 ) {
                     if (heroResId != 0) {
                         Image(
@@ -1521,14 +1578,17 @@ fun BattleArena(
                             modifier = Modifier.fillMaxWidth()
                         )
                     } else {
-                        val monster = MonsterUtils.getMonsterByLevel(state.monsterLevel)
-                        // Во время chain-анимации показываем имя/картинку из текущего хита —
-                        // если убили на 17-м хите, кадры 18..30 покажут уже нового монстра.
-                        val monsterName = battleAnimation?.monsterName ?: MonsterUtils.getMonsterName(monster, state.language)
+                        // Имя берём из state.monsterName (стабильно, локализуем через
+                        // helper). НЕ через getMonsterByLevel — для уровней с несколькими
+                        // монстрами он random'ит и UI начинает мерцать. Картинка тоже
+                        // из state.monsterImageRes — гарантированно совпадает с именем.
+                        val monsterName = battleAnimation?.monsterName?.let {
+                            MonsterUtils.localizedName(it, state.language)
+                        } ?: MonsterUtils.localizedName(state.monsterName, state.language)
                         Box(contentAlignment = Alignment.TopCenter) {
                             val imageRes = battleAnimation?.monsterImageRes
                                 ?: state.monsterImageRes.takeIf { it.isNotBlank() && it != "monster_01" }
-                                ?: monster.imageRes
+                                ?: "monster_1"
                             DrawableImage(name = imageRes, modifier = Modifier.size(110.dp))
                             if (dmgAlpha > 0f) {
                                 val isCritHit = battleAnimation?.isCrit == true
@@ -1600,11 +1660,36 @@ fun BattleArena(
                     )
                 } else {
                     Text(
-                        text = "$punchesRemaining/25",
+                        text = "$punchesRemaining/${com.ninthbalcony.pushuprpg.utils.GameCalculations.DAILY_PUNCH_LIMIT}",
                         color = if (punchesRemaining > 0) TextSecondary else TextMuted,
                         fontSize = 8.sp
                     )
                 }
+            }
+        }
+
+        // ── Overlay: летящий кулак от героя к монстру (сверху или снизу — рандом) ──
+        if (fistProgress.value > 0f) {
+            val p = fistProgress.value
+            val arcSign = if (fistFromBelow) -1f else 1f   // -1 = парабола вниз, удар снизу
+            Box(
+                modifier = Modifier.matchParentSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = currentFistRes),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size((56 + 20 * p).dp)
+                        .graphicsLayer {
+                            translationX = (-160f + 320f * p)
+                            translationY = arcSign * (-10f - 20f * (1f - kotlin.math.abs(0.5f - p) * 2f))
+                            alpha = 1f - (p * 0.3f)
+                            rotationZ = arcSign * (-10f + 20f * p)
+                            scaleX = 0.9f + 0.25f * p
+                            scaleY = 0.9f + 0.25f * p
+                        }
+                )
             }
         }
     }

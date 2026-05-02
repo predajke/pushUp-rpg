@@ -697,7 +697,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     fun getPunchesRemaining(state: GameStateEntity): Int {
         val today = com.ninthbalcony.pushuprpg.utils.DateUtils.getTodayString()
         val used = if (state.lastPunchDate == today) state.punchesUsedToday else 0
-        return (25 - used).coerceAtLeast(0)
+        return (30 - used).coerceAtLeast(0)
     }
 
     // ==================== DEV CONSOLE ====================
@@ -717,7 +717,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                     val xp = com.ninthbalcony.pushuprpg.utils.GameCalculations.getXpThresholdForLevel(lvl)
                     val points = (lvl - 1) * com.ninthbalcony.pushuprpg.utils.GameCalculations.STAT_POINTS_PER_LEVEL
                     val monster = com.ninthbalcony.pushuprpg.utils.MonsterUtils.rollNextMonster(lvl)
-                    val maxHp = com.ninthbalcony.pushuprpg.utils.GameCalculations.getMaxHp(lvl, state.baseHealth, 0)
+                    val maxHp = com.ninthbalcony.pushuprpg.utils.GameCalculations.getMaxHp(lvl, state.baseHealth, 0, prestigeLevel = state.prestigeLevel)
                     repository.saveGameState(state.copy(
                         totalXp = xp,
                         playerLevel = lvl,
@@ -772,7 +772,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
                 parts[0] == "give" && parts.getOrNull(1) == "hp" -> {
                     val maxHp = com.ninthbalcony.pushuprpg.utils.GameCalculations.getMaxHp(
-                        state.playerLevel, state.baseHealth, 0
+                        state.playerLevel, state.baseHealth, 0, prestigeLevel = state.prestigeLevel
                     )
                     repository.saveGameState(state.copy(currentHp = maxHp, isPlayerDead = false))
                     "✅ HP restored to $maxHp"
@@ -797,7 +797,11 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         val enchantLevel = getEnchantLevel(state, item.id)
         val isNight = state.activeEventId in NIGHT_ENCHANT_EVENT_IDS &&
             com.ninthbalcony.pushuprpg.utils.EventUtils.isEventActive(state.eventEndTime)
-        val chance = repository.calculateEnchantChance(state.baseLuck, state.currentStreak, isNight = isNight)
+        val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
+        val equippedForBonus = getEquippedItems(state)
+        val setBonuses = ItemUtils.getSetBonuses(equippedForBonus)
+        val enchantBonus = (achBonuses.enchantFlat + setBonuses.enchantPercent) * 100f
+        val chance = repository.calculateEnchantChance(state.baseLuck, state.currentStreak, enchantBonus, isNight)
         val cost = repository.calculateEnchantCost(item.rarity, enchantLevel, isNight)
         return Pair(chance, cost)
     }

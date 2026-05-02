@@ -1,5 +1,11 @@
 package com.ninthbalcony.pushuprpg.ui.screens
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,6 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -143,10 +151,10 @@ private fun EquipmentSection(
                         )
                     }
                     Text(
-                        text = "⚒️ Shop",
+                        text = "Shop",
                         color = OrangeLight,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        fontSize = 14.sp
                     )
                 }
             }
@@ -179,13 +187,8 @@ private fun EquipmentSection(
 private fun EquipSlot(label: String, itemId: String, onClick: () -> Unit) {
     val enchantLevel = itemId.split(":").getOrNull(1)?.toIntOrNull() ?: 0
     val item = if (itemId.isNotEmpty()) ItemUtils.getItemById(itemId) else null
-    val borderColor = when {
-        enchantLevel in 7..9 -> Color(0xFFFF4444)
-        enchantLevel in 4..6 -> OrangeAccent
-        enchantLevel in 1..3 -> GoldAccent
-        item != null -> Color(ItemUtils.getRarityColor(item.rarity))
-        else -> TextMuted
-    }
+    val rarityFallback = if (item != null) Color(ItemUtils.getRarityColor(item.rarity)) else TextMuted
+    val borderStroke = rememberEnchantBorder(enchantLevel, rarityFallback, 2.dp)
     val context = LocalContext.current
 
     Column(
@@ -196,7 +199,7 @@ private fun EquipSlot(label: String, itemId: String, onClick: () -> Unit) {
             modifier = Modifier
                 .size(60.dp)
                 .background(DarkSurfaceVariant, RoundedCornerShape(8.dp))
-                .border(2.dp, borderColor, RoundedCornerShape(8.dp)),
+                .border(borderStroke, RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
             if (item != null) {
@@ -223,11 +226,7 @@ private fun EquipSlot(label: String, itemId: String, onClick: () -> Unit) {
                             .align(Alignment.BottomEnd)
                             .padding(2.dp)
                             .background(
-                                color = when {
-                                    enchantLevel in 7..9 -> Color(0xFFFF4444)
-                                    enchantLevel in 4..6 -> OrangeAccent
-                                    else -> GoldAccent
-                                },
+                                color = getEnchantBadgeColor(enchantLevel),
                                 shape = RoundedCornerShape(3.dp)
                             )
                             .padding(horizontal = 2.dp, vertical = 1.dp)
@@ -357,15 +356,14 @@ private fun InventoryItemCell(
 ) {
     val rarityColor = Color(ItemUtils.getRarityColor(item.rarity))
 
-    val borderColor = when {
+    val borderWidth = if (isSelected || enchantLevel > 0) 2.dp else 1.5.dp
+    val staticBorderColor = when {
         isMultiSelected -> OrangeAccent
         isSelected -> GoldAccent
-        enchantLevel in 7..9 -> Color(0xFFFF4444)
-        enchantLevel in 4..6 -> OrangeAccent
-        enchantLevel in 1..3 -> GoldAccent
-        else -> rarityColor
+        else -> null
     }
-    val borderWidth = if (isSelected || enchantLevel > 0) 2.dp else 1.5.dp
+    val enchantStroke = rememberEnchantBorder(enchantLevel, rarityColor, borderWidth)
+    val borderStroke = if (staticBorderColor != null) BorderStroke(borderWidth, staticBorderColor) else enchantStroke
 
     val context = LocalContext.current
     val resId = remember(item.id) {
@@ -380,7 +378,7 @@ private fun InventoryItemCell(
         modifier = modifier
             .aspectRatio(1f)
             .background(DarkSurfaceVariant, RoundedCornerShape(6.dp))
-            .border(width = borderWidth, color = borderColor, shape = RoundedCornerShape(6.dp))
+            .border(borderStroke, RoundedCornerShape(6.dp))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -401,11 +399,7 @@ private fun InventoryItemCell(
                     .align(Alignment.BottomEnd)
                     .padding(2.dp)
                     .background(
-                        color = when {
-                            enchantLevel in 7..9 -> Color(0xFFFF4444)
-                            enchantLevel in 4..6 -> OrangeAccent
-                            else -> GoldAccent
-                        },
+                        color = getEnchantBadgeColor(enchantLevel),
                         shape = RoundedCornerShape(3.dp)
                     )
                     .padding(horizontal = 2.dp, vertical = 1.dp)
@@ -724,6 +718,36 @@ private fun InventoryStatsPanel(
                 hasPoints = hasPoints,
                 onSpend = { onSpendPoint("luck") }
             )
+
+            // ===== RESET BONUS (Prestige) =====
+            if (state.prestigeLevel > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = if (language == "ru") "🔄 Бонус ресета:" else "🔄 Reset Bonus:",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF3FA9F5)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
+                    val pct = state.prestigeLevel * 2
+                    Text(
+                        text = "+${pct}% " + (if (language == "ru") "урон" else "power"),
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                    Text(
+                        text = "+${pct}% " + (if (language == "ru") "защита" else "defense"),
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                    Text(
+                        text = "+${pct}% HP",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
 
             // ===== ACHIEVEMENT BOOSTS =====
             if (achBonuses.damagePercent > 0 || achBonuses.armorPercent > 0 ||
@@ -1068,7 +1092,7 @@ fun InventoryScreen(
                 ) {
                     Text(
                         text = "🦷 ${state.teeth}",
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         color = Color(0xFFE0E0E0),
                         fontWeight = FontWeight.Bold
                     )
@@ -1169,9 +1193,12 @@ fun InventoryScreen(
                 // Sticky: описание выбранного предмета
                 if (!multiSelectMode && selectedItem != null) {
                     Surface(
-                        color = DarkSurface,
+                        color = Color.Transparent,
                         shadowElevation = 8.dp,
-                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
                     ) {
                         ItemInfoSection(
                             selectedItem = selectedItem,
@@ -1226,4 +1253,58 @@ fun InventoryScreen(
 private fun InventoryScreenPreview() {
     val vm = remember { GameViewModel(FakeGameRepository()) }
     InventoryScreen(viewModel = vm, onBack = {}, onNavigateToShop = {}, onNavigateToAchievements = {})
+}
+
+// ==================== ENCHANT BORDER UTILS ====================
+//
+// Цветовая палитра уровней заточки (используется в Inventory, EquipSlot,
+// EnchantItemPickerDialog, ItemActionPanel):
+//   1..3   — золотой
+//   4..6   — оранжевый
+//   7..9   — красный
+//   10..19 — фиолетовый неон    (Night Grindstone)
+//   20..24 — бирюзовый неон     (Night Grindstone)
+//   25+    — переливающаяся радужная обводка (sweepGradient + animated hue)
+
+/** Статичный цвет рамки/бэйджа по уровню заточки. Для +25 возвращает розовый — рамка для 25+ должна использовать [rememberEnchantBorder]. */
+fun getEnchantBadgeColor(level: Int, fallback: Color = GoldAccent): Color = when {
+    level >= 25     -> Color(0xFFFF1493)
+    level in 20..24 -> Color(0xFF18FFFF)
+    level in 10..19 -> Color(0xFFBB86FC)
+    level in 7..9   -> Color(0xFFFF4444)
+    level in 4..6   -> OrangeAccent
+    level in 1..3   -> GoldAccent
+    else            -> fallback
+}
+
+/** Анимированный rainbow sweep-gradient brush для предметов уровня +25. */
+@Composable
+fun rememberRainbowBrush(): Brush {
+    val transition = rememberInfiniteTransition(label = "rainbow")
+    val hueShift by transition.animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(2500, easing = LinearEasing)),
+        label = "hue"
+    )
+    return Brush.sweepGradient(
+        listOf(
+            Color.hsv((hueShift + 0f)   % 360f, 1f, 1f),
+            Color.hsv((hueShift + 60f)  % 360f, 1f, 1f),
+            Color.hsv((hueShift + 120f) % 360f, 1f, 1f),
+            Color.hsv((hueShift + 180f) % 360f, 1f, 1f),
+            Color.hsv((hueShift + 240f) % 360f, 1f, 1f),
+            Color.hsv((hueShift + 300f) % 360f, 1f, 1f),
+            Color.hsv((hueShift + 360f) % 360f, 1f, 1f),
+        )
+    )
+}
+
+/** BorderStroke с цветом по уровню заточки. Для +25 возвращает rainbow-brush. */
+@Composable
+fun rememberEnchantBorder(level: Int, fallbackColor: Color, width: Dp): BorderStroke {
+    return if (level >= 25) {
+        BorderStroke(width, rememberRainbowBrush())
+    } else {
+        BorderStroke(width, getEnchantBadgeColor(level, fallbackColor))
+    }
 }

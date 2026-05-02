@@ -239,7 +239,8 @@ private fun AchievementRow(
                 contentDescription = name,
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
             )
         } else {
             Box(

@@ -49,10 +49,10 @@ fun ProgressScreen(
     val bossKillsCount = viewModel.getBossKills(state).size
     val itemLogCount = viewModel.getItemLog(state).size
 
+    Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
+    ScreenBackground("bg_mainmenu_overall")
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBackground)
+        modifier = Modifier.fillMaxSize()
     ) {
         TopAppBar(
             title = {
@@ -115,6 +115,7 @@ fun ProgressScreen(
             )
         }
     }
+    } // Box
 }
 
 @Composable

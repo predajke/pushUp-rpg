@@ -104,7 +104,7 @@ interface IGameRepository {
     fun setPlayGamesManager(manager: PlayGamesManager)
 
     // ===== Punch =====
-    // Возвращает урон (>0), 0 если мёртв, -1 если лимит (25/день)
+    // Возвращает урон (>0), 0 если мёртв, -1 если лимит (30/день)
     suspend fun performPunch(): Int
 
     // ===== Golden Goblin =====

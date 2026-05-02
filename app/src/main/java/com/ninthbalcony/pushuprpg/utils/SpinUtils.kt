@@ -18,7 +18,7 @@ data class SpinResult(
 
 object SpinUtils {
 
-    const val MAX_DAILY_AD_VIEWS = 8
+    const val MAX_DAILY_AD_VIEWS = 15
     const val TEETH_PER_SPIN = 25
 
     // Генерирует спин результат на основе вероятностей

@@ -24,36 +24,44 @@ object MonsterUtils {
         Monster(id = 16, name = "Flesh of pain", nameRu = "Плоть боли", level = 16,         maxHp = 2695, damage = 184, dropRate = 0.35f, imageRes = "monster_16"),
         Monster(id = 17, name = "Red Darkness", nameRu = "Красная Тьма", level = 17,        maxHp = 3001, damage = 208, dropRate = 0.35f, imageRes = "monster_17"),
         Monster(id = 18, name = "Sisters", nameRu = "Сёстры", level = 18,                   maxHp = 3553, damage = 239, dropRate = 0.36f, imageRes = "monster_18"),
-        Monster(id = 19, name = "Ancient Tower", nameRu = "Древняя Башня", level = 17,      maxHp = 3675, damage = 245, dropRate = 0.42f, imageRes = "monster_19"),
-        Monster(id = 20, name = "Trap", nameRu = "Ловушка", level = 16,                     maxHp = 3063, damage = 245, dropRate = 0.44f, imageRes = "monster_20"),
-        Monster(id = 21, name = "Goblin Leader", nameRu = "Король Гоблинов", level = 18,    maxHp = 4288, damage = 294, dropRate = 0.47f, imageRes = "monster_21"),
+        // Перенесён с 16→19 (был дубликатом Flesh of pain). Статы интерполированы L18↔L20.
+        Monster(id = 20, name = "Trap", nameRu = "Ловушка", level = 19,                     maxHp = 4349, damage = 285, dropRate = 0.43f, imageRes = "monster_20"),
+        // Перенесён с 17→21 (был дубликатом Red Darkness). Статы интерполированы L20↔L22.
+        Monster(id = 19, name = "Ancient Tower", nameRu = "Древняя Башня", level = 21,      maxHp = 5942, damage = 368, dropRate = 0.51f, imageRes = "monster_19"),
+        // Перенесён с 18→23 (был дубликатом Sisters). Статы интерполированы L22↔L24.
+        Monster(id = 21, name = "Goblin Leader", nameRu = "Король Гоблинов", level = 23,    maxHp = 8392, damage = 506, dropRate = 0.53f, imageRes = "monster_21"),
         Monster(id = 22, name = "Roach King", nameRu = "Король Тараканов", level = 20,      maxHp = 5145, damage = 331, dropRate = 0.50f, imageRes = "monster_22"),
         Monster(id = 23, name = "Hellspawn", nameRu = "Порождение Ада", level = 22,         maxHp = 6738, damage = 404, dropRate = 0.52f, imageRes = "monster_23"),
         Monster(id = 24, name = "Hellspawn Elite", nameRu = "Элитный Порождение Ада", level = 24, maxHp = 10045, damage = 607, dropRate = 0.54f, imageRes = "monster_23"),
         Monster(id = 25, name = "Fog Stronghold", nameRu = "Туманная Крепость", level = 25, maxHp = 11638, damage = 674, dropRate = 0.55f, imageRes = "monster_24"),
-        Monster(id = 26, name = "Swamp Mud", nameRu = "Болотная Грязь", level = 26,         maxHp = 13475, damage = 760, dropRate = 0.57f, imageRes = "monster_25"),
-        Monster(id = 27, name = "Swamp Muds", nameRu = "Болотные Грязи", level = 28,        maxHp = 20213, damage = 1139, dropRate = 0.59f, imageRes = "monster_26"),
-        Monster(id = 28, name = "The Swamp", nameRu = "Само Болото", level = 30,            maxHp = 30625, damage = 1715, dropRate = 0.61f, imageRes = "monster_27"),
-        Monster(id = 29, name = "Demonic Face", nameRu = "Демоническое Лицо", level = 32,   maxHp = 37975, damage = 1899, dropRate = 0.63f, imageRes = "monster_28"),
-        Monster(id = 30, name = "Giant Scarab", nameRu = "Гигантский Скарабей", level = 31, maxHp = 22050, damage = 1286, dropRate = 0.65f, imageRes = "monster_29"),
-        Monster(id = 31, name = "Mind Shroom", nameRu = "Гриб-Контролёр", level = 33,       maxHp = 26950, damage = 1531, dropRate = 0.67f, imageRes = "monster_30"),
-        Monster(id = 32, name = "Diabosaurus", nameRu = "Диабозавр", level = 35,            maxHp = 34300, damage = 1715, dropRate = 0.69f, imageRes = "monster_31"),
-        Monster(id = 33, name = "Wasteland Nomad", nameRu = "Кочевник Пустоши", level = 36, maxHp = 36200, damage = 1800, dropRate = 0.7f, imageRes = "monster_33"),
-        Monster(id = 34, name = "Сhitinous hunter", nameRu = "Хитиновый охотник", level = 37, maxHp = 37500, damage = 1900, dropRate = 0.7f, imageRes = "monster_34"),
-        Monster(id = 35, name = "Dark Ninja", nameRu = "Тёмный Ниндзя", level = 38, maxHp = 40000, damage = 2050, dropRate = 0.71f, imageRes = "monster_35"),
-        Monster(id = 36, name = "Werewolf", nameRu = "Волк-Оборотень", level = 39, maxHp = 44000, damage = 2200, dropRate = 0.72f, imageRes = "monster_36"),
-        Monster(id = 37, name = "Gargoyle", nameRu = "Гаргулья", level = 40, maxHp = 48000, damage = 2350, dropRate = 0.73f, imageRes = "monster_37"),
-        Monster(id = 38, name = "Slime Mass", nameRu = "Слизевое Образование", level = 40, maxHp = 45000, damage = 2300, dropRate = 0.73f, imageRes = "monster_38"),
-        Monster(id = 39, name = "Furious Orc", nameRu = "Недовольный Орк", level = 41, maxHp = 52000, damage = 2500, dropRate = 0.74f, imageRes = "monster_39"),
-        Monster(id = 40, name = "Ember Fiend", nameRu = "Огненный Бес", level = 42, maxHp = 56000, damage = 2700, dropRate = 0.74f, imageRes = "monster_40"),
+        Monster(id = 26, name = "Swamp Mud", nameRu = "Болотная Грязь", level = 26,         maxHp = 9432, damage = 760, dropRate = 0.57f, imageRes = "monster_25"),
+        Monster(id = 27, name = "Swamp Muds", nameRu = "Болотные Грязи", level = 28,        maxHp = 14149, damage = 1139, dropRate = 0.59f, imageRes = "monster_26"),
+        Monster(id = 28, name = "The Swamp", nameRu = "Само Болото", level = 30,            maxHp = 21437, damage = 1715, dropRate = 0.61f, imageRes = "monster_27"),
+        Monster(id = 29, name = "Demonic Face", nameRu = "Демоническое Лицо", level = 32,   maxHp = 26582, damage = 1899, dropRate = 0.63f, imageRes = "monster_28"),
+        Monster(id = 30, name = "Giant Scarab", nameRu = "Гигантский Скарабей", level = 31, maxHp = 15435, damage = 1286, dropRate = 0.65f, imageRes = "monster_29"),
+        Monster(id = 31, name = "Mind Shroom", nameRu = "Гриб-Контролёр", level = 33,       maxHp = 18865, damage = 1531, dropRate = 0.67f, imageRes = "monster_30"),
+        Monster(id = 32, name = "Diabosaurus", nameRu = "Диабозавр", level = 35,            maxHp = 24010, damage = 1715, dropRate = 0.69f, imageRes = "monster_31"),
+        Monster(id = 33, name = "Wasteland Nomad", nameRu = "Кочевник Пустоши", level = 36, maxHp = 25340, damage = 1800, dropRate = 0.7f, imageRes = "monster_33"),
+        Monster(id = 34, name = "Сhitinous hunter", nameRu = "Хитиновый охотник", level = 37, maxHp = 26250, damage = 1900, dropRate = 0.7f, imageRes = "monster_34"),
+        Monster(id = 35, name = "Dark Ninja", nameRu = "Тёмный Ниндзя", level = 38, maxHp = 28000, damage = 2050, dropRate = 0.71f, imageRes = "monster_35"),
+        Monster(id = 36, name = "Werewolf", nameRu = "Волк-Оборотень", level = 39, maxHp = 30800, damage = 2200, dropRate = 0.72f, imageRes = "monster_36"),
+        Monster(id = 37, name = "Gargoyle", nameRu = "Гаргулья", level = 40, maxHp = 33600, damage = 2350, dropRate = 0.73f, imageRes = "monster_37"),
+        // Перенесён с 40→34 (был дубликатом Gargoyle). Статы интерполированы L33↔L35.
+        Monster(id = 38, name = "Slime Mass", nameRu = "Слизевое Образование", level = 34, maxHp = 21437, damage = 1623, dropRate = 0.68f, imageRes = "monster_38"),
+        Monster(id = 39, name = "Furious Orc", nameRu = "Недовольный Орк", level = 41, maxHp = 36400, damage = 2500, dropRate = 0.74f, imageRes = "monster_39"),
+        Monster(id = 40, name = "Ember Fiend", nameRu = "Огненный Бес", level = 42, maxHp = 39200, damage = 2700, dropRate = 0.74f, imageRes = "monster_40"),
         // Уровни 43–49: усиленные версии существующих монстров
-        Monster(id = 41, name = "Dark Ninja+", nameRu = "Тёмный Ниндзя+", level = 43, maxHp = 63000, damage = 2900, dropRate = 0.75f, imageRes = "monster_35"),
-        Monster(id = 42, name = "Werewolf+", nameRu = "Волк-Оборотень+", level = 44, maxHp = 70000, damage = 3100, dropRate = 0.75f, imageRes = "monster_36"),
-        Monster(id = 43, name = "Gargoyle+", nameRu = "Гаргулья+", level = 45, maxHp = 78000, damage = 3350, dropRate = 0.76f, imageRes = "monster_37"),
-        Monster(id = 44, name = "Orc Warlord", nameRu = "Орк-Военачальник", level = 46, maxHp = 86000, damage = 3600, dropRate = 0.76f, imageRes = "monster_39"),
-        Monster(id = 45, name = "Demon Emperor", nameRu = "Демон-Владыка", level = 47, maxHp = 95000, damage = 3900, dropRate = 0.77f, imageRes = "monster_28"),
-        Monster(id = 46, name = "Void Titan", nameRu = "Титан Пустоты", level = 48, maxHp = 105000, damage = 4200, dropRate = 0.77f, imageRes = "monster_40"),
-        Monster(id = 47, name = "The Abyss", nameRu = "Бездна", level = 49, maxHp = 115000, damage = 4500, dropRate = 0.78f, imageRes = "monster_40"),
+        Monster(id = 41, name = "Dark Ninja+", nameRu = "Тёмный Ниндзя+", level = 43, maxHp = 44100, damage = 2900, dropRate = 0.75f, imageRes = "monster_35"),
+        Monster(id = 42, name = "Werewolf+", nameRu = "Волк-Оборотень+", level = 44, maxHp = 49000, damage = 3100, dropRate = 0.75f, imageRes = "monster_36"),
+        Monster(id = 43, name = "Gargoyle+", nameRu = "Гаргулья+", level = 45, maxHp = 54600, damage = 3350, dropRate = 0.76f, imageRes = "monster_37"),
+        Monster(id = 44, name = "Orc Warlord", nameRu = "Орк-Военачальник", level = 46, maxHp = 60200, damage = 3600, dropRate = 0.76f, imageRes = "monster_39"),
+        Monster(id = 45, name = "Demon Emperor", nameRu = "Демон-Владыка", level = 47, maxHp = 66500, damage = 3900, dropRate = 0.77f, imageRes = "monster_28"),
+        Monster(id = 46, name = "Void Titan", nameRu = "Титан Пустоты", level = 48, maxHp = 73500, damage = 4200, dropRate = 0.77f, imageRes = "monster_40"),
+        Monster(id = 47, name = "The Abyss", nameRu = "Бездна", level = 49, maxHp = 80500, damage = 4500, dropRate = 0.78f, imageRes = "monster_40"),
+        Monster(id = 48, name = "Pumped Clone", nameRu = "Накаченный Клон", level = 50, maxHp = 89600, damage = 4900, dropRate = 0.79f, imageRes = "monster_42"),
+        Monster(id = 49, name = "Demon Knight Clone", nameRu = "Демонический Клон-Рыцарь", level = 52, maxHp = 103600, damage = 5400, dropRate = 0.80f, imageRes = "monster_43"),
+        Monster(id = 50, name = "One-Arm Mutant", nameRu = "Однорукий Мутант", level = 54, maxHp = 117600, damage = 5900, dropRate = 0.81f, imageRes = "monster_44"),
+        Monster(id = 51, name = "Cursed Warlock", nameRu = "Поражённый Колдун", level = 55, maxHp = 126000, damage = 6300, dropRate = 0.82f, imageRes = "monster_45"),
         )
 
 
@@ -63,6 +71,23 @@ object MonsterUtils {
 
     fun getImageResByName(name: String): String =
         monsters.find { it.name == name }?.imageRes ?: "monster_1"
+
+    fun getMonsterByName(name: String): Monster? = monsters.find { it.name == name }
+
+    /**
+     * Локализованное имя монстра ИЛИ босса по сохранённому английскому имени.
+     * Гарантированно стабильно — НЕ random'ит как getMonsterByLevel для уровней
+     * с несколькими монстрами. Используется в UI вместо переcчёта по level.
+     */
+    fun localizedName(englishName: String, language: String): String {
+        monsters.find { it.name == englishName }?.let {
+            return if (language == "ru") it.nameRu else it.name
+        }
+        BossUtils.getAllBosses().find { it.name == englishName }?.let {
+            return if (language == "ru") it.nameRu else it.name
+        }
+        return englishName
+    }
 
     fun getMonsterByLevel(level: Int): Monster {
         val monstersOfLevel = monsters.filter { it.level == level }

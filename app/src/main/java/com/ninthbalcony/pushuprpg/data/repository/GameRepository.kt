@@ -195,7 +195,12 @@ class GameRepository(private val context: Context) : IGameRepository {
             state.unspentStatPoints + pointsPerLevel + prestigeBonus
         else state.unspentStatPoints
 
-        val maxHp = GameCalculations.getMaxHp(newLevel, state.baseHealth, 0)
+        // При prestige накопленный HP с уровней переносится в baseHealth — игрок сохраняет свой maxHp.
+        val newBaseHealth = if (didPrestige)
+            state.baseHealth + state.playerLevel * GameCalculations.HP_PER_LEVEL
+        else
+            state.baseHealth
+        val maxHp = GameCalculations.getMaxHp(actualLevel, newBaseHealth, 0, prestigeLevel = actualPrestige)
 
         // Базовое состояние после XP/уровня
         var workingState = state.copy(
@@ -205,6 +210,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             playerLevel = actualLevel,
             unspentStatPoints = newStatPoints,
             prestigeLevel = actualPrestige,
+            baseHealth = newBaseHealth,
             totalPushUpsAllTime = state.totalPushUpsAllTime + count,
             currentStreak = newStreak,
             longestStreak = maxOf(state.longestStreak, newStreak),
@@ -218,8 +224,8 @@ class GameRepository(private val context: Context) : IGameRepository {
         if (leveledUp || didPrestige) {
             val spawnLevel = if (didPrestige) 1 else actualLevel
             val newMonster = MonsterUtils.rollNextMonster(spawnLevel)
-            val prestigeMult = 1 + actualPrestige
-            if (didPrestige) addLog("🏅 Prestige $actualPrestige! Monsters are now ${prestigeMult}x stronger.", "🏅 Prestige $actualPrestige! Монстры теперь в ${prestigeMult}x сильнее.")
+            val hpBonus = GameCalculations.MONSTER_HP_BONUS_PER_PRESTIGE * actualPrestige
+            if (didPrestige) addLog("🏅 Prestige $actualPrestige! Monsters now have +$hpBonus HP.", "🏅 Prestige $actualPrestige! Монстры получили +$hpBonus HP.")
 
             // Add 3 spin tokens for level up
             val spinBonus = 3
@@ -227,9 +233,9 @@ class GameRepository(private val context: Context) : IGameRepository {
                 monsterName = newMonster.name,
                 monsterLevel = newMonster.level,
                 monsterImageRes = newMonster.imageRes,
-                monsterMaxHp = newMonster.maxHp * prestigeMult,
-                monsterCurrentHp = newMonster.maxHp * prestigeMult,
-                monsterDamage = newMonster.damage * prestigeMult,
+                monsterMaxHp = newMonster.maxHp + hpBonus,
+                monsterCurrentHp = newMonster.maxHp + hpBonus,
+                monsterDamage = newMonster.damage,
                 spinTokens = workingState.spinTokens + spinBonus
             )
             if (leveledUp && !didPrestige) {
@@ -237,15 +243,11 @@ class GameRepository(private val context: Context) : IGameRepository {
             }
         }
 
-        // Боевая обработка отжиманий (пропускаем если только что воскресли).
-        // Эмитим chain в SharedFlow ниже после успешного save — чтобы UI не показал
-        // анимацию для прогресса, который не сохранился из-за ошибки.
-        var combatHits: List<BattleHit> = emptyList()
-        if (!wasRevived) {
-            val (newState, hits) = processPushUpCombat(workingState, count)
-            workingState = newState
-            combatHits = hits
-        }
+        // Боевая обработка отжиманий. workingState уже содержит isPlayerDead=false и
+        // восстановленный HP — вызов безопасен в том числе после воскресения.
+        // Эмитим chain в SharedFlow ниже после успешного save.
+        val (newState, combatHits) = processPushUpCombat(workingState, count)
+        workingState = newState
 
         // Квест-прогресс
         var questsForPushups = QuestSystem.deserialize(workingState.activeQuestsJson)
@@ -483,11 +485,11 @@ class GameRepository(private val context: Context) : IGameRepository {
         return Gson().toJson(logList)
     }
 
-    // Минимум 5 убийств, шанс появления начинается с 10-го (+5% за каждое)
+    // Минимум 20 убийств warm-up, затем 2% на каждое убийство.
+    // Mean ≈ 20 + 50 = 70 убийств между гоблинами.
     private fun shouldSpawnGoblin(killsSince: Int): Boolean {
-        if (killsSince < 10) return false
-        val chance = (killsSince - 9) * 5
-        return kotlin.random.Random.nextInt(100) < chance.coerceAtMost(100)
+        if (killsSince < 20) return false
+        return kotlin.random.Random.nextInt(100) < 2
     }
 
     /** Обрабатывает смерть монстра: дроп лута/зубов, спавн нового */
@@ -568,9 +570,9 @@ class GameRepository(private val context: Context) : IGameRepository {
         // Спавн следующего монстра / босса / гоблина
         val newKillsSinceGoblin = state.killsSinceLastGoblin + 1
         val spawnBoss = !wasCurrentBoss && BossUtils.shouldSpawnBoss(newKillCount)
-        val spawnGoblin = !wasCurrentBoss && !spawnBoss && shouldSpawnGoblin(newKillsSinceGoblin)
+        val spawnGoblin = !wasCurrentBoss && !spawnBoss && !state.isGoldenGoblinActive && shouldSpawnGoblin(newKillsSinceGoblin)
         val next = when {
-            spawnBoss -> BossUtils.getBossForKillCount(newKillCount).also {
+            spawnBoss -> BossUtils.getBossForKillCount(newKillCount, state.playerLevel).also {
                 addLog("⚠️ BOSS appeared: ${it.name}!", "⚠️ БОСС появился: ${it.nameRu}!")
             }
             else -> MonsterUtils.rollNextMonster(state.playerLevel)
@@ -580,19 +582,19 @@ class GameRepository(private val context: Context) : IGameRepository {
                    "🟡 Появился Золотой Гоблин! Жми Punch как можно быстрее!")
         }
 
-        val prestigeMult = 1 + state.prestigeLevel
+        val hpBonus = GameCalculations.MONSTER_HP_BONUS_PER_PRESTIGE * state.prestigeLevel
         val today = DateUtils.getTodayString()
         var updated = state.copy(
             monsterName = if (spawnGoblin) "Golden Goblin" else next.name,
             monsterLevel = if (spawnGoblin) state.playerLevel else next.level,
             monsterImageRes = if (spawnGoblin) "monster_goblin_gold" else next.imageRes,
-            monsterMaxHp = if (spawnGoblin) 10_000_000 else next.maxHp * prestigeMult,
-            monsterCurrentHp = if (spawnGoblin) 10_000_000 else next.maxHp * prestigeMult,
-            monsterDamage = if (spawnGoblin) 1 else next.damage * prestigeMult,
+            monsterMaxHp = if (spawnGoblin) 10_000_000 else next.maxHp + hpBonus,
+            monsterCurrentHp = if (spawnGoblin) 10_000_000 else next.maxHp + hpBonus,
+            monsterDamage = if (spawnGoblin) 1 else next.damage,
             isCurrentBoss = spawnBoss,
             currentBossId = if (spawnBoss) next.id else 0,
             isGoldenGoblinActive = spawnGoblin,
-            goldenGoblinEndTime = if (spawnGoblin) System.currentTimeMillis() + 60_000L else state.goldenGoblinEndTime,
+            goldenGoblinEndTime = if (spawnGoblin) System.currentTimeMillis() + kotlin.random.Random.nextLong(15_000L, 25_001L) else state.goldenGoblinEndTime,
             goldenGoblinPunchCount = if (spawnGoblin) 0 else state.goldenGoblinPunchCount,
             killsSinceLastGoblin = if (spawnGoblin) 0 else newKillsSinceGoblin,
             monstersKilled = newKillCount,
@@ -1370,7 +1372,7 @@ class GameRepository(private val context: Context) : IGameRepository {
     // ==================== ЗАТОЧКА ====================
 
     override fun calculateEnchantChance(luck: Float, streak: Int, achBonus: Float, isNight: Boolean): Float {
-        val base = minOf(90f, 7f + (luck * 3f) + (streak * 0.07f) + achBonus)
+        val base = minOf(90f, 15f + (luck * 3f) + (streak * 0.07f) + achBonus)
         return if (isNight) base / 2f else base
     }
 
@@ -1383,12 +1385,9 @@ class GameRepository(private val context: Context) : IGameRepository {
             "legendary" -> 14
             else -> 1
         }
-        val base = basePrice * (currentEnchantLevel + 1)
+        val base = (basePrice * (currentEnchantLevel + 1) * 0.8f).toInt().coerceAtLeast(1)
         if (!isNight) return base
-        val nightBase = base * 5
-        if (currentEnchantLevel < 19) return nightBase
-        val multiplier = 2.0f + (currentEnchantLevel - 19) * 0.5f
-        return (nightBase * multiplier).roundToInt()
+        return base * 2
     }
 
     private val nightEnchantEventIds = setOf(6, 9, 10, 11)
@@ -1633,7 +1632,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
         val today = DateUtils.getTodayString()
         val usedToday = if (state.lastPunchDate == today) state.punchesUsedToday else 0
-        if (usedToday >= 25) return@withLock -1
+        if (usedToday >= GameCalculations.DAILY_PUNCH_LIMIT) return@withLock -1
 
         val (equippedItems, enchantLevels) = getEquippedWithEnchant(state)
         val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
@@ -1657,7 +1656,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                     monsterMaxHp = 10_000_000, monsterCurrentHp = 10_000_000,
                     monsterDamage = 1,
                     isGoldenGoblinActive = true,
-                    goldenGoblinEndTime = System.currentTimeMillis() + 60_000L,
+                    goldenGoblinEndTime = System.currentTimeMillis() + kotlin.random.Random.nextLong(10_000L, 20_001L),
                     goldenGoblinPunchCount = 0,
                     killsSinceLastGoblin = 0,
                     totalDamageDealt = state.totalDamageDealt + dmg
@@ -1731,19 +1730,20 @@ class GameRepository(private val context: Context) : IGameRepository {
         if (!state.isGoldenGoblinActive) return@withLock 0
         val teethEarned = state.goldenGoblinPunchCount
         val monster = MonsterUtils.rollNextMonster(state.playerLevel)
-        val prestigeMult = 1 + state.prestigeLevel
+        val hpBonus = GameCalculations.MONSTER_HP_BONUS_PER_PRESTIGE * state.prestigeLevel
         dao.saveGameState(state.copy(
             isGoldenGoblinActive = false,
             goldenGoblinEndTime = 0L,
             goldenGoblinPunchCount = 0,
+            killsSinceLastGoblin = 0,
             teeth = state.teeth + teethEarned,
             totalTeethEarned = state.totalTeethEarned + teethEarned,
             monsterName = monster.name,
             monsterLevel = monster.level,
             monsterImageRes = monster.imageRes,
-            monsterMaxHp = monster.maxHp * prestigeMult,
-            monsterCurrentHp = monster.maxHp * prestigeMult,
-            monsterDamage = monster.damage * prestigeMult
+            monsterMaxHp = monster.maxHp + hpBonus,
+            monsterCurrentHp = monster.maxHp + hpBonus,
+            monsterDamage = monster.damage
         ))
         addLog(
             "🟡 Golden Goblin escaped! You earned $teethEarned 🦷",

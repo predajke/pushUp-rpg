@@ -69,10 +69,11 @@ fun QuestsScreen(
         )
     }
 
+    Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
+    ScreenBackground("bg_mainmenu_overall")
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkBackground)
             .statusBarsPadding()
     ) {
         // Top bar
@@ -185,6 +186,7 @@ fun QuestsScreen(
             }
         }
     }
+    } // Box
 }
 
 @Composable

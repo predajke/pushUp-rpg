@@ -41,9 +41,9 @@ object AchievementSystem {
     // ===================== ОПРЕДЕЛЕНИЯ =====================
 
     private val UNIQUE: List<AchievementDef> = listOf(
-        AchievementDef("ach_first_blood",     "Первая кровь",          "First Blood",        "Убей первого монстра",            "Kill your first monster",          "ach_first_blood",     AchBonusType.DAMAGE_PERCENT,    0.02f),
+        AchievementDef("ach_first_blood",     "Первая кровь",          "First Blood",        "Убей первого монстра",            "Kill your first monster",          "monster_1",           AchBonusType.DAMAGE_PERCENT,    0.02f),
         AchievementDef("ach_berserker",       "Берсерк",               "Berserker",          "50+ отжиманий за одну сессию",    "50+ push-ups in one session",      "ach_berserker",       AchBonusType.XP_PERCENT,        0.05f),
-        AchievementDef("ach_master_enchant",  "Мастер заточки",        "Master Enchanter",   "Заточи вещь до +9",               "Enchant an item to +9",            "ach_master_enchant",  AchBonusType.ENCHANT_FLAT,      5f),
+        AchievementDef("ach_master_enchant",  "Мастер заточки",        "Master Enchanter",   "Заточи вещь до +9",               "Enchant an item to +9",            "img_grindstone",      AchBonusType.ENCHANT_FLAT,      5f),
         AchievementDef("ach_unstoppable",     "Неудержимый",           "Unstoppable",        "Стрик 30 дней",                   "30-day streak",                    "ach_unstoppable",     AchBonusType.DAMAGE_PERCENT,    0.03f),
         AchievementDef("ach_rich",            "Богач",                 "Rich",               "Заработай 5000 зубов",            "Earn 5000 teeth total",            "ach_rich",            AchBonusType.TEETH_RATE_PERCENT,0.05f),
         AchievementDef("ach_phoenix",         "Феникс",                "Phoenix",            "Вернись после 7 дней отсутствия", "Return after 7 days absent",       "ach_phoenix",         AchBonusType.HP_FLAT,           20f),
@@ -56,13 +56,27 @@ object AchievementSystem {
         AchievementDef("ach_early_bird",      "Ранняя пташка",         "Early Bird",         "Отжимания до 7:00",               "Push-ups before 7:00",             "ach_early_bird",      AchBonusType.XP_PERCENT,        0.03f),
         AchievementDef("ach_immortal",        "Бессмертный",           "Immortal",           "7 дней без смерти",               "7 days without dying",             "ach_immortal",        AchBonusType.HP_FLAT,           25f),
         AchievementDef("ach_alchemist",       "Алхимик",               "Alchemist",          "10 операций в Forge",             "10 Forge operations",              "ach_alchemist",       AchBonusType.ENCHANT_FLAT,      10f),
-        AchievementDef("ach_dragon_slayer",   "Покоритель дракона",    "Dragon Slayer",      "Убей Ancient Dragon",             "Kill the Ancient Dragon",          "ach_dragon_slayer",   AchBonusType.DAMAGE_PERCENT,    0.08f),
+        AchievementDef("ach_dragon_slayer",   "Покоритель дракона",    "Dragon Slayer",      "Убей Ancient Dragon",             "Kill the Ancient Dragon",          "boss_ancient_dragon", AchBonusType.DAMAGE_PERCENT,    0.08f),
         AchievementDef("ach_critical",        "Критический момент",    "Critical Moment",    "Крит во время Burst-атаки",       "Land a crit during a Burst attack","ach_critical",        AchBonusType.CRIT_PERCENT,      0.02f),
-        AchievementDef("ach_abyssal_reaper", "Губитель Бездны",       "Abyss Slayer",       "Убей Бездонного Жнеца 20 раз",    "Kill Abyssal Reaper 20 times",     "ach_abyssal_reaper",  AchBonusType.DAMAGE_PERCENT,    0.04f),
-        AchievementDef("ach_skull_crusher",  "Истребитель Черепов",   "Skull Hunter",       "Убей Сокрушителя Черепов 15 раз", "Kill Skull Crusher 15 times",      "ach_skull_crusher",   AchBonusType.CRIT_PERCENT,      0.04f),
-        AchievementDef("ach_sky_sentry",     "Покоритель Небес",      "Sky Conqueror",      "Убей Стража Небес 10 раз",        "Kill Sky Sentry 10 times",         "ach_sky_sentry",      AchBonusType.XP_PERCENT,        0.08f),
-        AchievementDef("ach_heat_cannon",    "Огнеборец",             "Flame Fighter",      "Убей Пушку Пламени 5 раз",        "Kill Heat Cannon 5 times",         "ach_heat_cannon",     AchBonusType.HP_FLAT,           60f),
-        AchievementDef("ach_void",           "VOID ПОЛУЧЕН. VOID ПОЛУЧИЛ ТЕБЯ.", "YOU GOT THE VOID, VOID GOT YOU.", "Экипируй все 5 предметов набора VOID", "Equip all 5 pieces of the VOID set", "ach_void",          AchBonusType.DAMAGE_PERCENT,    0.25f)
+        AchievementDef("ach_abyssal_reaper", "Губитель Бездны",       "Abyss Slayer",       "Убей Бездонного Жнеца 20 раз",    "Kill Abyssal Reaper 20 times",     "boss_abyssal_reaper", AchBonusType.DAMAGE_PERCENT,    0.04f),
+        AchievementDef("ach_skull_crusher",  "Истребитель Черепов",   "Skull Hunter",       "Убей Сокрушителя Черепов 15 раз", "Kill Skull Crusher 15 times",      "boss_skull_crusher",  AchBonusType.CRIT_PERCENT,      0.04f),
+        AchievementDef("ach_sky_sentry",     "Покоритель Небес",      "Sky Conqueror",      "Убей Стража Небес 10 раз",        "Kill Sky Sentry 10 times",         "boss_sky_sentry",     AchBonusType.XP_PERCENT,        0.08f),
+        AchievementDef("ach_heat_cannon",    "Огнеборец",             "Flame Fighter",      "Убей Пушку Пламени 5 раз",        "Kill Heat Cannon 5 times",         "boss_heat_cannon",    AchBonusType.HP_FLAT,           60f),
+        AchievementDef("ach_void",           "VOID ПОЛУЧЕН. VOID ПОЛУЧИЛ ТЕБЯ.", "YOU GOT THE VOID, VOID GOT YOU.", "Экипируй все 5 предметов набора VOID", "Equip all 5 pieces of the VOID set", "set_void_weapon1",  AchBonusType.DAMAGE_PERCENT,    0.25f),
+        AchievementDef("ach_diablo_first",   "Первый Ад",             "First Hell",         "Убей Дьявола Бездны",             "Kill Diablo",                      "boss_dib",            AchBonusType.DAMAGE_PERCENT,    0.12f),
+        AchievementDef("ach_iron_bull_5",    "Бычья охота",           "Bull Hunt",          "Убей Iron Bull 5 раз",            "Kill Iron Bull 5 times",           "boss_oven",           AchBonusType.HP_FLAT,           80f),
+        AchievementDef("ach_king_slayer",    "Убийца Королей",        "King Slayer",        "Убей Королевского Клона",         "Kill King Clone",                  "boss_king",           AchBonusType.DAMAGE_PERCENT,    0.15f),
+        AchievementDef("ach_night_smith_15", "Ночной кузнец",         "Night Smith",        "Заточи вещь до +15",              "Enchant an item to +15",           "img_grindstone",      AchBonusType.ENCHANT_FLAT,      12f),
+        AchievementDef("ach_night_smith_25", "Мастер ночного горна",  "Night Forge Master", "Заточи вещь до +25",              "Enchant an item to +25",           "img_grindstone",      AchBonusType.ENCHANT_FLAT,      20f),
+        AchievementDef("ach_unrealm_set",    "Облачение Преисподней", "Underrealm Clad",    "Надень 4/4 Unrealm",              "Equip 4/4 Unrealm",                "set_un_weapon",       AchBonusType.DAMAGE_PERCENT,    0.20f),
+        AchievementDef("ach_holy_set",       "Благодать Эмпирея",     "Empyrean Grace",     "Надень 4/4 Empyrean",             "Equip 4/4 Empyrean",               "set_holy_weapon",     AchBonusType.ARMOR_PERCENT,     0.20f),
+        AchievementDef("ach_clone_killer",   "Убийца клонов",         "Clone Killer",       "Убей Накаченного Клона 10 раз",   "Kill Pumped Clone 10 times",       "monster_42",          AchBonusType.DAMAGE_PERCENT,    0.06f),
+        AchievementDef("ach_cursed_hunter",  "Охотник на проклятых",  "Cursed Hunter",      "Убей Поражённого Колдуна 10 раз", "Kill Cursed Warlock 10 times",     "monster_45",          AchBonusType.DROP_RATE_PERCENT, 0.05f),
+        AchievementDef("ach_enchant_done_2_night","Первая ночная заточка","First Night Forge","Используй Night Grindstone 1 раз","Use Night Grindstone once",        "img_grindstone",           AchBonusType.ENCHANT_FLAT, 5f),
+        AchievementDef("ach_forge_dmg_9",    "Закалённая сталь",      "Hardened Steel",     "Заточи вещь до +9",               "Enchant an item to +9",            "img_grindstone",      AchBonusType.DAMAGE_PERCENT,    0.02f),
+        AchievementDef("ach_forge_dmg_15",   "Мощь заточки",          "Enchant Power",      "Заточи вещь до +15",              "Enchant an item to +15",           "img_grindstone",      AchBonusType.DAMAGE_PERCENT,    0.03f),
+        AchievementDef("ach_forge_dmg_20",   "Сила разрушения",       "Destructive Force",  "Заточи вещь до +20",              "Enchant an item to +20",           "img_grindstone",      AchBonusType.DAMAGE_PERCENT,    0.05f),
+        AchievementDef("ach_forge_dmg_25",   "Абсолютная заточка",    "Absolute Edge",      "Заточи вещь до +25",              "Enchant an item to +25",           "img_grindstone",      AchBonusType.DAMAGE_PERCENT,    0.08f)
     )
 
     private val PROGRESSIVE: List<AchievementDef> = listOf(
@@ -73,7 +87,8 @@ object AchievementSystem {
         AchievementDef("ach_kills_4", "Охотник IV",   "Hunter IV",   "500 убийств",   "500 kills",   "ach_kills", AchBonusType.DAMAGE_PERCENT, 0.04f, tier = 4),
         AchievementDef("ach_kills_5", "Охотник V",    "Hunter V",    "1000 убийств",  "1000 kills",  "ach_kills", AchBonusType.DAMAGE_PERCENT, 0.05f, tier = 5),
         AchievementDef("ach_kills_6", "Легенда боя",  "War Legend",  "2000 убийств",  "2000 kills",  "ach_kills", AchBonusType.DAMAGE_PERCENT, 0.06f, tier = 6),
-        // ach_pushups: 100/500/1k/5k/10k/50k
+        AchievementDef("ach_kills_7", "Истребитель", "Exterminator","5000 убийств",  "5000 kills",  "ach_kills", AchBonusType.DAMAGE_PERCENT, 0.08f, tier = 7),
+        // ach_pushups: 100/500/1k/5k/10k/20k/30k/50k
         AchievementDef("ach_pushups_1", "Новичок I",     "Rookie I",      "100 отжиманий",   "100 push-ups",   "ach_pushups", AchBonusType.XP_PERCENT, 0.01f, tier = 1),
         AchievementDef("ach_pushups_2", "Новичок II",    "Rookie II",     "500 отжиманий",   "500 push-ups",   "ach_pushups", AchBonusType.XP_PERCENT, 0.02f, tier = 2),
         AchievementDef("ach_pushups_3", "Атлет I",       "Athlete I",     "1000 отжиманий",  "1000 push-ups",  "ach_pushups", AchBonusType.XP_PERCENT, 0.03f, tier = 3),
@@ -81,18 +96,21 @@ object AchievementSystem {
         AchievementDef("ach_pushups_5", "Чемпион",       "Champion",      "10000 отжиманий", "10000 push-ups", "ach_pushups", AchBonusType.XP_PERCENT, 0.05f, tier = 5),
         AchievementDef("ach_pushups_6", "Легенда",       "Legend",        "20000 отжиманий", "20000 push-ups", "ach_pushups", AchBonusType.XP_PERCENT, 0.08f, tier = 6),
         AchievementDef("ach_pushups_7", "Величайший",    "Greatest",      "30000 отжиманий", "30000 push-ups", "ach_pushups", AchBonusType.XP_PERCENT, 0.10f, tier = 7),
-        // ach_streak: 3/7/14/30/60
+        AchievementDef("ach_pushups_8", "Бог отжиманий", "Push-up God",   "50000 отжиманий", "50000 push-ups", "ach_pushups", AchBonusType.XP_PERCENT, 0.15f, tier = 8),
+        // ach_streak: 3/7/14/30/60/90
         AchievementDef("ach_streak_1", "Стойкий I",     "Steadfast I",   "Стрик 3 дня",    "3-day streak",   "ach_streak", AchBonusType.XP_PERCENT, 0.01f, tier = 1),
         AchievementDef("ach_streak_2", "Стойкий II",    "Steadfast II",  "Стрик 7 дней",   "7-day streak",   "ach_streak", AchBonusType.XP_PERCENT, 0.02f, tier = 2),
         AchievementDef("ach_streak_3", "Стойкий III",   "Steadfast III", "Стрик 14 дней",  "14-day streak",  "ach_streak", AchBonusType.XP_PERCENT, 0.03f, tier = 3),
         AchievementDef("ach_streak_4", "Железная воля", "Iron Will",     "Стрик 30 дней",  "30-day streak",  "ach_streak", AchBonusType.XP_PERCENT, 0.04f, tier = 4),
         AchievementDef("ach_streak_5", "Несломленный",  "Unbroken",      "Стрик 60 дней",  "60-day streak",  "ach_streak", AchBonusType.XP_PERCENT, 0.05f, tier = 5),
-        // ach_enchant_done: 5/20/50
+        AchievementDef("ach_streak_6", "Железный монах","Iron Monk",     "Стрик 90 дней",  "90-day streak",  "ach_streak", AchBonusType.XP_PERCENT, 0.06f, tier = 6),
+        // ach_enchant_done: 5/20/50/100/250/500
         AchievementDef("ach_enchant_done_1", "Новичок",      "Newbie",      "5 заточек",   "5 enchants",   "ach_enchant_done", AchBonusType.ENCHANT_FLAT, 3f, tier = 1),
         AchievementDef("ach_enchant_done_2", "Ученик",       "Student",     "20 заточек",  "20 enchants",  "ach_enchant_done", AchBonusType.ENCHANT_FLAT, 5f, tier = 2),
         AchievementDef("ach_enchant_done_3", "Подмастерье",  "Apprentice",  "50 заточек",  "50 enchants",  "ach_enchant_done", AchBonusType.ENCHANT_FLAT, 8f, tier = 3),
         AchievementDef("ach_enchant_done_4", "Мастер",       "Master",      "100 заточек",  "100 enchants",  "ach_enchant_done", AchBonusType.ENCHANT_FLAT, 12f, tier = 4),
         AchievementDef("ach_enchant_done_5", "Гроссмейстер", "Grandmaster", "250 заточек",  "250 enchants",  "ach_enchant_done", AchBonusType.ENCHANT_FLAT, 16f, tier = 5),
+        AchievementDef("ach_enchant_done_6", "Серийный мастер","Serial Master","500 заточек", "500 enchants",  "ach_enchant_done", AchBonusType.ENCHANT_FLAT, 20f, tier = 6),
         // ach_teeth: 500/2k/5k
         AchievementDef("ach_teeth_1", "Коллектор I",   "Collector I",   "500 зубов",   "500 teeth",   "ach_teeth", AchBonusType.DROP_RATE_PERCENT, 0.01f, tier = 1),
         AchievementDef("ach_teeth_2", "Коллектор II",  "Collector II",  "1000 зубов",  "1000 teeth",  "ach_teeth", AchBonusType.DROP_RATE_PERCENT, 0.02f, tier = 2),
@@ -197,6 +215,35 @@ object AchievementSystem {
         if ((bossKills["Skull Crusher"]  ?: 0) >= 15) tryUnlock("ach_skull_crusher")
         if ((bossKills["Sky Sentry"]     ?: 0) >= 10) tryUnlock("ach_sky_sentry")
         if ((bossKills["Heat Cannon"]    ?: 0) >=  5) tryUnlock("ach_heat_cannon")
+        if ((bossKills["Diablo"]         ?: 0) >=  1) tryUnlock("ach_diablo_first")
+        if ((bossKills["Iron Bull"]      ?: 0) >=  5) tryUnlock("ach_iron_bull_5")
+        if ((bossKills["King Clone"]     ?: 0) >=  1) tryUnlock("ach_king_slayer")
+
+        // --- Бестиарий: обычные монстры ---
+        val bestiary: Map<String, Int> = try {
+            val type = object : TypeToken<Map<String, Int>>() {}.type
+            gson.fromJson(state.bestiaryJson, type) ?: emptyMap()
+        } catch (e: Exception) { emptyMap() }
+        if ((bestiary["Pumped Clone"]   ?: 0) >= 10) tryUnlock("ach_clone_killer")
+        if ((bestiary["Cursed Warlock"] ?: 0) >= 10) tryUnlock("ach_cursed_hunter")
+
+        // --- Сеты: экипированные предметы ---
+        val equipped6 = listOf(state.equippedHead, state.equippedNecklace,
+            state.equippedWeapon1, state.equippedWeapon2, state.equippedPants, state.equippedBoots)
+        val unrealmCount = equipped6.count { it.startsWith("set_un_") }
+        val holyCount    = equipped6.count { it.startsWith("set_holy_") }
+        if (unrealmCount >= 4) tryUnlock("ach_unrealm_set")
+        if (holyCount    >= 4) tryUnlock("ach_holy_set")
+
+        // --- Заточка: максимальный уровень в инвентаре ---
+        val maxEnchantInInv = state.inventoryItems.split(",")
+            .mapNotNull { it.split(":").getOrNull(1)?.toIntOrNull() }
+            .maxOrNull() ?: 0
+        if (maxEnchantInInv >= 9)  tryUnlock("ach_forge_dmg_9")
+        if (maxEnchantInInv >= 10) tryUnlock("ach_enchant_done_2_night")
+        if (maxEnchantInInv >= 15) { tryUnlock("ach_night_smith_15"); tryUnlock("ach_forge_dmg_15") }
+        if (maxEnchantInInv >= 20) tryUnlock("ach_forge_dmg_20")
+        if (maxEnchantInInv >= 25) { tryUnlock("ach_night_smith_25"); tryUnlock("ach_forge_dmg_25") }
 
         // --- VOID: экипированы все 5 предметов набора ---
         val w1base = state.equippedWeapon1.split(":")[0].let { s -> s.split("_").let { p -> if (p.size > 2 && p.last().all { it.isDigit() } && p.last().length > 8) p.dropLast(1).joinToString("_") else s } }
@@ -216,6 +263,7 @@ object AchievementSystem {
         if (kills >= 500)  tryUnlock("ach_kills_4")
         if (kills >= 1000) tryUnlock("ach_kills_5")
         if (kills >= 2000) tryUnlock("ach_kills_6")
+        if (kills >= 5000) tryUnlock("ach_kills_7")
 
 
         // --- Прогрессивные: отжимания ---
@@ -227,6 +275,7 @@ object AchievementSystem {
         if (pushups >= 10000) tryUnlock("ach_pushups_5")
         if (pushups >= 20000) tryUnlock("ach_pushups_6")
         if (pushups >= 30000) tryUnlock("ach_pushups_7")
+        if (pushups >= 50000) tryUnlock("ach_pushups_8")
 
         // --- Прогрессивные: стрик ---
         val streak = state.currentStreak
@@ -235,6 +284,7 @@ object AchievementSystem {
         if (streak >= 14) tryUnlock("ach_streak_3")
         if (streak >= 30) tryUnlock("ach_streak_4")
         if (streak >= 60) tryUnlock("ach_streak_5")
+        if (streak >= 90) tryUnlock("ach_streak_6")
 
         // --- Прогрессивные: заточки ---
         val enchants = state.totalEnchantmentsSuccess
@@ -243,6 +293,7 @@ object AchievementSystem {
         if (enchants >= 50) tryUnlock("ach_enchant_done_3")
         if (enchants >= 100) tryUnlock("ach_enchant_done_4")
         if (enchants >= 250) tryUnlock("ach_enchant_done_5")
+        if (enchants >= 500) tryUnlock("ach_enchant_done_6")
 
         // --- Прогрессивные: зубы ---
         val teeth = state.totalTeethEarned
@@ -259,19 +310,19 @@ object AchievementSystem {
     fun getProgressText(def: AchievementDef, state: GameStateEntity, language: String): String? {
         val (current, target) = when {
             def.id.startsWith("ach_kills_") -> {
-                val t = when (def.tier) { 1->10; 2->50; 3->100; 4->500; 5->1000; 6->2000; else->0 }
+                val t = when (def.tier) { 1->10; 2->50; 3->100; 4->500; 5->1000; 6->2000; 7->5000; else->0 }
                 state.monstersKilled to t
             }
             def.id.startsWith("ach_pushups_") -> {
-                val t = when (def.tier) { 1->100; 2->500; 3->1000; 4->5000; 5->10000; 6->20000; 7->30000; else->0 }
+                val t = when (def.tier) { 1->100; 2->500; 3->1000; 4->5000; 5->10000; 6->20000; 7->30000; 8->50000; else->0 }
                 state.totalPushUpsAllTime to t
             }
             def.id.startsWith("ach_streak_") -> {
-                val t = when (def.tier) { 1->3; 2->7; 3->14; 4->30; 5->60; else->0 }
+                val t = when (def.tier) { 1->3; 2->7; 3->14; 4->30; 5->60; 6->90; else->0 }
                 state.currentStreak to t
             }
             def.id.startsWith("ach_enchant_done_") -> {
-                val t = when (def.tier) { 1->5; 2->20; 3->50; 4->100; 5->250; else->0 }
+                val t = when (def.tier) { 1->5; 2->20; 3->50; 4->100; 5->250; 6->500; else->0 }
                 state.totalEnchantmentsSuccess to t
             }
             def.id.startsWith("ach_teeth_") -> {
