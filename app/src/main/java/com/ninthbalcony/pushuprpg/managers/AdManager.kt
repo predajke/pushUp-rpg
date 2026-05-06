@@ -16,14 +16,16 @@ class AdManager(private val context: Context) {
         private const val TAG = "AdManager"
         private const val AD_LOAD_TIMEOUT_MS = 30_000L
 
-        // Google test Ad Unit ID for Rewarded Ads (for development/testing)
+        // Google test Ad Unit ID for Rewarded Ads — used in DEBUG builds only.
         private const val TEST_REWARDED_AD_UNIT = "ca-app-pub-3940256099942544/5224354917"
 
-        // Production Ad Unit IDs (replace after AdMob approval)
-        // const val PRODUCTION_CLOVER_BOX = "ca-app-pub-..."
-        // const val PRODUCTION_SHOP = "ca-app-pub-..."
-        // const val PRODUCTION_DAILY = "ca-app-pub-..."
-        // const val PRODUCTION_FORGE = "ca-app-pub-..."
+        // Production Ad Unit ID (PushUP Reward AD) — used in RELEASE builds only.
+        // Never click your own production ads — that's a permanent AdMob ban.
+        private const val PROD_REWARDED_AD_UNIT = "ca-app-pub-1623950775821074/3463799565"
+
+        // Active unit ID — picked at compile time based on BuildConfig.DEBUG.
+        private val REWARDED_AD_UNIT: String =
+            if (com.ninthbalcony.pushuprpg.BuildConfig.DEBUG) TEST_REWARDED_AD_UNIT else PROD_REWARDED_AD_UNIT
     }
 
     private var rewardedAd: RewardedAd? = null
@@ -43,7 +45,7 @@ class AdManager(private val context: Context) {
 
         RewardedAd.load(
             context,
-            TEST_REWARDED_AD_UNIT,
+            REWARDED_AD_UNIT,
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {
@@ -75,7 +77,7 @@ class AdManager(private val context: Context) {
 
             RewardedAd.load(
                 activity,
-                TEST_REWARDED_AD_UNIT,
+                REWARDED_AD_UNIT,
                 adRequest,
                 object : RewardedAdLoadCallback() {
                     override fun onAdFailedToLoad(adError: LoadAdError) {

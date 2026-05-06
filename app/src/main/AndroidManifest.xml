@@ -17,11 +17,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PushUpRPG">
 
-        <!-- Google Mobile Ads SDK - AdMob App ID (test ID) -->
-        <!-- TODO: Replace with production App ID after AdMob approval -->
+        <!-- Google Mobile Ads SDK - production App ID (PushUpRPG) -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-1623950775821074~2645541918" />
+
+        <!-- Resolve manifest merger conflict between AdMob & Firebase Analytics -->
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            android:resource="@xml/gma_ad_services_config"
+            tools:replace="android:resource" />
 
         <!-- Play Games Services v2 — required APP_ID (= project number from Play Console). -->
         <meta-data

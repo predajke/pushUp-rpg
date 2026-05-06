@@ -8,6 +8,7 @@ composeBom = "2025.05.00"
 navigationCompose = "2.9.0"
 roomVersion = "2.7.1"
 googleServices = "4.4.2"
+firebaseCrashlytics = "3.0.2"
 playServicesAuth = "21.3.0"
 datastorePreferences = "1.1.4"
 workManager = "2.10.1"
@@ -47,4 +48,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics" }
 ksp = { id = "com.google.devtools.ksp", version = "2.3.2" }
