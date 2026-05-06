@@ -24,8 +24,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.window.Dialog
 import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
+import com.ninthbalcony.pushuprpg.data.repository.LeaderboardEntry
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
+import com.ninthbalcony.pushuprpg.ui.components.clanTagColor
+import com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId
+import com.ninthbalcony.pushuprpg.utils.countryToFlag
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -67,6 +80,14 @@ data class LeaderboardPlayer(
     val hp: Int = 0,
     val luck: Int = 0,
     val ageDays: Int = 1,
+    val clanTag: String = "",
+    val clanTagColor: String = "default",
+    val uid: String = "",
+    val friendCode: String = "",
+    val heroAvatar: String = "avatar_base",
+    val gender: String = "male",
+    val totalTeethEarned: Int = 0,
+    val longestStreak: Int = 0,
 )
 
 enum class LbScope { GLOBAL, COUNTRY, FRIENDS }
@@ -108,12 +129,7 @@ private fun applyFilters(
 }
 
 // ── Flag (country code → emoji flag) ─────────────────────────────────────────
-
-private fun countryToFlag(code: String): String {
-    if (code.length != 2) return "🏳"
-    val offset = 0x1F1E6 - 'A'.code
-    return String(intArrayOf(code[0].uppercaseChar().code + offset, code[1].uppercaseChar().code + offset), 0, 2)
-}
+// `countryToFlag` lives in utils/CountryUtils.kt — imported below.
 
 // ── Avatar with rank-aware medal gradients ────────────────────────────────────
 
@@ -162,7 +178,7 @@ private fun LbColumnHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .padding(start = 8.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -171,10 +187,10 @@ private fun LbColumnHeader() {
             fontSize = 9.5.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.14.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.width(36.dp),
+            textAlign = TextAlign.Start,
+            modifier = Modifier.width(22.dp),
         )
-        Spacer(Modifier.width(6.dp))
+        Spacer(Modifier.width(4.dp))
         Text(
             text = "NAME",
             color = LbTextMute,
@@ -219,7 +235,7 @@ private fun LbColumnHeader() {
 // ── Player row (5 fixed cols, no scroll) ─────────────────────────────────────
 
 @Composable
-private fun LbPlayerRow(p: LeaderboardPlayer) {
+private fun LbPlayerRow(p: LeaderboardPlayer, onClick: (() -> Unit)? = null) {
     val rankColor = when (p.rank) {
         1    -> LbGold
         2    -> LbSilver
@@ -229,7 +245,8 @@ private fun LbPlayerRow(p: LeaderboardPlayer) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 9.dp),
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
+            .padding(start = 8.dp, end = 14.dp, top = 9.dp, bottom = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -237,16 +254,31 @@ private fun LbPlayerRow(p: LeaderboardPlayer) {
             color = rankColor,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.width(36.dp),
+            textAlign = TextAlign.Start,
+            modifier = Modifier.width(22.dp),
         )
-        Spacer(Modifier.width(6.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(
+            text = countryToFlag(p.country.ifBlank { "US" }),
+            fontSize = 14.sp,
+        )
+        Spacer(Modifier.width(5.dp))
         Row(
             modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             LbAvatar(name = p.name, rank = p.rank)
-            Spacer(Modifier.width(7.dp))
+            Spacer(Modifier.width(6.dp))
+            if (p.clanTag.isNotBlank()) {
+                Text(
+                    text = "[${p.clanTag}]",
+                    color = com.ninthbalcony.pushuprpg.ui.components.clanTagColor(p.clanTagColor),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                )
+                Spacer(Modifier.width(4.dp))
+            }
             Text(
                 text = p.name,
                 color = if (p.isMe) Color.White else LbText,
@@ -334,11 +366,27 @@ fun LeaderboardScreen(
     var scope  by remember { mutableStateOf(LbScope.GLOBAL) }
     var period by remember { mutableStateOf(LbPeriod.ALL) }
     var query  by remember { mutableStateOf("") }
+    var selectedPlayer by remember { mutableStateOf<LeaderboardPlayer?>(null) }
 
-    val mockRoster = remember { generateMockRoster() }
+    // Live data from RTDB (populated by VM via LeaderboardRepository).
+    val liveEntries by viewModel.leaderboardEntries.collectAsState()
+    val friends     by viewModel.friendsList.collectAsState()
+    val isLoading   by viewModel.leaderboardLoading.collectAsState()
+    val isOnline    by viewModel.isOnline.collectAsState()
+
+    // Trigger fetch on first composition + whenever screen is reopened.
+    LaunchedEffect(Unit) {
+        viewModel.refreshLeaderboard()
+        viewModel.refreshFriends()
+    }
+
+    val friendUids = remember(friends) { friends.map { it.uid }.toSet() }
     val me = remember(gameState) { buildMePlayer(gameState) }
-    val players = remember(mockRoster, me) {
-        mockRoster.toMutableList().also { it[me.rank - 1] = me }
+    // Merge top-100 + friends (friends might be outside top-100), dedup, sort by pushUps,
+    // assign rank, mark isMe / isFriend.
+    val players = remember(liveEntries, friends, me, friendUids) {
+        val merged = (liveEntries + friends).distinctBy { it.uid }
+        mapEntriesToPlayers(merged, me, friendUids)
     }
     val filtered = remember(players, scope, query) { applyFilters(players, me, scope, query) }
 
@@ -395,8 +443,43 @@ fun LeaderboardScreen(
                     )
                     Text("✦", color = LbGold.copy(alpha = 0.85f), fontSize = 12.sp)
                 }
+                // Refresh button (top-right). Disabled while loading.
+                Text(
+                    text = if (isLoading) "⟳" else "⟳",
+                    color = if (isLoading) LbTextMute else LbOrange,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .clickable(enabled = !isLoading) {
+                            viewModel.refreshLeaderboard(force = true)
+                            viewModel.refreshFriends()
+                        },
+                )
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(LbLine))
+
+            // ── Offline banner ───────────────────────────────────────────────
+            if (!isOnline) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0x33FF453A))
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = if (language == "ru")
+                            "⚠ Нет подключения — данные могут быть устаревшими"
+                        else
+                            "⚠ Offline — data may be stale",
+                        color = Color(0xFFFF8A8A),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
 
             // ── Scope tabs ───────────────────────────────────────────────────
             Row(
@@ -479,27 +562,54 @@ fun LeaderboardScreen(
 
             // ── Scrollable list + sticky "Your Standing" ──────────────────────
             Box(modifier = Modifier.weight(1f)) {
-                if (filtered.isEmpty()) {
-                    val emptyMsg = if (language == "ru") "Чемпионов не найдено." else "No champions match."
+                if (isLoading && filtered.isEmpty()) {
+                    val msg = if (language == "ru") "Загрузка…" else "Loading…"
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(msg, color = LbTextMute, fontSize = 12.sp)
+                    }
+                } else if (filtered.isEmpty()) {
+                    val emptyMsg = if (language == "ru")
+                        "Будь первым! Лидерборд пока пуст."
+                    else
+                        "Be the first! Leaderboard is empty."
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(emptyMsg, color = LbTextMute, fontSize = 12.sp)
                     }
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 90.dp),
+                        contentPadding = PaddingValues(bottom = 140.dp),
                     ) {
                         itemsIndexed(filtered, key = { _, p -> "${p.rank}-${p.name}" }) { _, p ->
-                            LbPlayerRow(p = p)
+                            LbPlayerRow(
+                                p = p,
+                                onClick = if (!p.isMe) { { selectedPlayer = p } } else null,
+                            )
                         }
                     }
                 }
 
                 StickyMeRow(
                     me = me,
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .navigationBarsPadding(),
                 )
             }
+        }
+
+        // Mini-profile dialog (other players)
+        selectedPlayer?.let { p ->
+            PlayerProfileDialog(
+                player = p,
+                isAlreadyFriend = viewModel.isFriend(p.uid),
+                language = language,
+                onAddFriend = {
+                    viewModel.addFriendByUid(p.uid)
+                    selectedPlayer = null
+                },
+                onDismiss = { selectedPlayer = null },
+            )
         }
     }
 }
@@ -542,17 +652,32 @@ private fun StickyMeRow(
                 color = LbOrange2,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.width(36.dp),
+                textAlign = TextAlign.Start,
+                modifier = Modifier.width(34.dp),
             )
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = countryToFlag(me.country.ifBlank { "US" }),
+                fontSize = 14.sp,
+            )
+            Spacer(Modifier.width(5.dp))
             LbAvatar(
                 name = me.name,
                 rank = me.rank,
                 borderColor = Color(0x8CFF8A2A),
                 bgBrush = Brush.radialGradient(listOf(Color(0xFF4A2A10), Color(0xFF1A1108))),
             )
-            Spacer(Modifier.width(7.dp))
+            Spacer(Modifier.width(6.dp))
+            if (me.clanTag.isNotBlank()) {
+                Text(
+                    text = "[${me.clanTag}]",
+                    color = com.ninthbalcony.pushuprpg.ui.components.clanTagColor(me.clanTagColor),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                )
+                Spacer(Modifier.width(4.dp))
+            }
             Text(
                 text = me.name,
                 color = Color.White,
@@ -595,49 +720,56 @@ private fun StickyMeRow(
 
 // ── Mock data generator (replace with real API / Firebase call) ───────────────
 
-private const val MY_RANK = 364
-private const val MY_COUNTRY = "UA"
+private const val MY_RANK = 1                // overwritten by mapEntriesToPlayers
+private const val MY_COUNTRY = "US"
 
-private val MOCK_COUNTRIES = listOf(
-    "US","UA","PL","DE","FR","ES","IT","GB","BR","AR","MX","JP","KR","CN","TH",
-    "VN","ID","PH","IN","TR","EG","ZA","NG","SE","NO","FI","DK","NL","BE","CZ",
-    "SK","HU","RO","GR","PT","IE","AT","CH","AU","NZ","CA","CL","CO","RU","BY",
-    "KZ","GE","IL","SA","AE","SG","MY","TW","HK","LT","LV","EE","BG","HR","RS"
-)
-private val MOCK_FIRST = listOf("Krak","Vor","Mor","Drag","Tor","Gar","Bran","Ash","Ven","Dur","Hex","Ulf","Kael","Fen","Iron","Stone","Steel","Blood","Storm","Frost","Shadow","Wolf","Hawk","Bone","Dawn","Night","Grim","Red")
-private val MOCK_LAST  = listOf("mar","grim","heart","fang","blade","born","wolf","crow","axe","rune","bane","wind","hammer","shade","horn","fist","thorn","dawn","star")
-private val MOCK_FRIENDS = setOf(2, 17, 44, 88, 121, 199, 247, 312, 333, 360, 363, 365, 388, 401, 442, 477)
-
-private fun generateMockRoster(): List<LeaderboardPlayer> {
-    var seed = 20260428
-    fun nextFloat(): Float {
-        seed = (seed * 1664525 + 1013904223).toInt()
-        return ((seed ushr 8) and 0xFFFFFF).toFloat() / 0xFFFFFF
-    }
-    fun nextInt(lo: Int, hi: Int) = lo + (nextFloat() * (hi - lo + 1)).toInt().coerceAtMost(hi - lo)
-    fun pick(list: List<String>) = list[(nextFloat() * list.size).toInt().coerceAtMost(list.size - 1)]
-
-    val log500 = Math.log(500.0)
-    val list = (1..500).map { rank ->
-        val t = 1f - (Math.log(rank.toDouble()) / log500).toFloat()
-        fun tPow(exp: Float) = Math.pow(t.toDouble(), exp.toDouble()).toFloat()
+/**
+ * Convert RTDB entries to the legacy `LeaderboardPlayer` shape used by the
+ * rendering code. Strategy:
+ *  - Sort by totalPushUps desc
+ *  - If the local user appears in the list (matches by name+country) we
+ *    upgrade that row with full local stats; otherwise we splice `me` in at
+ *    the top so they always see their rank
+ *  - Stats not stored on the server (power/armor/hp/luck/ageDays) default to 0
+ */
+private fun mapEntriesToPlayers(
+    entries: List<LeaderboardEntry>,
+    me: LeaderboardPlayer,
+    friendUids: Set<String> = emptySet(),
+): List<LeaderboardPlayer> {
+    val sorted = entries.sortedByDescending { it.totalPushUps }
+    val mapped = sorted.mapIndexed { idx, e ->
+        val isMe = e.name.equals(me.name, ignoreCase = true) && e.country == me.country
         LeaderboardPlayer(
-            rank = rank,
-            name = pick(MOCK_FIRST) + pick(MOCK_LAST),
-            country = pick(MOCK_COUNTRIES),
-            totalPushUps = (180000 * tPow(1.6f) + 4500).toInt().coerceAtLeast(1),
-            lvl   = (99 * tPow(0.85f) + nextInt(0, 4)).toInt().coerceIn(1, 99),
-            res   = (42 * tPow(1.2f)  + nextInt(0, 2) - 1).toInt().coerceAtLeast(0),
-            power = (9999 * tPow(1.1f) + 120).toInt().coerceAtLeast(50),
-            armor = (7400 * tPow(1.15f) + 80).toInt().coerceAtLeast(20),
-            hp    = (12000 * tPow(1.05f) + 220).toInt().coerceAtLeast(100),
-            luck  = (640 * tPow(0.9f) + 12).toInt().coerceAtLeast(1),
-            ageDays = (900 * tPow(0.6f) + nextInt(0, 30)).toInt().coerceAtLeast(1),
+            rank = idx + 1,
+            name = e.name,
+            country = e.country.ifBlank { MY_COUNTRY },
+            isFriend = e.uid in friendUids,
+            isMe = isMe,
+            res = e.prestige,
+            lvl = e.level,
+            totalPushUps = e.totalPushUps,
+            power = if (isMe) me.power else 0,
+            armor = if (isMe) me.armor else 0,
+            hp    = if (isMe) me.hp    else 0,
+            luck  = if (isMe) me.luck  else 0,
+            ageDays = if (isMe) me.ageDays else 1,
+            clanTag = e.clanTag,
+            clanTagColor = e.clanTagColor,
+            uid = e.uid,
+            friendCode = e.friendCode,
+            heroAvatar = e.heroAvatar,
+            gender = e.gender,
+            totalTeethEarned = e.totalTeethEarned,
+            longestStreak = e.longestStreak,
         )
-    }.sortedByDescending { it.totalPushUps }
-        .mapIndexed { i, p -> p.copy(rank = i + 1, isFriend = i in MOCK_FRIENDS) }
-
-    return list
+    }
+    // If we didn't see ourselves in the snapshot yet (sign-in just finished, no
+    // push has propagated), splice in synthetic "me" so the sticky row + filters
+    // still work.
+    return if (mapped.any { it.isMe }) mapped
+    else (mapped + me.copy(rank = mapped.size + 1)).sortedByDescending { it.totalPushUps }
+        .mapIndexed { i, p -> p.copy(rank = i + 1) }
 }
 
 private val BIRTH_DATE_FMT = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -655,7 +787,7 @@ private fun buildMePlayer(gs: GameStateEntity?): LeaderboardPlayer {
     return LeaderboardPlayer(
         rank = MY_RANK,
         name = gs.playerName,
-        country = MY_COUNTRY,
+        country = gs.playerCountry.ifBlank { MY_COUNTRY },
         isMe = true,
         res = gs.prestigeLevel,
         lvl = gs.playerLevel,
@@ -665,5 +797,237 @@ private fun buildMePlayer(gs: GameStateEntity?): LeaderboardPlayer {
         hp = gs.baseHealth,
         luck = gs.baseLuck.toInt(),
         ageDays = ageDays,
+        clanTag = gs.clanTag,
+        clanTagColor = gs.clanTagColor,
+        heroAvatar = gs.heroAvatar,
+        gender = gs.playerGender,
+        totalTeethEarned = gs.totalTeethEarned,
+        longestStreak = gs.longestStreak,
     )
+}
+
+// ── Mini player profile dialog ────────────────────────────────────────────────
+
+@Composable
+private fun PlayerProfileDialog(
+    player: LeaderboardPlayer,
+    isAlreadyFriend: Boolean,
+    language: String,
+    onAddFriend: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val clipboard = remember {
+        context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+    }
+    val avatarResId = rememberAvatarResId(player.heroAvatar, player.gender)
+
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF1A1719), RoundedCornerShape(16.dp))
+                .border(1.dp, Color(0x33FF8A2A), RoundedCornerShape(16.dp))
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Avatar
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFF2A2428)),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (avatarResId != 0) {
+                    Image(
+                        painter = painterResource(id = avatarResId),
+                        contentDescription = player.name,
+                        modifier = Modifier.fillMaxSize().padding(6.dp),
+                        contentScale = ContentScale.Fit,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // Flag + clan + name
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = countryToFlag(player.country.ifBlank { "US" }), fontSize = 18.sp)
+                Spacer(Modifier.width(6.dp))
+                if (player.clanTag.isNotBlank()) {
+                    Text(
+                        text = "[${player.clanTag}]",
+                        color = clanTagColor(player.clanTagColor),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.width(6.dp))
+                }
+                Text(
+                    text = player.name,
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+
+            Spacer(Modifier.height(2.dp))
+
+            // Level / prestige
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = (if (language == "ru") "Уровень " else "Level ") + player.lvl,
+                    color = LbOrange,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                if (player.res > 0) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "·", color = LbTextMute, fontSize = 13.sp)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = (if (language == "ru") "Ресет " else "Prestige ") + player.res,
+                        color = Color(0xFF3FA9F5),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // Stats block
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0x14FFFFFF), RoundedCornerShape(10.dp))
+                    .padding(12.dp),
+            ) {
+                StatLine(
+                    label = if (language == "ru") "ОТЖИМАНИЯ" else "PUSH-UPS",
+                    value = fmt(player.totalPushUps),
+                    valueColor = LbOrange2,
+                )
+                Spacer(Modifier.height(6.dp))
+                StatLine(
+                    label = if (language == "ru") "ДЛИННЫЙ СТРИК" else "LONGEST STREAK",
+                    value = "${player.longestStreak}d",
+                    valueColor = LbGreen2,
+                )
+                Spacer(Modifier.height(6.dp))
+                StatLine(
+                    label = if (language == "ru") "ВСЕГО ЗУБОВ" else "TOTAL TEETH",
+                    value = fmt(player.totalTeethEarned),
+                    valueColor = LbGold,
+                )
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // Friend code + copy
+            if (player.friendCode.isNotBlank()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = if (language == "ru") "Код:" else "Code:",
+                        color = LbTextMute,
+                        fontSize = 12.sp,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = player.friendCode,
+                        color = LbOrange,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .background(LbOrange.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                    )
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = {
+                        clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("friend code", player.friendCode))
+                        android.widget.Toast.makeText(
+                            context,
+                            if (language == "ru") "Скопировано" else "Copied",
+                            android.widget.Toast.LENGTH_SHORT,
+                        ).show()
+                    }) {
+                        Text(if (language == "ru") "Копировать" else "Copy", color = LbOrange, fontSize = 12.sp)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+
+            // Action buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                ) {
+                    Text(
+                        if (language == "ru") "Закрыть" else "Close",
+                        color = LbTextMute,
+                    )
+                }
+                if (isAlreadyFriend) {
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF34C759).copy(alpha = 0.18f)),
+                        enabled = false,
+                    ) {
+                        Text(
+                            text = if (language == "ru") "✓ В друзьях" else "✓ Already friend",
+                            color = Color(0xFF34C759),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                } else {
+                    Button(
+                        onClick = onAddFriend,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = LbOrange),
+                    ) {
+                        Text(
+                            text = if (language == "ru") "+ Добавить" else "+ Add friend",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatLine(label: String, value: String, valueColor: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            color = LbTextMute,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.14.sp,
+        )
+        Text(
+            text = value,
+            color = valueColor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
 }

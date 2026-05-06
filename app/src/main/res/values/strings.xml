@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">PushUpRPG</string>
+    <!-- Play Games Services project number (Play Console → Play Games Services → Configuration). -->
+    <string name="games_app_id" translatable="false">477535266151</string>
 </resources>

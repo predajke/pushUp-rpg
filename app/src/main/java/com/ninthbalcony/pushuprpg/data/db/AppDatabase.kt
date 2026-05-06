@@ -14,7 +14,7 @@ import com.ninthbalcony.pushuprpg.data.db.entity.MaxPushUpsAttemptEntity
         LogEntryEntity::class,
         MaxPushUpsAttemptEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -375,7 +375,7 @@ fun ShopScreen(
                 onReroll = { viewModel.rerollShop() }
             )
 
-            if (state.playerLevel >= 4) ForgeSection(
+            if (state.playerLevel >= 4 || state.prestigeLevel >= 1) ForgeSection(
                 slot1Item = forgeSlot1Item,
                 slot2Item = forgeSlot2Item,
                 language = language,
@@ -476,7 +476,7 @@ fun ShopScreen(
             )
 
             // --- Точильный камень ---
-            if (state.playerLevel >= 6) GrindstoneSection(
+            if (state.playerLevel >= 6 || state.prestigeLevel >= 1) GrindstoneSection(
                 state = state,
                 language = language,
                 inventoryItems = viewModel.getInventoryItems(state),

@@ -1,20 +1,42 @@
 package com.ninthbalcony.pushuprpg.managers
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.games.Games
-import com.google.android.gms.games.GamesClient
-import com.google.android.gms.tasks.Task
-import kotlinx.coroutines.*
+import com.google.android.gms.games.PlayGames
+import com.google.android.gms.games.PlayGamesSdk
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.PlayGamesAuthProvider
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.lang.ref.WeakReference
 
+/**
+ * Wrapper around Play Games SDK v2 + Firebase Auth.
+ *
+ * Sign-in flow:
+ *   1. PlayGames.getGamesSignInClient(activity).signIn() — opens Play Games consent UI if needed
+ *   2. requestServerSideAccess(WEB_CLIENT_ID, false) — returns a one-shot serverAuthCode
+ *   3. PlayGamesAuthProvider.getCredential(serverAuthCode) → Firebase credential
+ *   4. linkWithCredential() (anonymous → Play Games) or signInWithCredential() (collision recovery)
+ *
+ * The Web (Game Server) OAuth client whose ID is below must be configured in
+ * Firebase Auth → Play Games provider for token verification to work.
+ */
 class PlayGamesManager(private val context: Context) {
+
     companion object {
         private const val TAG = "PlayGamesManager"
 
-        // Achievement IDs
+        // Web (Game Server) OAuth client ID. Public — safe to ship in source.
+        private const val WEB_CLIENT_ID =
+            "477535266151-buoltg1ea91rc772ulcqvquv5f175q19.apps.googleusercontent.com"
+
+        // Achievement IDs (from Play Console → Play Games Services → Achievements)
         private const val ACHIEVEMENT_FIRST_FIGHT = "CgkI58rH-vINEAIQAA"
         private const val ACHIEVEMENT_MASTER_PUSHUPS = "CgkI58rH-vINEAIQAQ"
         private const val ACHIEVEMENT_EPIC_CATCH = "CgkI58rH-vINEAIQAg"
@@ -25,123 +47,202 @@ class PlayGamesManager(private val context: Context) {
         private const val ACHIEVEMENT_ALCHEMIST = "CgkI58rH-vINEAIQBw"
     }
 
-    private var gamesClient: GamesClient? = null
-    private var signInAccount: GoogleSignInAccount? = null
+    private val auth = FirebaseAuth.getInstance()
+    private var activityRef: WeakReference<Activity>? = null
+    private var isAuth: Boolean = false
+    private var displayName: String = "Player"
 
-    fun signIn(activity: android.app.Activity, onResult: (Boolean) -> Unit) {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-            .requestEmail()
-            .build()
+    init {
+        // SDK init must happen exactly once per process. Idempotent in v2.
+        try {
+            PlayGamesSdk.initialize(context)
+        } catch (e: Throwable) {
+            Log.w(TAG, "PlayGamesSdk.initialize threw (may be already initialized): ${e.message}")
+        }
+    }
 
-        val signInClient = GoogleSignIn.getClient(context, gso)
+    // ── Sign in / out ────────────────────────────────────────────────────────
 
-        signInClient.silentSignIn().addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                signInAccount = task.result
-                gamesClient = Games.getGamesClient(context, signInAccount!!)
-                Log.d(TAG, "Silent sign-in successful: ${signInAccount?.displayName}")
-                onResult(true)
+    /**
+     * Silent sign-in. No UI. Sets [isSignedIn] to true if Play Games is already
+     * authenticated on this device. Also links Firebase uid → Play Games on
+     * success, so a fresh anonymous user (created on reinstall) is upgraded
+     * before any RTDB pushes happen.
+     */
+    fun signIn(activity: Activity, onResult: (Boolean) -> Unit) {
+        activityRef = WeakReference(activity)
+        val client = PlayGames.getGamesSignInClient(activity)
+        client.isAuthenticated.addOnCompleteListener { task ->
+            val ok = task.isSuccessful && task.result?.isAuthenticated == true
+            isAuth = ok
+            if (ok) {
+                fetchPlayerName(activity)
+                Log.d(TAG, "Silent sign-in OK")
+                // Link to Firebase right away so RTDB writes target the right uid.
+                @OptIn(DelicateCoroutinesApi::class)
+                GlobalScope.launch(Dispatchers.IO) {
+                    linkFirebaseWithPlayGames(activity)
+                }
             } else {
-                Log.w(TAG, "Silent sign-in failed: ${task.exception?.message}")
-                onResult(false)
+                Log.d(TAG, "Silent sign-in unavailable: ${task.exception?.message}")
+            }
+            onResult(ok)
+        }
+    }
+
+    /**
+     * Interactive sign-in. Opens the Play Games consent dialog if the user
+     * hasn't authorized this game before. After success, links the local
+     * anonymous Firebase user with the Play Games credential.
+     *
+     * @return true if signed in AND Firebase linking succeeded (or fell back
+     *         to signInWithCredential on collision).
+     */
+    suspend fun signInInteractive(activity: Activity): Boolean {
+        activityRef = WeakReference(activity)
+        return try {
+            val client = PlayGames.getGamesSignInClient(activity)
+            val authResult = client.signIn().await()
+            if (!authResult.isAuthenticated) {
+                Log.w(TAG, "Sign-in returned not authenticated")
+                return false
+            }
+            isAuth = true
+            fetchPlayerName(activity)
+            linkFirebaseWithPlayGames(activity)
+            true
+        } catch (e: Throwable) {
+            Log.w(TAG, "Sign-in failed: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Get a serverAuthCode from Play Games and use it as a Firebase credential.
+     * Upgrades the anonymous account, or signs into the existing Play Games
+     * uid on collision.
+     */
+    private suspend fun linkFirebaseWithPlayGames(activity: Activity) {
+        try {
+            val client = PlayGames.getGamesSignInClient(activity)
+            val serverAuthCode = client.requestServerSideAccess(WEB_CLIENT_ID, /* forceRefresh */ false).await()
+            val credential = PlayGamesAuthProvider.getCredential(serverAuthCode)
+            val current = auth.currentUser
+            if (current != null && current.isAnonymous) {
+                try {
+                    current.linkWithCredential(credential).await()
+                    Log.d(TAG, "Linked anonymous Firebase account with Play Games (uid=${current.uid})")
+                } catch (collision: FirebaseAuthUserCollisionException) {
+                    // Play Games already linked to a different uid. Sign in to that uid;
+                    // the orphaned anonymous record will eventually be cleaned up.
+                    val result = auth.signInWithCredential(credential).await()
+                    Log.d(TAG, "Collision — signed in to existing Play Games uid=${result.user?.uid}")
+                }
+            } else {
+                val result = auth.signInWithCredential(credential).await()
+                Log.d(TAG, "Signed in with Play Games credential, uid=${result.user?.uid}")
+            }
+        } catch (e: Throwable) {
+            Log.w(TAG, "Firebase link failed: ${e.message}")
+        }
+    }
+
+    /**
+     * Sign out from Firebase. Note: Play Games SDK v2 has no signOut — sign-in
+     * state is owned by the OS and persists across app restarts. We can only
+     * detach our Firebase identity.
+     */
+    fun signOut(@Suppress("UNUSED_PARAMETER") activity: Activity? = null) {
+        auth.signOut()
+        isAuth = false
+        displayName = "Player"
+        Log.d(TAG, "Firebase signed out (Play Games session managed by OS)")
+    }
+
+    private fun fetchPlayerName(activity: Activity) {
+        PlayGames.getPlayersClient(activity).currentPlayer.addOnCompleteListener { t ->
+            if (t.isSuccessful) {
+                displayName = t.result?.displayName ?: "Player"
+                Log.d(TAG, "Player display name: $displayName")
+            } else {
+                Log.w(TAG, "Failed to fetch player name: ${t.exception?.message}")
             }
         }
     }
 
-    fun signOut(activity: android.app.Activity) {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-            .requestEmail()
-            .build()
+    fun isSignedIn(): Boolean = isAuth
+    fun getPlayerName(): String = displayName
 
-        val signInClient = GoogleSignIn.getClient(context, gso)
-        signInClient.signOut().addOnCompleteListener {
-            signInAccount = null
-            gamesClient = null
-            Log.d(TAG, "Signed out from Play Games")
-        }
-    }
+    // ── Achievements (v2 API requires Activity, cached weakly from sign-in) ──
+
+    private fun act(): Activity? = activityRef?.get()
 
     fun unlockAchievementFirstFight() {
-        if (gamesClient == null) {
-            Log.w(TAG, "Games client not initialized - cannot unlock achievement")
-            return
-        }
-
-        Games.getAchievementsClient(context, signInAccount!!).unlock(ACHIEVEMENT_FIRST_FIGHT)
-        Log.d(TAG, "Unlocked achievement: First Fight")
+        if (!isAuth) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_FIRST_FIGHT)
+        Log.d(TAG, "Unlocked: First Fight")
     }
 
     fun incrementAchievementMasterPushups(steps: Int) {
-        if (gamesClient == null) {
-            Log.w(TAG, "Games client not initialized - cannot increment achievement")
-            return
-        }
-
-        Games.getAchievementsClient(context, signInAccount!!).increment(ACHIEVEMENT_MASTER_PUSHUPS, steps)
-        Log.d(TAG, "Incremented Master Pushups achievement by $steps")
+        if (!isAuth) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_MASTER_PUSHUPS, steps)
+        Log.d(TAG, "Incremented Master Pushups by $steps")
     }
 
     fun revealAchievementMasterPushups() {
-        if (gamesClient == null) {
-            Log.w(TAG, "Games client not initialized - cannot reveal achievement")
-            return
-        }
-
-        Games.getAchievementsClient(context, signInAccount!!).reveal(ACHIEVEMENT_MASTER_PUSHUPS)
-        Log.d(TAG, "Revealed achievement: Master Pushups")
+        if (!isAuth) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).reveal(ACHIEVEMENT_MASTER_PUSHUPS)
+        Log.d(TAG, "Revealed: Master Pushups")
     }
 
     fun unlockAchievementEpicCatch() {
-        if (gamesClient == null) return
-        Games.getAchievementsClient(context, signInAccount!!).unlock(ACHIEVEMENT_EPIC_CATCH)
-        Log.d(TAG, "Unlocked achievement: Epic Catch")
+        if (!isAuth) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_EPIC_CATCH)
+        Log.d(TAG, "Unlocked: Epic Catch")
     }
 
     fun unlockAchievementLegendaryCatch() {
-        if (gamesClient == null) return
-        Games.getAchievementsClient(context, signInAccount!!).unlock(ACHIEVEMENT_LEGENDARY_CATCH)
-        Log.d(TAG, "Unlocked achievement: Legendary Catch")
+        if (!isAuth) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_LEGENDARY_CATCH)
+        Log.d(TAG, "Unlocked: Legendary Catch")
     }
 
     fun unlockAchievementRich() {
-        if (gamesClient == null) return
-        Games.getAchievementsClient(context, signInAccount!!).unlock(ACHIEVEMENT_RICH)
-        Log.d(TAG, "Unlocked achievement: Rich")
+        if (!isAuth) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_RICH)
+        Log.d(TAG, "Unlocked: Rich")
     }
 
     fun incrementAchievementFailedEnchants(steps: Int) {
-        if (gamesClient == null) return
-        Games.getAchievementsClient(context, signInAccount!!).increment(ACHIEVEMENT_FAILED_ENCHANTS, steps)
+        if (!isAuth) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_FAILED_ENCHANTS, steps)
         Log.d(TAG, "Incremented Failed Enchants by $steps")
     }
 
     fun unlockAchievementFullWardrobe() {
-        if (gamesClient == null) return
-        Games.getAchievementsClient(context, signInAccount!!).unlock(ACHIEVEMENT_FULL_WARDROBE)
-        Log.d(TAG, "Unlocked achievement: Full Wardrobe")
+        if (!isAuth) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_FULL_WARDROBE)
+        Log.d(TAG, "Unlocked: Full Wardrobe")
     }
 
     fun incrementAchievementAlchemist(steps: Int) {
-        if (gamesClient == null) return
-        Games.getAchievementsClient(context, signInAccount!!).increment(ACHIEVEMENT_ALCHEMIST, steps)
+        if (!isAuth) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_ALCHEMIST, steps)
         Log.d(TAG, "Incremented Alchemist by $steps")
     }
 
-    fun getAchievementsClient(): GamesClient? {
-        return gamesClient
-    }
-
-    fun isSignedIn(): Boolean {
-        return signInAccount != null && gamesClient != null
-    }
-
-    fun getPlayerName(): String {
-        return signInAccount?.displayName ?: "Player"
-    }
-
     fun destroy() {
-        gamesClient = null
-        signInAccount = null
+        activityRef = null
+        isAuth = false
         Log.d(TAG, "PlayGamesManager destroyed")
     }
 }

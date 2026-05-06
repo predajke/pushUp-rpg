@@ -68,12 +68,14 @@ dependencies {
     // Google Services
     implementation(libs.play.services.auth)
     implementation("com.google.android.gms:play-services-ads:22.6.0")
-    implementation("com.google.android.gms:play-services-games:22.0.1")
+    implementation("com.google.android.gms:play-services-games-v2:20.1.2")
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-database-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
+    // Bridges Firebase's Task<T> → Kotlin coroutines (.await())
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 
     // Network Connectivity
     implementation("androidx.work:work-runtime-ktx:2.10.1")

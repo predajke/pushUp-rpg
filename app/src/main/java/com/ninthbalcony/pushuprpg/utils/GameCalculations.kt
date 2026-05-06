@@ -12,7 +12,8 @@ object GameCalculations {
     const val STAT_POINTS_PER_LEVEL = 3
     const val DAILY_PUNCH_LIMIT = 30
     const val PRESTIGE_STAT_BONUS_PER_LEVEL = 0.02f  // +2% power/armor/HP за каждый ресет
-    const val MONSTER_HP_BONUS_PER_PRESTIGE = 500    // Флэт +500 HP монстрам за каждый ресет
+    const val MONSTER_HP_BONUS_PER_PRESTIGE = 500       // Флэт +500 HP монстрам за каждый ресет
+    const val MONSTER_DAMAGE_BONUS_PER_PRESTIGE = 250   // Флэт +250 урона монстрам за каждый ресет
     // XP для перехода с level на level+1:
     // Уровни 1-9: начинаем с 200, каждый +100 (200, 300, ..., 1000)
     // Уровни 10+: каждый +150 (1150, 1300, 1450, ...)

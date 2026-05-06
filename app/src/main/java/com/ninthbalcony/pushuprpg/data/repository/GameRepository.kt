@@ -123,7 +123,8 @@ class GameRepository(private val context: Context) : IGameRepository {
             lastResetDate = today,
             lastLoginDate = today,
             lastBattleTick = System.currentTimeMillis(),
-            characterBirthDate = today
+            characterBirthDate = today,
+            playerCountry = com.ninthbalcony.pushuprpg.utils.detectDeviceCountry()
         )
         dao.saveGameState(initial)
         return initial
@@ -225,7 +226,8 @@ class GameRepository(private val context: Context) : IGameRepository {
             val spawnLevel = if (didPrestige) 1 else actualLevel
             val newMonster = MonsterUtils.rollNextMonster(spawnLevel)
             val hpBonus = GameCalculations.MONSTER_HP_BONUS_PER_PRESTIGE * actualPrestige
-            if (didPrestige) addLog("🏅 Prestige $actualPrestige! Monsters now have +$hpBonus HP.", "🏅 Prestige $actualPrestige! Монстры получили +$hpBonus HP.")
+            val dmgBonus = GameCalculations.MONSTER_DAMAGE_BONUS_PER_PRESTIGE * actualPrestige
+            if (didPrestige) addLog("🏅 Prestige $actualPrestige! Monsters now have +$hpBonus HP, +$dmgBonus DMG.", "🏅 Prestige $actualPrestige! Монстры получили +$hpBonus HP, +$dmgBonus урона.")
 
             // Add 3 spin tokens for level up
             val spinBonus = 3
@@ -235,7 +237,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 monsterImageRes = newMonster.imageRes,
                 monsterMaxHp = newMonster.maxHp + hpBonus,
                 monsterCurrentHp = newMonster.maxHp + hpBonus,
-                monsterDamage = newMonster.damage,
+                monsterDamage = newMonster.damage + dmgBonus,
                 spinTokens = workingState.spinTokens + spinBonus
             )
             if (leveledUp && !didPrestige) {
@@ -583,6 +585,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
 
         val hpBonus = GameCalculations.MONSTER_HP_BONUS_PER_PRESTIGE * state.prestigeLevel
+        val dmgBonus = GameCalculations.MONSTER_DAMAGE_BONUS_PER_PRESTIGE * state.prestigeLevel
         val today = DateUtils.getTodayString()
         var updated = state.copy(
             monsterName = if (spawnGoblin) "Golden Goblin" else next.name,
@@ -590,7 +593,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             monsterImageRes = if (spawnGoblin) "monster_goblin_gold" else next.imageRes,
             monsterMaxHp = if (spawnGoblin) 10_000_000 else next.maxHp + hpBonus,
             monsterCurrentHp = if (spawnGoblin) 10_000_000 else next.maxHp + hpBonus,
-            monsterDamage = if (spawnGoblin) 1 else next.damage,
+            monsterDamage = if (spawnGoblin) 1 else next.damage + dmgBonus,
             isCurrentBoss = spawnBoss,
             currentBossId = if (spawnBoss) next.id else 0,
             isGoldenGoblinActive = spawnGoblin,
@@ -1731,6 +1734,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val teethEarned = state.goldenGoblinPunchCount
         val monster = MonsterUtils.rollNextMonster(state.playerLevel)
         val hpBonus = GameCalculations.MONSTER_HP_BONUS_PER_PRESTIGE * state.prestigeLevel
+        val dmgBonus = GameCalculations.MONSTER_DAMAGE_BONUS_PER_PRESTIGE * state.prestigeLevel
         dao.saveGameState(state.copy(
             isGoldenGoblinActive = false,
             goldenGoblinEndTime = 0L,
@@ -1743,7 +1747,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             monsterImageRes = monster.imageRes,
             monsterMaxHp = monster.maxHp + hpBonus,
             monsterCurrentHp = monster.maxHp + hpBonus,
-            monsterDamage = monster.damage
+            monsterDamage = monster.damage + dmgBonus
         ))
         addLog(
             "🟡 Golden Goblin escaped! You earned $teethEarned 🦷",

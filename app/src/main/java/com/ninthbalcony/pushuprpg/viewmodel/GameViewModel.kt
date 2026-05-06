@@ -9,6 +9,8 @@ import com.ninthbalcony.pushuprpg.data.model.ForgeResult
 import com.ninthbalcony.pushuprpg.data.model.Item
 import com.ninthbalcony.pushuprpg.data.model.PeriodStats
 import com.ninthbalcony.pushuprpg.data.repository.IGameRepository
+import com.ninthbalcony.pushuprpg.data.repository.LeaderboardEntry
+import com.ninthbalcony.pushuprpg.data.repository.LeaderboardRepository
 import com.ninthbalcony.pushuprpg.managers.OnboardingManager
 import com.ninthbalcony.pushuprpg.managers.AdType
 import com.ninthbalcony.pushuprpg.utils.ItemUtils
@@ -24,16 +26,150 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@kotlinx.coroutines.FlowPreview
 class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
     val gameState = repository.getGameStateFlow()
     val recentLogs = repository.getRecentLogsFlow()
     val allLogs = repository.getAllLogsFlow()
+
+    // ==================== ONLINE LEADERBOARD ====================
+    // Anonymous Firebase auth + debounced push of public profile + read-side
+    // fetch with in-memory TTL cache.
+    private val leaderboardRepo = LeaderboardRepository()
+
+    private val _leaderboardEntries = MutableStateFlow<List<LeaderboardEntry>>(emptyList())
+    val leaderboardEntries: StateFlow<List<LeaderboardEntry>> = _leaderboardEntries.asStateFlow()
+
+    private val _leaderboardLoading = MutableStateFlow(false)
+    val leaderboardLoading: StateFlow<Boolean> = _leaderboardLoading.asStateFlow()
+
+    private var leaderboardLastFetch: Long = 0L
+
+    // Friend code (mine) + friends list
+    private val _myFriendCode = MutableStateFlow<String?>(null)
+    val myFriendCode: StateFlow<String?> = _myFriendCode.asStateFlow()
+
+    private val _friendsList = MutableStateFlow<List<LeaderboardEntry>>(emptyList())
+    val friendsList: StateFlow<List<LeaderboardEntry>> = _friendsList.asStateFlow()
+
+    /** Toast-style transient feedback after [addFriendByCode]. */
+    private val _addFriendResult = MutableStateFlow<String?>(null)
+    val addFriendResult: StateFlow<String?> = _addFriendResult.asStateFlow()
+    fun consumeAddFriendResult() { _addFriendResult.value = null }
+
+    /** Live Firebase connection state (true = connected to RTDB backend). */
+    val isOnline: StateFlow<Boolean> = leaderboardRepo.connectionStateFlow()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = true)
+
+    init {
+        // Sign in once + claim friend code + load friends, all in one launch.
+        viewModelScope.launch {
+            leaderboardRepo.ensureSignedIn()
+            _myFriendCode.value = leaderboardRepo.ensureFriendCode()
+            _friendsList.value = leaderboardRepo.fetchFriends()
+        }
+
+        gameState
+            .filterNotNull()
+            .distinctUntilChangedBy { leaderboardRepo.publicFingerprint(it) }
+            .debounce(LeaderboardRepository.PUSH_DEBOUNCE_MS)
+            .onEach { leaderboardRepo.pushSnapshot(it) }
+            .launchIn(viewModelScope)
+
+        // Auto-refresh leaderboard + friends each time we transition offline → online.
+        // StateFlow is intrinsically distinct, so no explicit dedup needed.
+        isOnline
+            .onEach { online ->
+                if (online) {
+                    refreshLeaderboard(force = true)
+                    refreshFriends()
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun refreshFriends() {
+        viewModelScope.launch { _friendsList.value = leaderboardRepo.fetchFriends() }
+    }
+
+    fun addFriendByCode(code: String) {
+        val clean = code.uppercase().filter { it.isLetterOrDigit() }
+        if (clean.length != 6) {
+            _addFriendResult.value = "❌ Code must be 6 chars"
+            return
+        }
+        viewModelScope.launch {
+            val friendUid = leaderboardRepo.lookupFriendCode(clean)
+            when {
+                friendUid == null -> _addFriendResult.value = "❌ Code not found"
+                friendUid == leaderboardRepo.currentUid() -> _addFriendResult.value = "❌ That's your own code"
+                else -> {
+                    val ok = leaderboardRepo.addFriend(friendUid)
+                    if (ok) {
+                        _addFriendResult.value = "✅ Friend added!"
+                        _friendsList.value = leaderboardRepo.fetchFriends()
+                    } else {
+                        _addFriendResult.value = "❌ Failed to add"
+                    }
+                }
+            }
+        }
+    }
+
+    fun removeFriend(friendUid: String) {
+        viewModelScope.launch {
+            leaderboardRepo.removeFriend(friendUid)
+            _friendsList.value = leaderboardRepo.fetchFriends()
+        }
+    }
+
+    /**
+     * Add by uid (skips friendCode lookup when caller already knows the uid,
+     * e.g. from a leaderboard row tap).
+     */
+    fun addFriendByUid(friendUid: String) {
+        if (friendUid.isBlank()) return
+        if (friendUid == leaderboardRepo.currentUid()) {
+            _addFriendResult.value = "❌ That's you"
+            return
+        }
+        viewModelScope.launch {
+            val ok = leaderboardRepo.addFriend(friendUid)
+            if (ok) {
+                _addFriendResult.value = "✅ Friend added!"
+                _friendsList.value = leaderboardRepo.fetchFriends()
+            } else {
+                _addFriendResult.value = "❌ Failed to add"
+            }
+        }
+    }
+
+    fun isFriend(uid: String): Boolean = friendsList.value.any { it.uid == uid }
+
+    /**
+     * Refresh the leaderboard. Skips RTDB when cache is fresh unless [force].
+     */
+    fun refreshLeaderboard(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!force && now - leaderboardLastFetch < LeaderboardRepository.CACHE_TTL_MS && _leaderboardEntries.value.isNotEmpty()) return
+        viewModelScope.launch {
+            _leaderboardLoading.value = true
+            val list = leaderboardRepo.fetchTopByPushUps(limit = 100)
+            _leaderboardEntries.value = list
+            leaderboardLastFetch = now
+            _leaderboardLoading.value = false
+        }
+    }
 
     // ==================== ОНБОРДИНГ ====================
     private val onboardingManager = OnboardingManager()
@@ -105,10 +241,41 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         adManager = manager
     }
 
+    private var playGamesManager: com.ninthbalcony.pushuprpg.managers.PlayGamesManager? = null
+
+    private val _playGamesSignedIn = MutableStateFlow(false)
+    val playGamesSignedIn: StateFlow<Boolean> = _playGamesSignedIn.asStateFlow()
+
+    private val _playGamesPlayerName = MutableStateFlow("Player")
+    val playGamesPlayerName: StateFlow<String> = _playGamesPlayerName.asStateFlow()
+
     fun setPlayGamesManager(manager: com.ninthbalcony.pushuprpg.managers.PlayGamesManager) {
+        playGamesManager = manager
         viewModelScope.launch {
             repository.setPlayGamesManager(manager)
         }
+        // Sync initial state from manager (silent sign-in result already applied by MainActivity)
+        _playGamesSignedIn.value = manager.isSignedIn()
+        _playGamesPlayerName.value = manager.getPlayerName()
+    }
+
+    /**
+     * User-initiated Play Games sign-in. Opens the consent UI if needed and
+     * upgrades the anonymous Firebase account to a Play Games-linked one.
+     */
+    fun signInPlayGames(activity: android.app.Activity) {
+        val manager = playGamesManager ?: return
+        viewModelScope.launch {
+            val ok = manager.signInInteractive(activity)
+            _playGamesSignedIn.value = ok && manager.isSignedIn()
+            _playGamesPlayerName.value = manager.getPlayerName()
+        }
+    }
+
+    fun signOutPlayGames(activity: android.app.Activity) {
+        playGamesManager?.signOut(activity)
+        _playGamesSignedIn.value = false
+        _playGamesPlayerName.value = "Player"
     }
 
     private val _adRewardPending = MutableStateFlow(0)
@@ -610,6 +777,25 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         }
     }
 
+    fun updatePlayerCountry(code: String) {
+        val cc = code.uppercase().take(2)
+        viewModelScope.launch {
+            val state = repository.getGameState()
+            repository.saveGameState(state.copy(playerCountry = cc))
+        }
+    }
+
+    fun updateClanTag(tag: String, color: String) {
+        // 4 chars max, alphanumerics only, uppercased
+        val clean = tag.uppercase().filter { it.isLetterOrDigit() }.take(4)
+        val safeColor = color.takeIf { it in CLAN_TAG_COLORS } ?: "default"
+        viewModelScope.launch {
+            val state = repository.getGameState()
+            repository.saveGameState(state.copy(clanTag = clean, clanTagColor = safeColor))
+        }
+    }
+
+
     fun updateBodyWeight(weightKg: Float) {
         viewModelScope.launch {
             val state = repository.getGameState()
@@ -778,6 +964,24 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                     "✅ HP restored to $maxHp"
                 }
 
+                parts[0] == "give" && parts.getOrNull(1) == "xp" -> {
+                    val amount = parts.getOrNull(2)?.toIntOrNull()
+                    if (amount == null || amount <= 0) {
+                        "❌ Usage: give xp <amount>"
+                    } else {
+                        val newTotalXp = state.totalXp + amount
+                        val newLevel = com.ninthbalcony.pushuprpg.utils.GameCalculations.getLevelFromXp(newTotalXp)
+                        val didPrestige = newLevel >= 50
+                        val actualXp = if (didPrestige) 0 else newTotalXp
+                        val actualLevel = if (didPrestige) 1 else newLevel
+                        repository.saveGameState(state.copy(
+                            totalXp = actualXp,
+                            playerLevel = actualLevel
+                        ))
+                        "✅ +$amount XP → Level $actualLevel (total: $actualXp)"
+                    }
+                }
+
                 else -> "❌ Unknown command. Tap [?] for help"
             }
             _cheatFeedback.value = feedback
@@ -808,6 +1012,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
     companion object {
         val NIGHT_ENCHANT_EVENT_IDS = setOf(6, 9, 10, 11)
+        val CLAN_TAG_COLORS = setOf("default", "blue", "green", "red", "yellow")
     }
 
     // ==================== ДОСТИЖЕНИЯ ====================

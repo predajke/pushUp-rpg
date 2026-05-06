@@ -791,26 +791,28 @@ fun TopBar(
     ) {
         val hasPrestige = state.prestigeLevel > 0
         val prestigeBlue = Color(0xFF3FA9F5)
-        Box(
-            modifier = Modifier
-                .background(OrangeAccent, RoundedCornerShape(8.dp))
-                .then(
-                    if (hasPrestige) Modifier.border(2.dp, prestigeBlue, RoundedCornerShape(8.dp))
-                    else Modifier
+        // Outer Box: badge is a sibling of the Lvl box so it renders after (above) the border
+        Box(contentAlignment = Alignment.BottomCenter) {
+            Box(
+                modifier = Modifier
+                    .background(OrangeAccent, RoundedCornerShape(8.dp))
+                    .then(
+                        if (hasPrestige) Modifier.border(2.dp, prestigeBlue, RoundedCornerShape(8.dp))
+                        else Modifier
+                    )
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = "Lvl ${state.playerLevel}",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
                 )
-                .padding(horizontal = 10.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = "Lvl ${state.playerLevel}",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
+            }
             if (hasPrestige) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .offset(y = 10.dp)
+                        .offset(y = 8.dp)
                         .background(prestigeBlue, RoundedCornerShape(4.dp))
                         .border(1.dp, Color.White, RoundedCornerShape(4.dp))
                         .padding(horizontal = 6.dp, vertical = 1.dp)

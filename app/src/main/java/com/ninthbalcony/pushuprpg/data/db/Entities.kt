@@ -68,6 +68,11 @@ data class GameStateEntity(
     val playerGender: String = "male",
     val unlockedAvatarIds: String = "",
 
+    // Профиль (онлайн)
+    val playerCountry: String = "",          // ISO-2; пусто → auto-detect при инициализации
+    val clanTag: String = "",                // макс 4 символа; пусто → не показывается
+    val clanTagColor: String = "default",    // "default" | "blue" | "green" | "red" | "yellow"
+
     // Текущее событие
     val activeEventId: Int = 0,
     val eventStartTime: Long = 0L,

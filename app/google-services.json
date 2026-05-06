@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "477535266151",
+    "firebase_url": "https://pushup-rpg-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "pushup-rpg",
     "storage_bucket": "pushup-rpg.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.ninthbalcony.pushuprpg"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "477535266151-nv7ugp8ro6mnbo2n4497v953rjjfbt24.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ninthbalcony.pushuprpg",
+            "certificate_hash": "39d6645da799cf9a45a7ceefefdcef4eb509a12c"
+          }
+        },
+        {
+          "client_id": "477535266151-buoltg1ea91rc772ulcqvquv5f175q19.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCGPVuZulFuLzY8Gz-mBX6T-s59x1uINnw"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "477535266151-buoltg1ea91rc772ulcqvquv5f175q19.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
