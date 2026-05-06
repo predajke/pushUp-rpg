@@ -11,6 +11,7 @@ import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -114,12 +115,14 @@ class LeaderboardRepository {
             .child("leaderboard")
             .orderByChild("totalPushUps")
             .limitToLast(limit)
+        val cutoff = System.currentTimeMillis() - ZOMBIE_TTL_MS
         return runCatching {
             val snap = query.get().await()
             snap.children.mapNotNull { child ->
                 val uid = child.key ?: return@mapNotNull null
                 snapshotToEntry(uid, child)
-            }.sortedByDescending { it.totalPushUps }
+            }.filter { it.lastUpdated == 0L || it.lastUpdated > cutoff }
+             .sortedByDescending { it.totalPushUps }
         }.getOrElse {
             Log.w(TAG, "Fetch top failed: ${it.message}")
             emptyList()
@@ -206,23 +209,37 @@ class LeaderboardRepository {
     }
 
     /**
-     * Fetch all friends as full leaderboard entries. Reads `friends/{myUid}`
-     * for the uid list, then fans-out to `leaderboard/{friendUid}` for each.
+     * Real-time flow of the caller's friends list. Subscribes to
+     * `friends/{myUid}` with a persistent listener; whenever the uid-set
+     * changes (add / remove on any device), it fans-out to fetch each
+     * friend's public profile and emits the updated list.
+     *
+     * Collect this in the ViewModel's `viewModelScope`; it auto-cancels on
+     * ViewModel destruction.
      */
-    suspend fun fetchFriends(): List<LeaderboardEntry> {
-        val myUid = ensureSignedIn() ?: return emptyList()
-        return runCatching {
-            val idsSnap = database.reference.child("friends").child(myUid).get().await()
-            val friendIds = idsSnap.children.mapNotNull { it.key }
-            if (friendIds.isEmpty()) return@runCatching emptyList<LeaderboardEntry>()
-            friendIds.mapNotNull { fid ->
-                val snap = database.reference.child("leaderboard").child(fid).get().await()
-                if (!snap.exists()) null else snapshotToEntry(fid, snap)
+    fun friendsFlow(myUid: String): Flow<List<LeaderboardEntry>> = callbackFlow {
+        val scope = this   // capture ProducerScope so the inner class can launch coroutines
+        val ref = database.reference.child("friends").child(myUid)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val friendIds = snapshot.children.mapNotNull { it.key }
+                scope.launch {
+                    val entries = friendIds.mapNotNull { fid ->
+                        runCatching {
+                            val s = database.reference.child("leaderboard").child(fid).get().await()
+                            if (s.exists()) snapshotToEntry(fid, s) else null
+                        }.getOrNull()
+                    }
+                    trySend(entries)
+                }
             }
-        }.getOrElse {
-            Log.w(TAG, "Fetch friends failed: ${it.message}")
-            emptyList()
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "friendsFlow cancelled: ${error.message}")
+                trySend(emptyList())
+            }
         }
+        ref.addValueEventListener(listener)
+        awaitClose { ref.removeEventListener(listener) }
     }
 
     private fun snapshotToEntry(uid: String, s: DataSnapshot) = LeaderboardEntry(
@@ -273,6 +290,8 @@ class LeaderboardRepository {
         const val PUSH_DEBOUNCE_MS = 30_000L
         /** Cache TTL for fetched leaderboard data. */
         const val CACHE_TTL_MS = 5 * 60_000L
+        /** Entries not updated within this window are treated as zombie accounts and hidden. */
+        const val ZOMBIE_TTL_MS = 30L * 24 * 3600 * 1000  // 30 days
     }
 }
 

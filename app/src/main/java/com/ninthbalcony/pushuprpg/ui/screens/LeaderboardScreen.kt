@@ -27,8 +27,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -355,6 +357,7 @@ private fun TabPill(
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeaderboardScreen(
     viewModel: GameViewModel,
@@ -374,11 +377,9 @@ fun LeaderboardScreen(
     val isLoading   by viewModel.leaderboardLoading.collectAsState()
     val isOnline    by viewModel.isOnline.collectAsState()
 
-    // Trigger fetch on first composition + whenever screen is reopened.
-    LaunchedEffect(Unit) {
-        viewModel.refreshLeaderboard()
-        viewModel.refreshFriends()
-    }
+    // Trigger leaderboard fetch on first composition. Friends are kept live by
+    // the real-time friendsFlow subscribed in GameViewModel.init.
+    LaunchedEffect(Unit) { viewModel.refreshLeaderboard() }
 
     val friendUids = remember(friends) { friends.map { it.uid }.toSet() }
     val me = remember(gameState) { buildMePlayer(gameState) }
@@ -443,19 +444,6 @@ fun LeaderboardScreen(
                     )
                     Text("✦", color = LbGold.copy(alpha = 0.85f), fontSize = 12.sp)
                 }
-                // Refresh button (top-right). Disabled while loading.
-                Text(
-                    text = if (isLoading) "⟳" else "⟳",
-                    color = if (isLoading) LbTextMute else LbOrange,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .clickable(enabled = !isLoading) {
-                            viewModel.refreshLeaderboard(force = true)
-                            viewModel.refreshFriends()
-                        },
-                )
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(LbLine))
 
@@ -561,13 +549,12 @@ fun LeaderboardScreen(
             }
 
             // ── Scrollable list + sticky "Your Standing" ──────────────────────
-            Box(modifier = Modifier.weight(1f)) {
-                if (isLoading && filtered.isEmpty()) {
-                    val msg = if (language == "ru") "Загрузка…" else "Loading…"
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(msg, color = LbTextMute, fontSize = 12.sp)
-                    }
-                } else if (filtered.isEmpty()) {
+            PullToRefreshBox(
+                modifier = Modifier.weight(1f),
+                isRefreshing = isLoading,
+                onRefresh = { viewModel.refreshLeaderboard(force = true) },
+            ) {
+                if (!isLoading && filtered.isEmpty()) {
                     val emptyMsg = if (language == "ru")
                         "Будь первым! Лидерборд пока пуст."
                     else

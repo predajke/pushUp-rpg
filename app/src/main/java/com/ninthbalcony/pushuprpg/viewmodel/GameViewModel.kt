@@ -72,11 +72,12 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = true)
 
     init {
-        // Sign in once + claim friend code + load friends, all in one launch.
+        // Sign in once + claim friend code + subscribe to real-time friends flow.
         viewModelScope.launch {
-            leaderboardRepo.ensureSignedIn()
+            val uid = leaderboardRepo.ensureSignedIn() ?: return@launch
             _myFriendCode.value = leaderboardRepo.ensureFriendCode()
-            _friendsList.value = leaderboardRepo.fetchFriends()
+            leaderboardRepo.friendsFlow(uid)
+                .collect { _friendsList.value = it }
         }
 
         gameState
@@ -86,20 +87,11 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
             .onEach { leaderboardRepo.pushSnapshot(it) }
             .launchIn(viewModelScope)
 
-        // Auto-refresh leaderboard + friends each time we transition offline → online.
-        // StateFlow is intrinsically distinct, so no explicit dedup needed.
+        // Auto-refresh leaderboard each time we transition offline → online.
+        // Friends list is kept live by friendsFlow — no manual refresh needed.
         isOnline
-            .onEach { online ->
-                if (online) {
-                    refreshLeaderboard(force = true)
-                    refreshFriends()
-                }
-            }
+            .onEach { online -> if (online) refreshLeaderboard(force = true) }
             .launchIn(viewModelScope)
-    }
-
-    fun refreshFriends() {
-        viewModelScope.launch { _friendsList.value = leaderboardRepo.fetchFriends() }
     }
 
     fun addFriendByCode(code: String) {
@@ -115,12 +107,8 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                 friendUid == leaderboardRepo.currentUid() -> _addFriendResult.value = "❌ That's your own code"
                 else -> {
                     val ok = leaderboardRepo.addFriend(friendUid)
-                    if (ok) {
-                        _addFriendResult.value = "✅ Friend added!"
-                        _friendsList.value = leaderboardRepo.fetchFriends()
-                    } else {
-                        _addFriendResult.value = "❌ Failed to add"
-                    }
+                    _addFriendResult.value = if (ok) "✅ Friend added!" else "❌ Failed to add"
+                    // friendsFlow will emit the updated list automatically.
                 }
             }
         }
@@ -129,7 +117,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     fun removeFriend(friendUid: String) {
         viewModelScope.launch {
             leaderboardRepo.removeFriend(friendUid)
-            _friendsList.value = leaderboardRepo.fetchFriends()
+            // friendsFlow will emit the updated list automatically.
         }
     }
 
@@ -145,12 +133,8 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         }
         viewModelScope.launch {
             val ok = leaderboardRepo.addFriend(friendUid)
-            if (ok) {
-                _addFriendResult.value = "✅ Friend added!"
-                _friendsList.value = leaderboardRepo.fetchFriends()
-            } else {
-                _addFriendResult.value = "❌ Failed to add"
-            }
+            _addFriendResult.value = if (ok) "✅ Friend added!" else "❌ Failed to add"
+            // friendsFlow will emit the updated list automatically.
         }
     }
 
