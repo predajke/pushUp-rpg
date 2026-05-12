@@ -39,9 +39,9 @@ class NotificationWorker(
             return Result.success()
         }
 
-        // Уведомление если не было отжиманий сегодня
+        // Уведомление если не было отжиманий сегодня — теперь с персонализированным текстом
         if (state.lastResetDate != today || state.pushUpsToday == 0) {
-            NotificationHelper.showDailyReminderNotification(applicationContext)
+            NotificationHelper.showDailyReminderNotification(applicationContext, state, language)
         }
 
         return Result.success()

@@ -8,6 +8,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.ninthbalcony.pushuprpg.MainActivity
 import com.ninthbalcony.pushuprpg.R
+import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
 
 object NotificationHelper {
 
@@ -40,30 +41,70 @@ object NotificationHelper {
         )
     }
 
-    fun showDailyReminderNotification(context: Context) {
+    /**
+     * Daily reminder с **персонализированным** текстом по приоритету:
+     *   1. Streak под угрозой (есть streak ≥ 1, сегодня нет отжиманий) → защити его.
+     *   2. Монстр почти убит (HP < 20%) → доходчиво «доделай».
+     *   3. Есть unspent stat points → потрать их.
+     *   4. Завтра milestone-награда (streak + 1 день = next milestone) → не сорви.
+     *   5. Дефолт — generic ротация из 4 шаблонов.
+     *
+     * Если state == null или ошибка — выбираем дефолт.
+     */
+    fun showDailyReminderNotification(context: Context, state: GameStateEntity? = null, language: String? = null) {
+        val lang = language ?: run {
+            val prefs = context.getSharedPreferences("pushup_prefs", Context.MODE_PRIVATE)
+            prefs.getString("language", "en") ?: "en"
+        }
+        val ru = lang == "ru"
+
+        val text: String = state?.let { pickPersonalizedReminder(it, ru) } ?: defaultReminder(ru)
+
+        showNotification(
+            context = context,
+            id = NOTIFICATION_ID_REMINDER,
+            title = "Push UP RPG",
+            text = text
+        )
+    }
+
+    private fun pickPersonalizedReminder(state: GameStateEntity, ru: Boolean): String {
+        // 1. Streak в опасности — самый высокий приоритет, самая болезненная потеря.
+        if (state.currentStreak >= 1 && state.pushUpsToday == 0) {
+            return if (ru) "🔥 Не теряй streak ${state.currentStreak} дней! 30 отжиманий — и день засчитан."
+                   else "🔥 Don't lose your ${state.currentStreak}-day streak! 30 push-ups and the day counts."
+        }
+        // 2. Монстр почти убит.
+        if (state.monsterMaxHp > 0 && state.monsterCurrentHp.toFloat() / state.monsterMaxHp < 0.2f) {
+            return if (ru) "👹 ${state.monsterName} осталось ${state.monsterCurrentHp} HP. Финиш!"
+                   else "👹 ${state.monsterName} has ${state.monsterCurrentHp} HP left. Finish it!"
+        }
+        // 3. Непотраченные stat points.
+        if (state.unspentStatPoints > 0) {
+            return if (ru) "⭐ ${state.unspentStatPoints} stat points ждут — открой Inventory."
+                   else "⭐ ${state.unspentStatPoints} stat points waiting — open Inventory."
+        }
+        // 4. Завтра следующий milestone.
+        val next = StreakRewards.nextMilestone(state.currentStreak)
+        if (next != null && next.day == state.currentStreak + 1) {
+            return if (ru) "🎁 День ${next.day} завтра — награда: +${next.teeth} 🦷"
+                   else "🎁 Day ${next.day} tomorrow — reward: +${next.teeth} 🦷"
+        }
+        // 5. Дефолт.
+        return defaultReminder(ru)
+    }
+
+    private fun defaultReminder(ru: Boolean): String {
         val messages = listOf(
             "💪 Ты сегодня не отжимался! Герой ждёт тебя." to
                     "💪 You haven't done push-ups today! Your hero is waiting.",
-            "🔥 Стрик под угрозой! Зайди и отожмись." to
-                    "🔥 Your streak is at risk! Come and do push-ups.",
             "⚔️ Твой герой скучает без тебя. Пора тренироваться!" to
                     "⚔️ Your hero misses you. Time to train!",
             "🏆 Не теряй прогресс! Сделай хотя бы 10 отжиманий." to
                     "🏆 Don't lose your progress! Do at least 10 push-ups."
         )
         val (titleRu, titleEn) = messages.random()
-
-        // Определяем язык из SharedPreferences
-        val prefs = context.getSharedPreferences("pushup_prefs", Context.MODE_PRIVATE)
-        val language = prefs.getString("language", "en") ?: "en"
-        val text = if (language == "ru") titleRu else titleEn
-
-        showNotification(
-            context = context,
-            id = NOTIFICATION_ID_REMINDER,
-            title = if (language == "ru") "Push UP RPG" else "Push UP RPG",
-            text = text
-        )
+        return if (ru) titleRu else titleEn
     }
 
     fun showHeroDeadNotification(context: Context, heroName: String, language: String) {
