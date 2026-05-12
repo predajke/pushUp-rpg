@@ -127,6 +127,9 @@ dependencies {
     // Lottie animations
     implementation("com.airbnb.android:lottie-compose:6.4.0")
 
+    // Image loading (Google avatar URLs from Play Games SDK)
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
     // Debug
     debugImplementation(libs.androidx.ui.tooling)
 }

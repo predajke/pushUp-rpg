@@ -11,6 +11,9 @@ import com.google.firebase.auth.PlayGamesAuthProvider
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.lang.ref.WeakReference
@@ -49,8 +52,18 @@ class PlayGamesManager(private val context: Context) {
 
     private val auth = FirebaseAuth.getInstance()
     private var activityRef: WeakReference<Activity>? = null
-    private var isAuth: Boolean = false
-    private var displayName: String = "Player"
+
+    // Reactive sign-in state — observers (e.g. GameViewModel) get the silent
+    // sign-in result automatically when the async callback fires, eliminating
+    // the one-shot read race that left Profile showing "not connected".
+    private val _isAuth = MutableStateFlow(false)
+    val isAuthFlow: StateFlow<Boolean> = _isAuth.asStateFlow()
+
+    private val _displayName = MutableStateFlow("Player")
+    val displayNameFlow: StateFlow<String> = _displayName.asStateFlow()
+
+    private val _iconUri = MutableStateFlow<String?>(null)
+    val iconUri: StateFlow<String?> = _iconUri.asStateFlow()
 
     init {
         // SDK init must happen exactly once per process. Idempotent in v2.
@@ -74,7 +87,7 @@ class PlayGamesManager(private val context: Context) {
         val client = PlayGames.getGamesSignInClient(activity)
         client.isAuthenticated.addOnCompleteListener { task ->
             val ok = task.isSuccessful && task.result?.isAuthenticated == true
-            isAuth = ok
+            _isAuth.value = ok
             if (ok) {
                 fetchPlayerName(activity)
                 Log.d(TAG, "Silent sign-in OK")
@@ -107,7 +120,7 @@ class PlayGamesManager(private val context: Context) {
                 Log.w(TAG, "Sign-in returned not authenticated")
                 return false
             }
-            isAuth = true
+            _isAuth.value = true
             fetchPlayerName(activity)
             linkFirebaseWithPlayGames(activity)
             true
@@ -154,87 +167,90 @@ class PlayGamesManager(private val context: Context) {
      */
     fun signOut(@Suppress("UNUSED_PARAMETER") activity: Activity? = null) {
         auth.signOut()
-        isAuth = false
-        displayName = "Player"
+        _isAuth.value = false
+        _displayName.value = "Player"
+        _iconUri.value = null
         Log.d(TAG, "Firebase signed out (Play Games session managed by OS)")
     }
 
     private fun fetchPlayerName(activity: Activity) {
         PlayGames.getPlayersClient(activity).currentPlayer.addOnCompleteListener { t ->
             if (t.isSuccessful) {
-                displayName = t.result?.displayName ?: "Player"
-                Log.d(TAG, "Player display name: $displayName")
+                val player = t.result
+                _displayName.value = player?.displayName ?: "Player"
+                _iconUri.value = player?.iconImageUri?.toString()
+                Log.d(TAG, "Player display name: ${_displayName.value}, icon: ${_iconUri.value}")
             } else {
                 Log.w(TAG, "Failed to fetch player name: ${t.exception?.message}")
             }
         }
     }
 
-    fun isSignedIn(): Boolean = isAuth
-    fun getPlayerName(): String = displayName
+    fun isSignedIn(): Boolean = _isAuth.value
+    fun getPlayerName(): String = _displayName.value
 
     // ── Achievements (v2 API requires Activity, cached weakly from sign-in) ──
 
     private fun act(): Activity? = activityRef?.get()
 
     fun unlockAchievementFirstFight() {
-        if (!isAuth) return
+        if (!_isAuth.value) return
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_FIRST_FIGHT)
         Log.d(TAG, "Unlocked: First Fight")
     }
 
     fun incrementAchievementMasterPushups(steps: Int) {
-        if (!isAuth) return
+        if (!_isAuth.value) return
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_MASTER_PUSHUPS, steps)
         Log.d(TAG, "Incremented Master Pushups by $steps")
     }
 
     fun revealAchievementMasterPushups() {
-        if (!isAuth) return
+        if (!_isAuth.value) return
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).reveal(ACHIEVEMENT_MASTER_PUSHUPS)
         Log.d(TAG, "Revealed: Master Pushups")
     }
 
     fun unlockAchievementEpicCatch() {
-        if (!isAuth) return
+        if (!_isAuth.value) return
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_EPIC_CATCH)
         Log.d(TAG, "Unlocked: Epic Catch")
     }
 
     fun unlockAchievementLegendaryCatch() {
-        if (!isAuth) return
+        if (!_isAuth.value) return
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_LEGENDARY_CATCH)
         Log.d(TAG, "Unlocked: Legendary Catch")
     }
 
     fun unlockAchievementRich() {
-        if (!isAuth) return
+        if (!_isAuth.value) return
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_RICH)
         Log.d(TAG, "Unlocked: Rich")
     }
 
     fun incrementAchievementFailedEnchants(steps: Int) {
-        if (!isAuth) return
+        if (!_isAuth.value) return
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_FAILED_ENCHANTS, steps)
         Log.d(TAG, "Incremented Failed Enchants by $steps")
     }
 
     fun unlockAchievementFullWardrobe() {
-        if (!isAuth) return
+        if (!_isAuth.value) return
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).unlock(ACHIEVEMENT_FULL_WARDROBE)
         Log.d(TAG, "Unlocked: Full Wardrobe")
     }
 
     fun incrementAchievementAlchemist(steps: Int) {
-        if (!isAuth) return
+        if (!_isAuth.value) return
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_ALCHEMIST, steps)
         Log.d(TAG, "Incremented Alchemist by $steps")
@@ -242,7 +258,7 @@ class PlayGamesManager(private val context: Context) {
 
     fun destroy() {
         activityRef = null
-        isAuth = false
+        _isAuth.value = false
         Log.d(TAG, "PlayGamesManager destroyed")
     }
 }

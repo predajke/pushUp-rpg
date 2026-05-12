@@ -679,7 +679,7 @@ private fun InventoryStatsPanel(
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "🛡️", fontSize = 16.sp)
@@ -918,7 +918,7 @@ private fun InventoryStatRowWithButton(
     onSpend: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = icon, fontSize = 16.sp)

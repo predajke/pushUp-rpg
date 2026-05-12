@@ -30,6 +30,7 @@ import kotlinx.coroutines.tasks.await
  * gender            : String   ("male" | "female")
  * level             : Int
  * prestige          : Int
+ * power             : Int      (totalPower = base + equip + enchant + set/ach bonuses)
  * totalPushUps      : Int
  * totalTeethEarned  : Int
  * longestStreak     : Int
@@ -74,6 +75,7 @@ class LeaderboardRepository {
             "gender"           to state.playerGender,
             "level"            to state.playerLevel,
             "prestige"         to state.prestigeLevel,
+            "power"            to computeTotalPower(state),
             "totalPushUps"     to state.totalPushUpsAllTime,
             "totalTeethEarned" to state.totalTeethEarned,
             "longestStreak"    to state.longestStreak,
@@ -83,6 +85,22 @@ class LeaderboardRepository {
             database.reference.child("leaderboard").child(uid).updateChildren(payload).await()
             Log.d(TAG, "Pushed leaderboard snapshot for uid=$uid")
         }.onFailure { Log.w(TAG, "Push failed: ${it.message}") }
+    }
+
+    /** Mirrors [GameViewModel.totalStats] — equipped items + enchant levels + ach/set bonuses. */
+    private fun computeTotalPower(state: com.ninthbalcony.pushuprpg.data.db.GameStateEntity): Int {
+        val slots = listOf(
+            state.equippedHead, state.equippedNecklace, state.equippedWeapon1,
+            state.equippedWeapon2, state.equippedPants, state.equippedBoots
+        ).filter { it.isNotEmpty() }
+        val items = slots.mapNotNull {
+            com.ninthbalcony.pushuprpg.utils.ItemUtils.getItemById(it.split(":")[0])
+        }
+        val levels = slots.map { it.split(":").getOrNull(1)?.toIntOrNull() ?: 0 }
+        val ach = com.ninthbalcony.pushuprpg.utils.AchievementSystem.getActiveBonuses(state.activeAchievementIds)
+        val setB = com.ninthbalcony.pushuprpg.utils.ItemUtils.getSetBonuses(items)
+        return com.ninthbalcony.pushuprpg.utils.GameCalculations
+            .calculateTotalStats(state, items, levels, ach, setB).power
     }
 
     /**
@@ -102,6 +120,17 @@ class LeaderboardRepository {
         state.totalPushUpsAllTime,
         state.totalTeethEarned,
         state.longestStreak,
+        // Power depends on equipment + base stat allocations + achievements.
+        // Hashing the slots+base+achievements is cheaper than recomputing totalPower
+        // here, and changes propagate through the same debounced push pipeline.
+        state.basePower,
+        state.equippedHead,
+        state.equippedNecklace,
+        state.equippedWeapon1,
+        state.equippedWeapon2,
+        state.equippedPants,
+        state.equippedBoots,
+        state.activeAchievementIds,
     ).hashCode()
 
     /**
@@ -252,6 +281,7 @@ class LeaderboardRepository {
         gender           = s.child("gender").getValue(String::class.java) ?: "male",
         level            = s.child("level").getValue(Int::class.java) ?: 1,
         prestige         = s.child("prestige").getValue(Int::class.java) ?: 0,
+        power            = s.child("power").getValue(Int::class.java) ?: 0,
         totalPushUps     = s.child("totalPushUps").getValue(Int::class.java) ?: 0,
         totalTeethEarned = s.child("totalTeethEarned").getValue(Int::class.java) ?: 0,
         longestStreak    = s.child("longestStreak").getValue(Int::class.java) ?: 0,
@@ -287,7 +317,7 @@ class LeaderboardRepository {
     companion object {
         private const val TAG = "LeaderboardRepo"
         /** Minimum interval between RTDB writes per device. */
-        const val PUSH_DEBOUNCE_MS = 30_000L
+        const val PUSH_DEBOUNCE_MS = 60_000L
         /** Cache TTL for fetched leaderboard data. */
         const val CACHE_TTL_MS = 5 * 60_000L
         /** Entries not updated within this window are treated as zombie accounts and hidden. */
@@ -309,6 +339,7 @@ data class LeaderboardEntry(
     val gender: String,
     val level: Int,
     val prestige: Int,
+    val power: Int = 0,
     val totalPushUps: Int,
     val totalTeethEarned: Int,
     val longestStreak: Int,
