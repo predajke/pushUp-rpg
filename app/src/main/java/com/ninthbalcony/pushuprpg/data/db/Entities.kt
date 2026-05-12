@@ -189,7 +189,10 @@ data class GameStateEntity(
     val bodyWeightKg: Float = 0f,                 // Вес тела (кг) для расчёта тоннажа
 
     // ===== Cloud Save metadata =====
-    val lastUpdated: Long = 0L                    // epoch ms последнего сохранения — для conflict resolution с облаком
+    val lastUpdated: Long = 0L,                   // epoch ms последнего сохранения — для conflict resolution с облаком
+
+    // ===== Streak rewards =====
+    val lastStreakRewardClaimedDay: Int = 0       // последний выданный milestone из StreakRewards.MILESTONES
 )
 
 @Entity(tableName = "pushup_records")

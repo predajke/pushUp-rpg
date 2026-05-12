@@ -57,6 +57,12 @@ object ItemUtils {
         }
     }
 
+    /** Случайный предмет конкретной редкости (для streak rewards и подобных гарантированных дропов). */
+    fun getRandomItemOfRarity(rarity: String): Item? {
+        if (allItems.isEmpty()) return null
+        return allItems.filter { it.rarity == rarity }.randomOrNull()
+    }
+
     private fun rollRarity(): String {
         return when (Random.nextFloat() * 100f) {
             in 0f..54f  -> "common"

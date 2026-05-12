@@ -97,6 +97,10 @@ interface IGameRepository {
     // ===== Daily Reward =====
     suspend fun claimDailyReward(): DailyRewardUtils.DailyReward?
 
+    // ===== Streak Rewards =====
+    /** Выдаёт ближайший unclaimed milestone (зубы/статпоинты/спины/предмет). Null если получать нечего. */
+    suspend fun claimStreakReward(): com.ninthbalcony.pushuprpg.utils.StreakMilestone?
+
     // ===== Rate Us =====
     suspend fun updateRateUsState(action: RateUsAction)
 

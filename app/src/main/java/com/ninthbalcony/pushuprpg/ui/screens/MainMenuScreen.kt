@@ -307,12 +307,34 @@ fun MainMenuScreen(
             .statusBarsPadding()
     ) {
         val avatarUrl by viewModel.playerIconUri.collectAsState()
+        var showStreakDialog by remember { mutableStateOf(false) }
+        val claimedStreakMilestone by viewModel.claimedStreakMilestone.collectAsState()
         TopBar(
             state = state,
             maxHp = maxHp,
             onSettingsClick = onNavigateToSettings,
-            avatarUrl = avatarUrl
+            avatarUrl = avatarUrl,
+            onStreakClick = { showStreakDialog = true }
         )
+        if (showStreakDialog) {
+            StreakRewardDialog(
+                state = state,
+                language = language,
+                onClaim = { viewModel.claimStreakReward() },
+                onDismiss = { showStreakDialog = false }
+            )
+        }
+        // После успешного claim — показываем краткое уведомление о наградах.
+        claimedStreakMilestone?.let { milestone ->
+            StreakClaimedDialog(
+                milestone = milestone,
+                language = language,
+                onDismiss = {
+                    viewModel.dismissClaimedStreakMilestone()
+                    showStreakDialog = false   // и сам streak dialog закрываем
+                }
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -778,13 +800,144 @@ fun DailyRewardDialog(
     }
 }
 
+// --- Streak Rewards Dialog -------------------------------------------------
+
+@Composable
+fun StreakRewardDialog(
+    state: GameStateEntity,
+    language: String,
+    onClaim: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val streak = state.currentStreak
+    val pending = com.ninthbalcony.pushuprpg.utils.StreakRewards
+        .pendingClaim(streak, state.lastStreakRewardClaimedDay)
+    val next = com.ninthbalcony.pushuprpg.utils.StreakRewards.nextMilestone(streak)
+    val ru = language == "ru"
+
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .padding(24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = if (ru) "🔥 Streak — $streak дней подряд" else "🔥 Streak — $streak days in a row",
+                color = OrangeAccent,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (pending != null) {
+                Text(
+                    text = if (ru) "🎁 Награда за День ${pending.day} готова!"
+                           else "🎁 Day ${pending.day} reward is ready!",
+                    color = GoldAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = rewardDescription(pending, ru), color = TextPrimary, fontSize = 13.sp,
+                    textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onClaim,
+                    colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent)
+                ) {
+                    Text(if (ru) "Забрать" else "Claim", color = Color.White)
+                }
+            } else if (next != null) {
+                val daysLeft = next.day - streak
+                Text(
+                    text = if (ru) "Следующая награда: День ${next.day}"
+                           else "Next reward: Day ${next.day}",
+                    color = TextSecondary, fontSize = 13.sp
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { streak.toFloat() / next.day },
+                    modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                    color = OrangeAccent,
+                    trackColor = DarkSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = if (ru) "Осталось $daysLeft дн." else "$daysLeft days to go",
+                    color = TextMuted, fontSize = 11.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(text = rewardDescription(next, ru), color = TextPrimary, fontSize = 12.sp,
+                    textAlign = TextAlign.Center)
+            } else {
+                Text(
+                    text = if (ru) "🏆 Все награды получены! Невероятный streak."
+                           else "🏆 All rewards claimed! Incredible streak.",
+                    color = GoldAccent, fontSize = 13.sp, textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            TextButton(onClick = onDismiss) {
+                Text(if (ru) "Закрыть" else "Close", color = TextMuted)
+            }
+        }
+    }
+}
+
+@Composable
+fun StreakClaimedDialog(
+    milestone: com.ninthbalcony.pushuprpg.utils.StreakMilestone,
+    language: String,
+    onDismiss: () -> Unit
+) {
+    val ru = language == "ru"
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .padding(24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = if (ru) "🎉 День ${milestone.day} разблокирован!"
+                       else "🎉 Day ${milestone.day} unlocked!",
+                color = GoldAccent, fontSize = 20.sp, fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = rewardDescription(milestone, ru), color = TextPrimary, fontSize = 14.sp,
+                textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent)
+            ) {
+                Text(if (ru) "Отлично!" else "Awesome!", color = Color.White)
+            }
+        }
+    }
+}
+
+private fun rewardDescription(m: com.ninthbalcony.pushuprpg.utils.StreakMilestone, ru: Boolean): String {
+    val parts = mutableListOf<String>()
+    if (m.teeth > 0) parts += "+${m.teeth} 🦷"
+    if (m.statPoints > 0) parts += if (ru) "+${m.statPoints} stat pts" else "+${m.statPoints} stat pts"
+    if (m.spinTokens > 0) parts += if (ru) "+${m.spinTokens} 🎰" else "+${m.spinTokens} 🎰"
+    if (m.itemRarity != null) parts += if (ru) "предмет ${m.itemRarity}" else "${m.itemRarity} item"
+    return parts.joinToString(" • ")
+}
+
 // --- Шапка ---
 @Composable
 fun TopBar(
     state: GameStateEntity,
     maxHp: Int,
     onSettingsClick: () -> Unit,
-    avatarUrl: String? = null
+    avatarUrl: String? = null,
+    onStreakClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -851,7 +1004,8 @@ fun TopBar(
                 Text(
                     text = "🔥 Streak ${state.currentStreak} days",
                     fontSize = 11.sp,
-                    color = OrangeLight
+                    color = OrangeLight,
+                    modifier = Modifier.clickable { onStreakClick() }
                 )
                 Text(
                     text = "${GameCalculations.getXpForNextLevel(state.totalXp)} xp to next",

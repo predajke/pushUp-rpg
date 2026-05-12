@@ -400,6 +400,24 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         }
     }
 
+    // ==================== STREAK REWARDS ====================
+
+    private val _claimedStreakMilestone =
+        MutableStateFlow<com.ninthbalcony.pushuprpg.utils.StreakMilestone?>(null)
+    val claimedStreakMilestone: StateFlow<com.ninthbalcony.pushuprpg.utils.StreakMilestone?> =
+        _claimedStreakMilestone.asStateFlow()
+
+    fun claimStreakReward() {
+        viewModelScope.launch {
+            val milestone = repository.claimStreakReward()
+            if (milestone != null) {
+                _claimedStreakMilestone.value = milestone
+            }
+        }
+    }
+
+    fun dismissClaimedStreakMilestone() { _claimedStreakMilestone.value = null }
+
     // ==================== КВЕСТЫ ====================
     fun getActiveQuests(state: GameStateEntity): List<ActiveQuest> =
         QuestSystem.deserialize(state.activeQuestsJson)

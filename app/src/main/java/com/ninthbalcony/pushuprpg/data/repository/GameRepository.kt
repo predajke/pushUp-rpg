@@ -1629,6 +1629,51 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
     }
 
+    // ==================== STREAK REWARDS ====================
+
+    override suspend fun claimStreakReward(): com.ninthbalcony.pushuprpg.utils.StreakMilestone? {
+        return try {
+            val state = getGameState()
+            val milestone = com.ninthbalcony.pushuprpg.utils.StreakRewards
+                .pendingClaim(state.currentStreak, state.lastStreakRewardClaimedDay) ?: return null
+
+            var newState = state.copy(
+                teeth = state.teeth + milestone.teeth,
+                totalTeethEarned = state.totalTeethEarned + milestone.teeth,
+                unspentStatPoints = state.unspentStatPoints + milestone.statPoints,
+                spinTokens = state.spinTokens + milestone.spinTokens,
+                lastStreakRewardClaimedDay = milestone.day,
+            )
+
+            // Опциональный гарантированный предмет.
+            if (milestone.itemRarity != null) {
+                ItemUtils.loadItems(context)
+                val item = ItemUtils.getRandomItemOfRarity(milestone.itemRarity)
+                if (item != null) {
+                    val uniqueId = "${item.id}_${System.currentTimeMillis()}"
+                    val entries = parseInventory(newState.inventoryItems)
+                    entries.add("$uniqueId:0")
+                    val newItemLog = addItemToLog(newState, uniqueId)
+                    newState = newState.copy(
+                        inventoryItems = buildInventory(entries),
+                        itemLogJson = newItemLog,
+                        itemsCollected = newState.itemsCollected + 1,
+                    )
+                }
+            }
+
+            addLog(
+                "🔥 Streak Day ${milestone.day} reward claimed!",
+                "🔥 Награда за streak День ${milestone.day} получена!"
+            )
+            saveStamped(newState)
+            milestone
+        } catch (e: Exception) {
+            android.util.Log.e("GameRepo", "claimStreakReward failed", e)
+            null
+        }
+    }
+
     // ==================== DEBUG / TEST HELPERS ====================
 
     // ===== PUNCH =====
