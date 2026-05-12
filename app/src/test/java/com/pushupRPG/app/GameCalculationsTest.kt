@@ -96,8 +96,8 @@ class GameCalculationsTest {
     @Test
     fun `getMaxHp - суммирует базу, уровень и предметы`() {
         val maxHp = GameCalculations.getMaxHp(level = 5, baseHealth = 100, itemHealthBonus = 20)
-        // 100 + 5*15 + 20 = 195
-        assertEquals(195, maxHp)
+        // 100 + 5*HP_PER_LEVEL + 20 = 100 + 5*20 + 20 = 220
+        assertEquals(220, maxHp)
     }
 
     @Test
@@ -150,5 +150,39 @@ class GameCalculationsTest {
     @Test
     fun `isBurstAttack - 49 отжиманий = не burst`() {
         assertFalse(GameCalculations.isBurstAttack(49))
+    }
+
+    // ==================== calculateTotalStats(state) overload ====================
+
+    @Test
+    fun `calculateTotalStats(state) - без экипа возвращает базовые статы`() {
+        val state = com.ninthbalcony.pushuprpg.data.db.GameStateEntity(
+            basePower = 7, baseArmor = 3, baseHealth = 150, baseLuck = 2f
+        )
+        val r = GameCalculations.calculateTotalStats(state)
+        // Без вещей, без ачивок, без сетов, prestigeLevel=0:
+        // power = (7 + 0) * (1f + 0 + 0 + 0) = 7
+        assertEquals(7, r.power)
+        assertEquals(3, r.armor)
+        assertEquals(2f, r.luck, 0.001f)
+    }
+
+    @Test
+    fun `calculateTotalStats(state) - эквивалентен explicit-версии при пустых входах`() {
+        // В unit-тесте ItemUtils.allItems пустой (нет Context для загрузки items.json),
+        // так что обе ветки дают идентичный результат — это и проверяем.
+        val state = com.ninthbalcony.pushuprpg.data.db.GameStateEntity(
+            basePower = 10, baseHealth = 100, playerLevel = 3, prestigeLevel = 1
+        )
+        val viaOverload = GameCalculations.calculateTotalStats(state)
+        val viaExplicit = GameCalculations.calculateTotalStats(
+            state, emptyList(), emptyList(),
+            com.ninthbalcony.pushuprpg.utils.AchievementBonuses(),
+            com.ninthbalcony.pushuprpg.utils.SetBonuses()
+        )
+        assertEquals(viaExplicit.power, viaOverload.power)
+        assertEquals(viaExplicit.armor, viaOverload.armor)
+        assertEquals(viaExplicit.health, viaOverload.health)
+        assertEquals(viaExplicit.luck, viaOverload.luck, 0.001f)
     }
 }
