@@ -24,6 +24,7 @@ import com.ninthbalcony.pushuprpg.data.model.PeriodStats
 import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
 import com.ninthbalcony.pushuprpg.utils.AppStrings
+import com.ninthbalcony.pushuprpg.utils.TonnageCalculator
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
@@ -115,6 +116,15 @@ fun StatisticsScreen(
                 gameState = gameState,
                 language = language
             )
+
+            // --- Тоннаж и калории ---
+            gameState?.let { state ->
+                TonnageStatsCard(
+                    state = state,
+                    weekTotalPushUps = weekTotal,
+                    language = language
+                )
+            }
 
             // --- RPG статистика ---
             gameState?.let { state ->
@@ -368,6 +378,71 @@ fun PushUpStatsCard(
             value = "${gameState?.longestStreak ?: 0} ${AppStrings.t(language, "streak_days")}",
             valueColor = GoldAccent
         )
+    }
+}
+
+// --- Тоннаж и калории ---
+@Composable
+fun TonnageStatsCard(
+    state: GameStateEntity,
+    weekTotalPushUps: Int,
+    language: String
+) {
+    val weight = state.bodyWeightKg
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(DarkCard, RoundedCornerShape(12.dp))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = AppStrings.t(language, "tonnage_stats"),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = OrangeAccent,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        if (weight <= 0f) {
+            // Без веса считать нечего — показываем prompt вместо пустых нулей.
+            Text(
+                text = AppStrings.t(language, "set_weight_prompt"),
+                fontSize = 12.sp,
+                color = TextMuted,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        } else {
+            StatRow(
+                label = AppStrings.t(language, "tonnage_total"),
+                value = TonnageCalculator.formatMass(
+                    TonnageCalculator.tonnageKg(state.totalPushUpsAllTime, weight),
+                    language
+                ),
+                valueColor = OrangeAccent
+            )
+            StatDivider()
+            StatRow(
+                label = AppStrings.t(language, "tonnage_today"),
+                value = TonnageCalculator.formatMass(
+                    TonnageCalculator.tonnageKg(state.pushUpsToday, weight),
+                    language
+                )
+            )
+            StatDivider()
+            StatRow(
+                label = AppStrings.t(language, "tonnage_week"),
+                value = TonnageCalculator.formatMass(
+                    TonnageCalculator.tonnageKg(weekTotalPushUps, weight),
+                    language
+                )
+            )
+            StatDivider()
+            StatRow(
+                label = AppStrings.t(language, "calories_total"),
+                value = "${TonnageCalculator.calories(state.totalPushUpsAllTime, weight)} kcal",
+                valueColor = GoldAccent
+            )
+        }
     }
 }
 
