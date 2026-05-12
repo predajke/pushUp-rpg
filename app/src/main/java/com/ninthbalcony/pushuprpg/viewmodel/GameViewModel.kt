@@ -26,8 +26,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
@@ -74,12 +76,21 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialValue = true)
 
     init {
-        // Sign in once + claim friend code + subscribe to real-time friends flow.
+        // Sign in once + переслушиваем смену uid (Play Games link меняет его
+        // позже init'а ViewModel), и под каждым новым uid'ом перезапрашиваем
+        // friend code и friends flow. Иначе "------" в Profile после Sign In:
+        // код был запрошен под анонимным uid, а Play Games потом переключил
+        // нас на свой uid, под которым кода нет.
         viewModelScope.launch {
-            val uid = leaderboardRepo.ensureSignedIn() ?: return@launch
-            _myFriendCode.value = leaderboardRepo.ensureFriendCode()
-            leaderboardRepo.friendsFlow(uid)
-                .collect { _friendsList.value = it }
+            leaderboardRepo.ensureSignedIn() ?: return@launch
+            leaderboardRepo.authUidFlow()
+                .filterNotNull()
+                .distinctUntilChanged()
+                .collectLatest { uid ->
+                    _myFriendCode.value = leaderboardRepo.ensureFriendCode()
+                    leaderboardRepo.friendsFlow(uid)
+                        .collect { _friendsList.value = it }
+                }
         }
 
         gameState

@@ -280,6 +280,25 @@ class LeaderboardRepository {
     }
 
     /**
+     * Reactive Firebase auth uid. Emits null when signed out, and the new
+     * uid whenever it changes — critically, this fires after Play Games
+     * sign-in completes and the anonymous Firebase account is upgraded to
+     * (or replaced by) the Play Games-linked uid.
+     *
+     * Caller pattern: `collectLatest { uid -> refetchPerUidData(uid) }`,
+     * so previous-uid coroutines (friends, friend code) auto-cancel and
+     * restart under the new uid. Without this, fresh installs land on the
+     * old anonymous uid and never see their existing friend code.
+     */
+    fun authUidFlow(): Flow<String?> = callbackFlow {
+        val listener = com.google.firebase.auth.FirebaseAuth.AuthStateListener { fa ->
+            trySend(fa.currentUser?.uid)
+        }
+        auth.addAuthStateListener(listener)
+        awaitClose { auth.removeAuthStateListener(listener) }
+    }
+
+    /**
      * Live connection state from Firebase's special `.info/connected` virtual
      * node. Emits true when the SDK has an active socket to the backend, false
      * otherwise. Survives auth churn and network blips.
