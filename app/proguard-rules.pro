@@ -22,6 +22,9 @@
 -keep class com.ninthbalcony.pushuprpg.utils.AchievementDef { *; }
 -keep enum com.ninthbalcony.pushuprpg.utils.QuestType { *; }
 
+# Keep nested Gson wrapper classes inside utils objects (e.g. ItemUtils$ItemsWrapper)
+-keep class com.ninthbalcony.pushuprpg.utils.ItemUtils$* { *; }
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Room — keep entities, DAOs, and database
 # ──────────────────────────────────────────────────────────────────────────────

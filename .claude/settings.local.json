@@ -69,7 +69,18 @@
       "Bash(./gradlew testDebugUnitTest --stacktrace)",
       "Bash(./gradlew assembleDebug -q)",
       "Bash(./gradlew :app:compileDebugKotlin)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(dir \"Q:\\\\AndroidApp\\\\PushUpRPG\\\\app\\\\src\\\\main\\\\res\\\\drawable\" /B)",
+      "Bash(findstr /i \"grind\")",
+      "Bash(./gradlew test *)",
+      "Bash(./gradlew lintDebug)",
+      "Bash(./gradlew compileDebugKotlin --rerun-tasks)",
+      "Bash('/c/Users/DRE Station/AppData/Local/Android/Sdk/platform-tools/adb.exe' shell pm clear com.ninthbalcony.pushuprpg)",
+      "Bash(./gradlew installDebug)",
+      "Bash('/c/Users/DRE Station/AppData/Local/Android/Sdk/platform-tools/adb.exe' logcat -c)",
+      "Bash('/c/Users/DRE Station/AppData/Local/Android/Sdk/platform-tools/adb.exe' shell am start -n com.ninthbalcony.pushuprpg/.MainActivity)",
+      "Bash('/c/Users/DRE Station/AppData/Local/Android/Sdk/platform-tools/adb.exe' logcat -d AndroidRuntime:E '*:S')",
+      "Bash(git tag *)"
     ]
   }
 }

@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "477535266151-22hpmr7q7fvbrjb7d4lulibv3g2ktj2o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ninthbalcony.pushuprpg",
+            "certificate_hash": "77a63dc0e56dedc3864e85fcc6c2cd52d8c22d9a"
+          }
+        },
+        {
+          "client_id": "477535266151-707eqv34i5kd7bmvhgbvtcscm56u57tt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ninthbalcony.pushuprpg",
+            "certificate_hash": "329983f1f295771085bef73537d8c7bd0f08318b"
+          }
+        },
+        {
           "client_id": "477535266151-nv7ugp8ro6mnbo2n4497v953rjjfbt24.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -23,7 +39,15 @@
           }
         },
         {
-          "client_id": "477535266151-buoltg1ea91rc772ulcqvquv5f175q19.apps.googleusercontent.com",
+          "client_id": "477535266151-ph0m74knpb5sjth1o2oo8s53me0dnuv3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ninthbalcony.pushuprpg",
+            "certificate_hash": "ba6d06499cfed230f7073800064df12b4c7ed105"
+          }
+        },
+        {
+          "client_id": "477535266151-jduo3iqo9ndnk017nqbbi9ioifg83nij.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
