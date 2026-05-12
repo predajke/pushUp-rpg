@@ -26,8 +26,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -223,6 +225,39 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
     fun setAdManager(manager: com.ninthbalcony.pushuprpg.managers.AdManager) {
         adManager = manager
+    }
+
+    // ==================== CLOUD SAVE ====================
+    private var cloudSyncManager: com.ninthbalcony.pushuprpg.managers.CloudSyncManager? = null
+
+    /** Прокидывает [CloudSyncManager.restoreEvent] в UI для показа Toast'а. */
+    val restoreEvent: kotlinx.coroutines.flow.SharedFlow<com.ninthbalcony.pushuprpg.managers.RestoreResult>?
+        get() = cloudSyncManager?.restoreEvent
+
+    fun setCloudSyncManager(manager: com.ninthbalcony.pushuprpg.managers.CloudSyncManager) {
+        cloudSyncManager = manager
+        // One-shot: читаем облако, и если оно новее локального — заменяем Room.
+        // tryRestoreOnLaunch внутри ставит restoreComplete=true в finally,
+        // что разблокирует upload pipeline ниже.
+        viewModelScope.launch {
+            val local = repository.getGameState()
+            val restored = manager.tryRestoreOnLaunch(local)
+            if (restored != null) {
+                repository.saveGameState(restored)
+            }
+        }
+        // Upload pipeline: после restoreComplete=true, следим за gameState
+        // и через 30 сек после последнего изменения пушим в облако.
+        // Гейт на restoreComplete критичен — иначе сразу после старта мы залили бы
+        // дефолтного Hero поверх облака, прежде чем restore успеет применить cloud→Room.
+        gameState
+            .filterNotNull()
+            .combine(manager.restoreComplete) { state, done -> state to done }
+            .filter { it.second }
+            .map { it.first }
+            .debounce(30_000L)
+            .onEach { manager.uploadGameStateAsync(it) }
+            .launchIn(viewModelScope)
     }
 
     private var playGamesManager: com.ninthbalcony.pushuprpg.managers.PlayGamesManager? = null

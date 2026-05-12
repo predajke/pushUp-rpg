@@ -78,15 +78,6 @@ class MainActivity : ComponentActivity() {
         // Schedule daily notifications
         NotificationScheduler.scheduleDailyNotifications(this)
 
-        // Initialize Cloud Sync (offline-first, async)
-        try {
-            cloudSyncManager.initialize { success ->
-                Log.d(TAG, "Cloud sync initialized: $success")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Cloud sync initialization error: ${e.message}")
-        }
-
         // Silent Play Games sign-in
         try {
             playGamesManager.signIn(this) { success ->
@@ -122,6 +113,7 @@ class MainActivity : ComponentActivity() {
 
                     viewModel.setAdManager(adManager)
                     viewModel.setPlayGamesManager(playGamesManager)
+                    viewModel.setCloudSyncManager(cloudSyncManager)
                     AppNavigation(viewModel = viewModel)
                 }
             }

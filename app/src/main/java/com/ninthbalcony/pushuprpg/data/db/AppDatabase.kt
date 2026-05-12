@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ninthbalcony.pushuprpg.data.db.dao.MaxPushUpsDao
 import com.ninthbalcony.pushuprpg.data.db.entity.MaxPushUpsAttemptEntity
 
@@ -14,7 +16,7 @@ import com.ninthbalcony.pushuprpg.data.db.entity.MaxPushUpsAttemptEntity
         LogEntryEntity::class,
         MaxPushUpsAttemptEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,6 +28,13 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        /** v2 → v3: добавлен GameStateEntity.lastUpdated для облачной синхронизации. */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE game_state ADD COLUMN lastUpdated INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
@@ -33,10 +42,10 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "pushup_rpg_database"
                 )
-                    // ⚠ DEV ONLY — удалить перед публикацией в Play Console.
-                    // Сейчас стирает БД при любом mismatch версии (напр. v21 на старом
-                    // устройстве при выкатывании v1). После релиза → заменить
-                    // на цепочку Migration(1, 2), Migration(2, 3) и т.д.
+                    .addMigrations(MIGRATION_2_3)
+                    // ⚠ DEV ONLY — fallback на случай если у пользователя осталась
+                    // версия из старых веток (v1, v6 из устаревшего dev-нейминга).
+                    // После публичного релиза заменить на полную цепочку миграций.
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build().also { INSTANCE = it }
             }

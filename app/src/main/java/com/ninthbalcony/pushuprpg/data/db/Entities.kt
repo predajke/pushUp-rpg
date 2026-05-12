@@ -186,7 +186,10 @@ data class GameStateEntity(
     val goldenGoblinPunchCount: Int = 0,          // Нажатий Punch за текущее событие
 
     // ===== Физические данные =====
-    val bodyWeightKg: Float = 0f                  // Вес тела (кг) для расчёта тоннажа
+    val bodyWeightKg: Float = 0f,                 // Вес тела (кг) для расчёта тоннажа
+
+    // ===== Cloud Save metadata =====
+    val lastUpdated: Long = 0L                    // epoch ms последнего сохранения — для conflict resolution с облаком
 )
 
 @Entity(tableName = "pushup_records")

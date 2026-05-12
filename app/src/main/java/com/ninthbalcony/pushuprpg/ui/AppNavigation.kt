@@ -1,8 +1,10 @@
 package com.ninthbalcony.pushuprpg.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -43,6 +45,23 @@ object Routes {
 fun AppNavigation(viewModel: GameViewModel) {
     val navController = rememberNavController()
     val gameState by viewModel.gameState.collectAsState(initial = null)
+    val context = LocalContext.current
+    val language = gameState?.language ?: "en"
+
+    // Cloud restore Toast — слушаем событие один раз за жизнь Activity.
+    LaunchedEffect(viewModel) {
+        viewModel.restoreEvent?.collect { result ->
+            when (result) {
+                is com.ninthbalcony.pushuprpg.managers.RestoreResult.Restored -> {
+                    val msg = if (language == "ru")
+                        "Прогресс восстановлен из облака (Lvl ${result.level}, ${result.totalPushUps} отж.)"
+                    else
+                        "Progress restored from cloud (Lvl ${result.level}, ${result.totalPushUps} push-ups)"
+                    android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
 
     // Определяем стартовый экран
     val startDestination = if (gameState != null) {

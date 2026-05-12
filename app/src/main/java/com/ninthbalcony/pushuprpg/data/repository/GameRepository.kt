@@ -113,8 +113,18 @@ class GameRepository(private val context: Context) : IGameRepository {
             // какое значение несёт stale-копия state (race condition protection).
             val existing = dao.getGameState()
             val toSave = if (existing?.isFirstLaunch == false) state.copy(isFirstLaunch = false) else state
-            dao.saveGameState(toSave)
+            saveStamped(toSave)
         }
+    }
+
+    /**
+     * Все записи в Room идут через этого хелпера — он проставляет
+     * lastUpdated = now, чтобы cloud sync мог корректно сравнивать timestamp'ы.
+     * Единственное исключение — applyCloudRestore, который сохраняет
+     * lastUpdated из облака как есть.
+     */
+    private suspend fun saveStamped(state: GameStateEntity) {
+        with(dao) { saveGameState(state.copy(lastUpdated = System.currentTimeMillis())) }
     }
 
     private suspend fun createInitialGameState(): GameStateEntity {
@@ -126,7 +136,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             characterBirthDate = today,
             playerCountry = com.ninthbalcony.pushuprpg.utils.detectDeviceCountry()
         )
-        dao.saveGameState(initial)
+        saveStamped(initial)
         return initial
     }
 
@@ -295,7 +305,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
 
         try {
-            dao.saveGameState(workingState)
+            saveStamped(workingState)
             dao.insertPushUpRecord(PushUpRecordEntity(date = today, count = count))
         } catch (e: Exception) {
             addLog("❌ Error saving progress", "❌ Ошибка сохранения прогресса")
@@ -388,7 +398,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             val now = System.currentTimeMillis()
 
             if (state.isPlayerDead) {
-                dao.saveGameState(state.copy(lastBattleTick = now))
+                saveStamped(state.copy(lastBattleTick = now))
                 return
             }
 
@@ -403,7 +413,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                     current = processAutoAttackTick(current)
                 }
             }
-            dao.saveGameState(current.copy(lastBattleTick = now))
+            saveStamped(current.copy(lastBattleTick = now))
         } catch (e: Exception) {
             android.util.Log.e("GameRepo", "processBattleTick failed", e)
         }
@@ -668,7 +678,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             else -> 1
         }
 
-        dao.saveGameState(state.copy(
+        saveStamped(state.copy(
             currentStreak = newStreak,
             longestStreak = maxOf(state.longestStreak, newStreak),
             lastLoginDate = today
@@ -710,7 +720,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val entries = parseInventory(state.inventoryItems)
         entries.add(newEntry)
 
-        dao.saveGameState(state.copy(
+        saveStamped(state.copy(
             inventoryItems = buildInventory(entries),
             itemsCollected = state.itemsCollected + 1
         ))
@@ -775,7 +785,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             playGamesManager?.unlockAchievementFullWardrobe()
         }
 
-        dao.saveGameState(AvatarSystem.checkAndUnlock(updatedState))
+        saveStamped(AvatarSystem.checkAndUnlock(updatedState))
     }
 
     override suspend fun unequipItem(slot: String) {
@@ -806,7 +816,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             "boots" -> state.copy(equippedBoots = "", inventoryItems = buildInventory(entries))
             else -> state
         }
-        dao.saveGameState(updatedState)
+        saveStamped(updatedState)
     }
 
     // ==================== ПРОДАЖА ====================
@@ -827,7 +837,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
         entries.removeAt(idx)
 
-        dao.saveGameState(state.copy(
+        saveStamped(state.copy(
             inventoryItems = buildInventory(entries),
             baseLuck = state.baseLuck + luckGained,
             teeth = state.teeth + teethGained,
@@ -861,7 +871,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             lastBattleTick = System.currentTimeMillis(),
             characterBirthDate = today
         )
-        dao.saveGameState(fresh)
+        saveStamped(fresh)
     }
 
     // ==================== ОЧКИ ====================
@@ -885,14 +895,14 @@ class GameRepository(private val context: Context) : IGameRepository {
             )
             else -> state
         }
-        dao.saveGameState(updatedState)
+        saveStamped(updatedState)
     }
 
     override suspend fun useFreePoints(): Boolean {
         val state = getGameState()
         if (state.freePointsUsedToday >= 2) return false
 
-        dao.saveGameState(state.copy(
+        saveStamped(state.copy(
             unspentStatPoints = state.unspentStatPoints + 2,
             freePointsUsedToday = state.freePointsUsedToday + 1
         ))
@@ -917,7 +927,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 eventEndTime = newEndTime,
                 lastEventTime = now
             )
-            dao.saveGameState(updatedState)
+            saveStamped(updatedState)
             addLog(
                 "Event started: ${newEvent.nameEn}! ${newEvent.descriptionEn}",
                 "Событие началось: ${newEvent.nameRu}! ${newEvent.descriptionRu}"
@@ -928,7 +938,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         if (state.activeEventId != 0 && !EventUtils.isEventActive(state.eventEndTime)) {
             val oldEvent = EventUtils.getEventById(state.activeEventId)
             val updatedState = state.copy(activeEventId = 0)
-            dao.saveGameState(updatedState)
+            saveStamped(updatedState)
             if (oldEvent != null) {
                 addLog(
                     "Event ended: ${oldEvent.nameEn}",
@@ -957,7 +967,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             state.shopItems.isEmpty()) {
             val newItems = ShopUtils.generateShopItems(allItems)
             val newItemsStr = ShopUtils.shopItemsToString(newItems)
-            dao.saveGameState(state.copy(
+            saveStamped(state.copy(
                 shopItems = newItemsStr,
                 shopLastRefresh = System.currentTimeMillis()
             ))
@@ -987,7 +997,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             buyQuests = QuestSystem.addProgress(buyQuests, QuestType.BUY_ITEM, 1)
             buyQuests = QuestSystem.addProgress(buyQuests, QuestType.TEETH_SPENT, price)
             val newItemLog = addItemToLog(state, uniqueId)
-            dao.saveGameState(state.copy(
+            saveStamped(state.copy(
                 teeth = state.teeth - price,
                 shopItems = newShopItems,
                 inventoryItems = buildInventory(entries),
@@ -1009,7 +1019,7 @@ class GameRepository(private val context: Context) : IGameRepository {
     override suspend fun addTeeth(amount: Int) {
         saveMutex.withLock {
             val state = getGameState()
-            dao.saveGameState(state.copy(
+            saveStamped(state.copy(
                 teeth = state.teeth + amount,
                 teethFromAds = state.teethFromAds + amount,
                 adShopViewCount = state.adShopViewCount + 1,
@@ -1038,7 +1048,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val newItemsStr = ShopUtils.shopItemsToString(baseItems)
         var rerollQuests = QuestSystem.deserialize(state.activeQuestsJson)
         rerollQuests = QuestSystem.addProgress(rerollQuests, QuestType.TEETH_SPENT, cost)
-        dao.saveGameState(state.copy(
+        saveStamped(state.copy(
             shopItems = newItemsStr,
             shopLastRefresh = now,
             teeth = state.teeth - cost,
@@ -1059,7 +1069,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         } else {
             state.copy(forgeSlot2 = itemId)
         }
-        dao.saveGameState(updatedState)
+        saveStamped(updatedState)
     }
 
     /** Вставляет случайные вещи наименьшей редкости (кроме epic/legendary) в пустые слоты Forge */
@@ -1099,7 +1109,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             newSlot2 = getUniqueId(pool[poolIdx])
         }
 
-        dao.saveGameState(state.copy(forgeSlot1 = newSlot1, forgeSlot2 = newSlot2))
+        saveStamped(state.copy(forgeSlot1 = newSlot1, forgeSlot2 = newSlot2))
     }
 
     override suspend fun mergeItems(): ForgeResult {
@@ -1133,7 +1143,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 val forgeQuests = QuestSystem.serialize(
                     QuestSystem.addProgress(QuestSystem.deserialize(state.activeQuestsJson), QuestType.FORGE, 1)
                 )
-                dao.saveGameState(state.copy(
+                saveStamped(state.copy(
                     inventoryItems = buildInventory(entries),
                     forgeSlot1 = "",
                     forgeSlot2 = "",
@@ -1155,7 +1165,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 QuestSystem.addProgress(QuestSystem.deserialize(state.activeQuestsJson), QuestType.FORGE, 1)
             )
             val newItemLog = addItemToLog(state, uniqueId)
-            dao.saveGameState(state.copy(
+            saveStamped(state.copy(
                 inventoryItems = buildInventory(entries),
                 forgeSlot1 = "",
                 forgeSlot2 = "",
@@ -1180,7 +1190,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val state = getGameState()
         val today = DateUtils.getTodayString()
         if (state.lastDailyReset != today) {
-            dao.saveGameState(state.copy(
+            saveStamped(state.copy(
                 cloverBoxUsedToday = 0,
                 freePointsUsedToday = 0,
                 adShopViewCount = 0,
@@ -1208,7 +1218,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             val elapsedMs = now - lastGrant
             val blocks = (elapsedMs / threeHoursMs).toInt().coerceIn(0, 5)
             if (blocks > 0) {
-                dao.saveGameState(state.copy(
+                saveStamped(state.copy(
                     spinTokens = state.spinTokens + blocks,
                     lastHourlySpinGrantTime = lastGrant + blocks * threeHoursMs
                 ))
@@ -1314,7 +1324,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 }
             }
 
-            dao.saveGameState(updatedState.copy(itemLogJson = newItemLog))
+            saveStamped(updatedState.copy(itemLogJson = newItemLog))
             SpinResult(reward = reward, wonItemIds = wonItemIds)
         }
     }
@@ -1324,7 +1334,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         return saveMutex.withLock {
             val state = getGameState()
             if (!SpinUtils.canWatchAd(state)) return@withLock false
-            dao.saveGameState(state.copy(
+            saveStamped(state.copy(
                 dailySpinAdViewsToday = state.dailySpinAdViewsToday + 1,
                 spinTokens = state.spinTokens + 1
             ))
@@ -1352,7 +1362,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         entries.add("$uniqueId:0")
 
         val newItemLog = addItemToLog(state, uniqueId)
-        dao.saveGameState(state.copy(
+        saveStamped(state.copy(
             inventoryItems = buildInventory(entries),
             cloverBoxUsedToday = state.cloverBoxUsedToday + 1,
             itemsCollected = state.itemsCollected + 1,
@@ -1446,7 +1456,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                     }
                 }
                 afterEnchant = AchievementSystem.checkAndUnlock(afterEnchant, today)
-                dao.saveGameState(afterEnchant)
+                saveStamped(afterEnchant)
                 addLog(
                     "⚡ ${item.name_en} successfully enchanted to +$newLevel!",
                     "⚡ ${item.name_ru} успешно заточен до +$newLevel!"
@@ -1456,7 +1466,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             } else {
                 var failQuests = QuestSystem.deserialize(state.activeQuestsJson)
                 failQuests = QuestSystem.addProgress(failQuests, QuestType.TEETH_SPENT, cost)
-                dao.saveGameState(state.copy(
+                saveStamped(state.copy(
                     teeth = newTeeth,
                     totalTeethSpent = state.totalTeethSpent + cost,
                     totalEnchantAttempts = state.totalEnchantAttempts + 1,
@@ -1474,7 +1484,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     override suspend fun setActiveAchievements(ids: List<String>) {
         val state = getGameState()
-        dao.saveGameState(state.copy(activeAchievementIds = ids.take(3).joinToString(",")))
+        saveStamped(state.copy(activeAchievementIds = ids.take(3).joinToString(",")))
     }
 
     // ==================== КВЕСТЫ ====================
@@ -1500,7 +1510,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
 
         if (changed) {
-            dao.saveGameState(state.copy(
+            saveStamped(state.copy(
                 activeQuestsJson = QuestSystem.serialize(quests),
                 lastQuestRefreshDate = refreshDate
             ))
@@ -1545,7 +1555,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 addLog("🏆 Quest reward: +${def.rewardTeeth} 🦷", "🏆 Награда квеста: +${def.rewardTeeth} 🦷")
             }
 
-            dao.saveGameState(newState.copy(itemLogJson = newItemLog))
+            saveStamped(newState.copy(itemLogJson = newItemLog))
             true
         }
     }
@@ -1557,7 +1567,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val quests = QuestSystem.deserialize(state.activeQuestsJson)
         val weekly = quests.firstOrNull { QuestSystem.getDefById(it.defId)?.isWeekly == true }
         val updated = QuestSystem.rollDailyQuests() + listOfNotNull(weekly)
-        dao.saveGameState(state.copy(
+        saveStamped(state.copy(
             activeQuestsJson = QuestSystem.serialize(updated),
             lastAdQuestRerollDate = today
         ))
@@ -1611,7 +1621,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             }
 
             addLog("🎁 Daily reward claimed: Day ${reward.day}", "🎁 Ежедневная награда: День ${reward.day}")
-            dao.saveGameState(newState.copy(itemLogJson = newItemLog))
+            saveStamped(newState.copy(itemLogJson = newItemLog))
             reward
         } catch (e: Exception) {
             android.util.Log.e("GameRepo", "claimDailyReward failed", e)
@@ -1678,7 +1688,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 totalDamageDealt = state.totalDamageDealt + dmg
             )
         }
-        dao.saveGameState(newState)
+        saveStamped(newState)
         dmg
     }
 
@@ -1702,7 +1712,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val state = getGameState()
         val existing = parseInventory(state.inventoryItems)
         existing.addAll(entries)
-        dao.saveGameState(state.copy(
+        saveStamped(state.copy(
             inventoryItems = buildInventory(existing),
             teeth = state.teeth + 100000
         ))
@@ -1715,7 +1725,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         if (!state.isGoldenGoblinActive) return@withLock 0
         if (System.currentTimeMillis() >= state.goldenGoblinEndTime) return@withLock 0
         val newCount = state.goldenGoblinPunchCount + 1
-        dao.saveGameState(state.copy(goldenGoblinPunchCount = newCount))
+        saveStamped(state.copy(goldenGoblinPunchCount = newCount))
         newCount
     }
 
@@ -1726,7 +1736,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val monster = MonsterUtils.rollNextMonster(state.playerLevel)
         val hpBonus = GameCalculations.MONSTER_HP_BONUS_PER_PRESTIGE * state.prestigeLevel
         val dmgBonus = GameCalculations.MONSTER_DAMAGE_BONUS_PER_PRESTIGE * state.prestigeLevel
-        dao.saveGameState(state.copy(
+        saveStamped(state.copy(
             isGoldenGoblinActive = false,
             goldenGoblinEndTime = 0L,
             goldenGoblinPunchCount = 0,
