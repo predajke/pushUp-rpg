@@ -186,9 +186,6 @@ class PlayGamesManager(private val context: Context) {
         }
     }
 
-    fun isSignedIn(): Boolean = _isAuth.value
-    fun getPlayerName(): String = _displayName.value
-
     // ── Achievements (v2 API requires Activity, cached weakly from sign-in) ──
 
     private fun act(): Activity? = activityRef?.get()

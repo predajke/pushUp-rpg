@@ -255,11 +255,9 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
      */
     fun signInPlayGames(activity: android.app.Activity) {
         val manager = playGamesManager ?: return
-        viewModelScope.launch {
-            val ok = manager.signInInteractive(activity)
-            _playGamesSignedIn.value = ok && manager.isSignedIn()
-            _playGamesPlayerName.value = manager.getPlayerName()
-        }
+        viewModelScope.launch { manager.signInInteractive(activity) }
+        // _playGamesSignedIn / _playGamesPlayerName обновятся через подписки
+        // в setPlayGamesManager — единый источник истины.
     }
 
     fun signOutPlayGames(activity: android.app.Activity) {
@@ -328,15 +326,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     fun dismissAdSpin() { _adSpinPending.value = false }
 
     val totalStats: StateFlow<com.ninthbalcony.pushuprpg.utils.TotalStats?> = gameState.filterNotNull().map { state ->
-        val slots = listOf(
-            state.equippedHead, state.equippedNecklace, state.equippedWeapon1,
-            state.equippedWeapon2, state.equippedPants, state.equippedBoots
-        ).filter { it.isNotEmpty() }
-        val items = slots.mapNotNull { ItemUtils.getItemById(it.split(":")[0]) }
-        val levels = slots.map { it.split(":").getOrNull(1)?.toIntOrNull() ?: 0 }
-        val achBonuses = com.ninthbalcony.pushuprpg.utils.AchievementSystem.getActiveBonuses(state.activeAchievementIds)
-        val setBonuses = ItemUtils.getSetBonuses(items)
-        com.ninthbalcony.pushuprpg.utils.GameCalculations.calculateTotalStats(state, items, levels, achBonuses, setBonuses)
+        com.ninthbalcony.pushuprpg.utils.GameCalculations.calculateTotalStats(state)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _isLoading = MutableStateFlow(false)

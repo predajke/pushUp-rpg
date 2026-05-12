@@ -320,10 +320,7 @@ class GameRepository(private val context: Context) : IGameRepository {
      * Возвращает финальный state и список хитов для UI-анимации.
      */
     private suspend fun processPushUpCombat(state: GameStateEntity, count: Int): Pair<GameStateEntity, List<BattleHit>> {
-        val (equippedItems, enchantLevels) = getEquippedWithEnchant(state)
-        val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
-        val setBonuses = ItemUtils.getSetBonuses(equippedItems)
-        val totalStats = GameCalculations.calculateTotalStats(state, equippedItems, enchantLevels, achBonuses, setBonuses)
+        val totalStats = GameCalculations.calculateTotalStats(state)
 
         val isBurst = GameCalculations.isBurstAttack(count)
         val burstMult = if (isBurst) GameCalculations.BURST_MULTIPLIER else 1
@@ -414,10 +411,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     /** Один раунд авто-боя: игрок атакует → монстр отвечает → реген HP */
     private suspend fun processAutoAttackTick(state: GameStateEntity): GameStateEntity {
-        val (equippedItems, enchantLevels) = getEquippedWithEnchant(state)
-        val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
-        val setBonuses = ItemUtils.getSetBonuses(equippedItems)
-        val totalStats = GameCalculations.calculateTotalStats(state, equippedItems, enchantLevels, achBonuses, setBonuses)
+        val totalStats = GameCalculations.calculateTotalStats(state)
 
         // Авто-атака игрока
         val isCrit = GameCalculations.isCriticalHit(totalStats.luck)
@@ -1637,10 +1631,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val usedToday = if (state.lastPunchDate == today) state.punchesUsedToday else 0
         if (usedToday >= GameCalculations.DAILY_PUNCH_LIMIT) return@withLock -1
 
-        val (equippedItems, enchantLevels) = getEquippedWithEnchant(state)
-        val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
-        val setBonuses = ItemUtils.getSetBonuses(equippedItems)
-        val totalStats = GameCalculations.calculateTotalStats(state, equippedItems, enchantLevels, achBonuses, setBonuses)
+        val totalStats = GameCalculations.calculateTotalStats(state)
 
         val isCrit = GameCalculations.isCriticalHit(totalStats.luck)
         val dmg = GameCalculations.calculatePlayerDamage(totalStats.power, isCrit)

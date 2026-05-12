@@ -75,7 +75,7 @@ class LeaderboardRepository {
             "gender"           to state.playerGender,
             "level"            to state.playerLevel,
             "prestige"         to state.prestigeLevel,
-            "power"            to computeTotalPower(state),
+            "power"            to com.ninthbalcony.pushuprpg.utils.GameCalculations.calculateTotalStats(state).power,
             "totalPushUps"     to state.totalPushUpsAllTime,
             "totalTeethEarned" to state.totalTeethEarned,
             "longestStreak"    to state.longestStreak,
@@ -85,22 +85,6 @@ class LeaderboardRepository {
             database.reference.child("leaderboard").child(uid).updateChildren(payload).await()
             Log.d(TAG, "Pushed leaderboard snapshot for uid=$uid")
         }.onFailure { Log.w(TAG, "Push failed: ${it.message}") }
-    }
-
-    /** Mirrors [GameViewModel.totalStats] — equipped items + enchant levels + ach/set bonuses. */
-    private fun computeTotalPower(state: com.ninthbalcony.pushuprpg.data.db.GameStateEntity): Int {
-        val slots = listOf(
-            state.equippedHead, state.equippedNecklace, state.equippedWeapon1,
-            state.equippedWeapon2, state.equippedPants, state.equippedBoots
-        ).filter { it.isNotEmpty() }
-        val items = slots.mapNotNull {
-            com.ninthbalcony.pushuprpg.utils.ItemUtils.getItemById(it.split(":")[0])
-        }
-        val levels = slots.map { it.split(":").getOrNull(1)?.toIntOrNull() ?: 0 }
-        val ach = com.ninthbalcony.pushuprpg.utils.AchievementSystem.getActiveBonuses(state.activeAchievementIds)
-        val setB = com.ninthbalcony.pushuprpg.utils.ItemUtils.getSetBonuses(items)
-        return com.ninthbalcony.pushuprpg.utils.GameCalculations
-            .calculateTotalStats(state, items, levels, ach, setB).power
     }
 
     /**

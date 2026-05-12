@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import coil.compose.AsyncImage
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -875,7 +876,7 @@ fun TopBar(
                 contentAlignment = Alignment.Center
             ) {
                 if (!avatarUrl.isNullOrBlank()) {
-                    coil.compose.AsyncImage(
+                    AsyncImage(
                         model = avatarUrl,
                         contentDescription = "Avatar",
                         modifier = Modifier.fillMaxSize().clip(CircleShape),

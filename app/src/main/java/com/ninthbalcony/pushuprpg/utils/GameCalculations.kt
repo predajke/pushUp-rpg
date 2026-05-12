@@ -101,6 +101,22 @@ object GameCalculations {
         return MonsterUtils.getMonsterByLevel(monsterLevel).damage
     }
 
+    /**
+     * State-only overload: собирает экипировку и бонусы из state сам,
+     * чтобы call site не повторял парсинг "id:level" 6 раз.
+     */
+    fun calculateTotalStats(state: GameStateEntity): TotalStats {
+        val slots = listOf(
+            state.equippedHead, state.equippedNecklace, state.equippedWeapon1,
+            state.equippedWeapon2, state.equippedPants, state.equippedBoots
+        ).filter { it.isNotEmpty() }
+        val items  = slots.mapNotNull { ItemUtils.getItemById(it.split(":")[0]) }
+        val levels = slots.map { it.split(":").getOrNull(1)?.toIntOrNull() ?: 0 }
+        val ach    = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
+        val setB   = ItemUtils.getSetBonuses(items)
+        return calculateTotalStats(state, items, levels, ach, setB)
+    }
+
     // --- Суммарные статы с учётом вещей, уровней заточки, бонусов ачивок и сетов ---
     fun calculateTotalStats(
         state: GameStateEntity,
