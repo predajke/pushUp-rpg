@@ -736,7 +736,7 @@ private fun mapEntriesToPlayers(
             res = e.prestige,
             lvl = e.level,
             totalPushUps = e.totalPushUps,
-            power = if (isMe) me.power else 0,
+            power = if (isMe) me.power else e.power,
             armor = if (isMe) me.armor else 0,
             hp    = if (isMe) me.hp    else 0,
             luck  = if (isMe) me.luck  else 0,

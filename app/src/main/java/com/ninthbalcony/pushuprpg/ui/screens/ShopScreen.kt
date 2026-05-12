@@ -165,6 +165,7 @@ fun ShopScreen(
     var showEnchantItemPicker by remember { mutableStateOf(false) }
 
     val adRewardPending by viewModel.adRewardPending.collectAsState()
+    val adSpinPending by viewModel.adSpinPending.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -201,6 +202,17 @@ fun ShopScreen(
             onWatchAd = { (context as? android.app.Activity)?.let { viewModel.playRewardedAd(it) } },
             onDecline = { viewModel.dismissAdReward() },
             onDismiss = { viewModel.dismissAdReward() }
+        )
+    }
+
+    if (adSpinPending) {
+        com.ninthbalcony.pushuprpg.ui.dialogs.RewardedAdDialog(
+            title = AppStrings.t(language, "ad_title"),
+            description = AppStrings.t(language, "ad_reward_desc"),
+            rewardText = "+1 🎰",
+            onWatchAd = { (context as? android.app.Activity)?.let { viewModel.playAdSpin(it) } },
+            onDecline = { viewModel.dismissAdSpin() },
+            onDismiss = { viewModel.dismissAdSpin() }
         )
     }
 
@@ -468,7 +480,7 @@ fun ShopScreen(
                     SoundManager.playSpin(shopSoundEnabled)
                     viewModel.performDailySpin()
                 },
-                onAdSpin = { viewModel.watchAdForSpin() },
+                onAdSpin = { viewModel.requestAdSpin() },
                 onAnimationEnd = {
                     isSpinAnimating = false
                     showSpinResultDialog = true

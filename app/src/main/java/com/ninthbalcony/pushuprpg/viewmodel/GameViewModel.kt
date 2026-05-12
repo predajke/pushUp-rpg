@@ -233,14 +233,20 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     private val _playGamesPlayerName = MutableStateFlow("Player")
     val playGamesPlayerName: StateFlow<String> = _playGamesPlayerName.asStateFlow()
 
+    private val _playerIconUri = MutableStateFlow<String?>(null)
+    val playerIconUri: StateFlow<String?> = _playerIconUri.asStateFlow()
+
     fun setPlayGamesManager(manager: com.ninthbalcony.pushuprpg.managers.PlayGamesManager) {
         playGamesManager = manager
         viewModelScope.launch {
             repository.setPlayGamesManager(manager)
         }
-        // Sync initial state from manager (silent sign-in result already applied by MainActivity)
-        _playGamesSignedIn.value = manager.isSignedIn()
-        _playGamesPlayerName.value = manager.getPlayerName()
+        // Observe sign-in state reactively — the silent sign-in callback in
+        // MainActivity completes asynchronously, so a one-shot read here loses
+        // the update and leaves Profile stuck on "not connected".
+        viewModelScope.launch { manager.isAuthFlow.collect { _playGamesSignedIn.value = it } }
+        viewModelScope.launch { manager.displayNameFlow.collect { _playGamesPlayerName.value = it } }
+        viewModelScope.launch { manager.iconUri.collect { _playerIconUri.value = it } }
     }
 
     /**
@@ -298,6 +304,28 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     }
 
     fun dismissAdQuestReroll() { _adQuestRerollPending.value = false }
+
+    private val _adSpinPending = MutableStateFlow(false)
+    val adSpinPending: StateFlow<Boolean> = _adSpinPending.asStateFlow()
+
+    fun requestAdSpin() { _adSpinPending.value = true }
+
+    fun playAdSpin(activity: android.app.Activity) {
+        adManager?.showRewardedAd(
+            activity,
+            onRewardEarned = {
+                _adSpinPending.value = false
+                viewModelScope.launch {
+                    repository.addSpinFromAd()
+                    _availableSpins.value = repository.getAvailableSpins()
+                    _adViewsToday.value = repository.getGameState().dailySpinAdViewsToday
+                }
+            },
+            onAdDismissed = { _adSpinPending.value = false }
+        )
+    }
+
+    fun dismissAdSpin() { _adSpinPending.value = false }
 
     val totalStats: StateFlow<com.ninthbalcony.pushuprpg.utils.TotalStats?> = gameState.filterNotNull().map { state ->
         val slots = listOf(
@@ -635,15 +663,6 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
             _adViewsToday.value = repository.getGameState().dailySpinAdViewsToday
             triggerRealtimeTick()
             _isSpinning.value = false
-        }
-    }
-
-    /** Смотрит рекламу → добавляет 1 токен (без запуска анимации) */
-    fun watchAdForSpin() {
-        viewModelScope.launch {
-            repository.addSpinFromAd()
-            _availableSpins.value = repository.getAvailableSpins()
-            _adViewsToday.value = repository.getGameState().dailySpinAdViewsToday
         }
     }
 

@@ -342,22 +342,25 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
             Text(
                 text = myCode ?: "------",
                 color = OrangeAccent,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .background(OrangeAccent.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                    .padding(horizontal = 8.dp, vertical = 3.dp),
             )
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.width(8.dp))
             if (myCode != null) {
-                TextButton(onClick = {
-                    clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("friend code", myCode))
-                    android.widget.Toast.makeText(
-                        context,
-                        if (language == "ru") "Скопировано" else "Copied",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                }) {
+                TextButton(
+                    onClick = {
+                        clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("friend code", myCode))
+                        android.widget.Toast.makeText(
+                            context,
+                            if (language == "ru") "Скопировано" else "Copied",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+                ) {
                     Text(if (language == "ru") "Копировать" else "Copy", color = OrangeAccent, fontSize = 12.sp)
                 }
             }
@@ -375,10 +378,15 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
                 onValueChange = {
                     inputCode = it.uppercase().filter { c -> c.isLetterOrDigit() }.take(6)
                 },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
                 singleLine = true,
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp, color = TextPrimary),
                 placeholder = {
-                    Text(if (language == "ru") "Код друга" else "Friend code", color = TextMuted)
+                    Text(
+                        text = if (language == "ru") "Код друга" else "Friend code",
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
                 },
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -397,8 +405,9 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
                 shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
             ) {
-                Text(if (language == "ru") "Добавить" else "Add", color = Color.White)
+                Text(if (language == "ru") "Добавить" else "Add", color = Color.White, fontSize = 13.sp)
             }
         }
 

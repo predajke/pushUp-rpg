@@ -305,10 +305,12 @@ fun MainMenuScreen(
             .fillMaxSize()
             .statusBarsPadding()
     ) {
+        val avatarUrl by viewModel.playerIconUri.collectAsState()
         TopBar(
             state = state,
             maxHp = maxHp,
-            onSettingsClick = onNavigateToSettings
+            onSettingsClick = onNavigateToSettings,
+            avatarUrl = avatarUrl
         )
 
         Column(
@@ -780,7 +782,8 @@ fun DailyRewardDialog(
 fun TopBar(
     state: GameStateEntity,
     maxHp: Int,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    avatarUrl: String? = null
 ) {
     Row(
         modifier = Modifier
@@ -871,7 +874,16 @@ fun TopBar(
                     .border(2.dp, OrangeAccent, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "👤", fontSize = 20.sp)
+                if (!avatarUrl.isNullOrBlank()) {
+                    coil.compose.AsyncImage(
+                        model = avatarUrl,
+                        contentDescription = "Avatar",
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    )
+                } else {
+                    Text(text = "👤", fontSize = 20.sp)
+                }
             }
             Text(
                 text = state.playerName,
