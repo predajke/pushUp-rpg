@@ -24,8 +24,8 @@ android {
         applicationId = "com.ninthbalcony.pushuprpg"
         minSdk = 29
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.9.7"
+        versionCode = 7
+        versionName = "0.9.8"
 
         // Bundle native debug symbols into the AAB so Play Console / Crashlytics
         // can de-symbolicate native crash stack traces (Firebase, Play Services, Lottie).
