@@ -2,6 +2,7 @@ package com.ninthbalcony.pushuprpg.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import com.ninthbalcony.pushuprpg.BuildConfig
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -338,8 +339,11 @@ private fun SettingsTabContent(
 
         // --- Body weight ---
         SettingsSection(title = if (language == "ru") "⚖️ Параметры" else "⚖️ Stats") {
+            // Row.height(28.dp) был слишком мал для OutlinedTextField (min content
+            // height ~56dp) — текст обрезался изнутри, и пользователь не видел
+            // ни введённое значение, ни сохранённое. Убираем фиксированную высоту.
             Row(
-                modifier = Modifier.height(28.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -357,7 +361,7 @@ private fun SettingsTabContent(
                             v.toFloatOrNull()?.let { viewModel.updateBodyWeight(it) }
                         }
                     },
-                    modifier = Modifier.width(70.dp),
+                    modifier = Modifier.width(90.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -366,18 +370,21 @@ private fun SettingsTabContent(
                         focusedTextColor = TextPrimary,
                         unfocusedTextColor = TextPrimary
                     ),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 15.sp, textAlign = TextAlign.Center)
+                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, textAlign = TextAlign.Center)
                 )
             }
         }
 
         // --- Info ---
         SettingsSection(title = AppStrings.t(language, "sec_info")) {
-            InfoRow(label = AppStrings.t(language, "info_version"), value = "0.9.1")
+            // BuildConfig.VERSION_NAME — единственный источник правды, тянется из
+            // android.defaultConfig.versionName в build.gradle.kts. Раньше был
+            // хардкод "0.9.1" который зависал на старой версии при бампах.
+            InfoRow(label = AppStrings.t(language, "info_version"), value = BuildConfig.VERSION_NAME)
         }
 
-        // --- Dev Console ---
-        SettingsSection(title = "🛠 Dev Console") {
+        // --- Dev Console (only in debug builds, hidden in release) ---
+        if (BuildConfig.DEBUG) SettingsSection(title = "🛠 Dev Console") {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
