@@ -246,8 +246,7 @@ fun MainMenuScreen(
                     description = AppStrings.t(language, "ad_description_cheat"),
                     rewardText = AppStrings.t(language, "ad_button_watch"),
                     onWatchAd = {
-                        // TODO: Show rewarded ad here when AdManager is integrated
-                        viewModel.clearAntiCheatCooldown()
+                        (context as? android.app.Activity)?.let { viewModel.playAntiCheatAd(it) }
                     },
                     onDecline = {
                         // Show cooldown instead

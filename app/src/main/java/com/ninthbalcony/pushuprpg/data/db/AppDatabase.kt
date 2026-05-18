@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.ninthbalcony.pushuprpg.BuildConfig
 import com.ninthbalcony.pushuprpg.data.db.dao.MaxPushUpsDao
 import com.ninthbalcony.pushuprpg.data.db.entity.MaxPushUpsAttemptEntity
 
@@ -50,10 +51,11 @@ abstract class AppDatabase : RoomDatabase() {
                     "pushup_rpg_database"
                 )
                     .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
-                    // ⚠ DEV ONLY — fallback на случай если у пользователя осталась
-                    // версия из старых веток (v1, v6 из устаревшего dev-нейминга).
-                    // После публичного релиза заменить на полную цепочку миграций.
-                    .fallbackToDestructiveMigration(dropAllTables = true)
+                    .apply {
+                        if (BuildConfig.DEBUG) {
+                            fallbackToDestructiveMigration(dropAllTables = true)
+                        }
+                    }
                     .build().also { INSTANCE = it }
             }
         }

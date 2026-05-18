@@ -8,9 +8,8 @@ import com.google.android.gms.games.PlayGamesSdk
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.PlayGamesAuthProvider
-import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +29,7 @@ import java.lang.ref.WeakReference
  * The Web (Game Server) OAuth client whose ID is below must be configured in
  * Firebase Auth → Play Games provider for token verification to work.
  */
-class PlayGamesManager(private val context: Context) {
+class PlayGamesManager(private val context: Context, private val scope: CoroutineScope) {
 
     companion object {
         private const val TAG = "PlayGamesManager"
@@ -91,9 +90,7 @@ class PlayGamesManager(private val context: Context) {
             if (ok) {
                 fetchPlayerName(activity)
                 Log.d(TAG, "Silent sign-in OK")
-                // Link to Firebase right away so RTDB writes target the right uid.
-                @OptIn(DelicateCoroutinesApi::class)
-                GlobalScope.launch(Dispatchers.IO) {
+                scope.launch(Dispatchers.IO) {
                     linkFirebaseWithPlayGames(activity)
                 }
             } else {

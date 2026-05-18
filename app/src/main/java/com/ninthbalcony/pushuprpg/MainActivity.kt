@@ -28,7 +28,7 @@ import com.ninthbalcony.pushuprpg.ui.theme.PushUpRPGTheme
 import com.ninthbalcony.pushuprpg.utils.NotificationHelper
 import com.ninthbalcony.pushuprpg.utils.NotificationScheduler
 import com.ninthbalcony.pushuprpg.utils.SoundManager
-import kotlinx.coroutines.GlobalScope
+import androidx.lifecycle.lifecycleScope
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -55,10 +55,10 @@ class MainActivity : ComponentActivity() {
         }
 
         // Initialize managers
-        cloudSyncManager = CloudSyncManager(this, GlobalScope)
+        cloudSyncManager = CloudSyncManager(this, lifecycleScope)
         adManager = AdManager(this)
         adManager.preloadRewardedAd()
-        playGamesManager = PlayGamesManager(this)
+        playGamesManager = PlayGamesManager(this, lifecycleScope)
         antiCheatManager = AntiCheatManager()
         rateUsManager = RateUsManager()
         onboardingManager = OnboardingManager()

@@ -541,6 +541,14 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         }
     }
 
+    fun playAntiCheatAd(activity: android.app.Activity) {
+        adManager?.showRewardedAd(
+            activity,
+            onRewardEarned = { _antiCheatCooldown.value = null },
+            onAdDismissed = { }
+        )
+    }
+
     fun clearAntiCheatCooldown() {
         _antiCheatCooldown.value = null
     }
