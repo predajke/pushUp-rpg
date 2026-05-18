@@ -19,3 +19,6 @@ local.properties
 # OS / editor noise
 Thumbs.db
 desktop.ini
+
+# Design reference materials (kept locally, not used by build)
+/design_handoff_leaderboard/reference/
