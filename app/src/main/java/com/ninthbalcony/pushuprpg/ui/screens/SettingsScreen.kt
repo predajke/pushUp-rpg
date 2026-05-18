@@ -41,6 +41,7 @@ fun SettingsScreen(
 
     var showRenameDialog by remember { mutableStateOf(false) }
     var showResetDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
     var nameInput by remember { mutableStateOf(gameState?.playerName ?: "") }
 
     if (showRenameDialog) {
@@ -66,6 +67,17 @@ fun SettingsScreen(
                 viewModel.resetProgress { onBack() }
             },
             onDismiss = { showResetDialog = false }
+        )
+    }
+
+    if (showDeleteAccountDialog) {
+        DeleteAccountConfirmDialog(
+            language = language,
+            onConfirm = {
+                showDeleteAccountDialog = false
+                viewModel.deleteAccountAndData { _ -> onBack() }
+            },
+            onDismiss = { showDeleteAccountDialog = false }
         )
     }
 
@@ -147,6 +159,7 @@ fun SettingsScreen(
                         viewModel = viewModel,
                         gameState = gs,
                         onResetProgressClick = { showResetDialog = true },
+                        onDeleteAccountClick = { showDeleteAccountDialog = true },
                     )
                 }
             }
@@ -163,6 +176,7 @@ private fun SettingsTabContent(
     viewModel: GameViewModel,
     gameState: com.ninthbalcony.pushuprpg.data.db.GameStateEntity,
     onResetProgressClick: () -> Unit,
+    onDeleteAccountClick: () -> Unit,
 ) {
     val language = gameState.language
     var cheatInput by remember { mutableStateOf("") }
@@ -436,6 +450,26 @@ private fun SettingsTabContent(
             }
             Spacer(Modifier.height(4.dp))
             Text(AppStrings.t(language, "confirm_reset_warn"), fontSize = 11.sp, color = TextMuted)
+
+            Spacer(Modifier.height(16.dp))
+
+            // Delete account & data — отдельная кнопка для GDPR / Google Play
+            // Data Safety requirements. В отличие от Reset Progress, чистит
+            // ещё и облако (users/{uid}, leaderboard/{uid}, friendCodes, auth).
+            Button(
+                onClick = onDeleteAccountClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = HpBarLow),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    AppStrings.t(language, "btn_delete_account"),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(AppStrings.t(language, "delete_account_warn"), fontSize = 11.sp, color = TextMuted)
         }
     }
 }
@@ -619,6 +653,53 @@ fun ResetConfirmDialog(language: String, onConfirm: () -> Unit, onDismiss: () ->
                 ) {
                     Text(
                         AppStrings.t(language, "btn_reset_progress"),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DeleteAccountConfirmDialog(language: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .background(DarkSurface, RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("🗑️", fontSize = 48.sp)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                AppStrings.t(language, "confirm_delete_title"),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = HpBarLow
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                AppStrings.t(language, "confirm_delete_msg"),
+                fontSize = 13.sp,
+                color = TextSecondary,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(20.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = onDismiss,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
+                ) { Text(AppStrings.t(language, "btn_cancel")) }
+                Button(
+                    onClick = onConfirm,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = HpBarLow)
+                ) {
+                    Text(
+                        AppStrings.t(language, "btn_delete_account"),
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )

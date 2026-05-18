@@ -142,6 +142,59 @@ class LeaderboardRepository {
         }
     }
 
+    /**
+     * GDPR / Google Play Data Safety: полное удаление пользовательских
+     * данных из всех RTDB-узлов под текущим uid + удаление самого Firebase
+     * Auth аккаунта. Лучшая попытка — каждая ветка чистится независимо,
+     * остальные продолжают чиститься даже если одна упадёт.
+     *
+     * Замечания:
+     * - Записи `friends/{otherUid}/{myUid}` у других игроков не удаляются
+     *   (RTDB rules не дают писать в чужие узлы). Это допустимо: запросы
+     *   к моему `leaderboard/{uid}` будут просто возвращать null, и
+     *   запись отвалится как «zombie» через ZOMBIE_TTL_MS.
+     * - `auth.currentUser.delete()` отвязывает Play Games линк и удаляет
+     *   anonymous record. На следующем заходе создаётся новый uid.
+     */
+    suspend fun deleteAllRemoteData(): Boolean {
+        val uid = auth.currentUser?.uid ?: return true  // нечего удалять
+        var allOk = true
+
+        // 1) Сначала вытащить мой friendCode чтобы освободить reverse-mapping.
+        val myCode = runCatching {
+            database.reference.child("leaderboard").child(uid).child("friendCode")
+                .get().await().getValue(String::class.java)
+        }.getOrNull()
+
+        // 2) Удалить все ветки. Каждая независимо.
+        val nodes = listOfNotNull(
+            "users/$uid",
+            "leaderboard/$uid",
+            "friends/$uid",
+            myCode?.takeIf { it.isNotBlank() }?.let { "friendCodes/$it" }
+        )
+        for (path in nodes) {
+            val ok = runCatching {
+                database.reference.child(path).removeValue().await()
+            }.isSuccess
+            if (!ok) {
+                Log.w(TAG, "Failed to delete $path")
+                allOk = false
+            }
+        }
+
+        // 3) Удалить сам Firebase Auth аккаунт (last, после данных).
+        val authOk = runCatching {
+            auth.currentUser?.delete()?.await()
+        }.isSuccess
+        if (!authOk) {
+            Log.w(TAG, "auth.currentUser.delete() failed")
+            allOk = false
+        }
+
+        return allOk
+    }
+
     // ── Friend codes & friend list ──────────────────────────────────────────
 
     /** uid of the currently authenticated user (or null). */

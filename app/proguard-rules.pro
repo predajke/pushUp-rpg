@@ -73,6 +73,14 @@
 -dontwarn com.airbnb.lottie.**
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Coil 2.x — подкладывает свои consumer-rules через AAR; добавляем safety
+# net для OkHttp (Coil использует его как Call.Factory) и Okio.
+# ──────────────────────────────────────────────────────────────────────────────
+-dontwarn coil.**
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Kotlin metadata — required for reflection-heavy libs (Compose runtime, etc.)
 # ──────────────────────────────────────────────────────────────────────────────
 -keep class kotlin.Metadata { *; }

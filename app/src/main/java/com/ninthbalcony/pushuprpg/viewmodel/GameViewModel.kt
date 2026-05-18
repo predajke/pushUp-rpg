@@ -867,6 +867,24 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
         }
     }
 
+    /**
+     * GDPR / Google Play Data Safety: полное удаление аккаунта.
+     * - Cloud: users/{uid}, leaderboard/{uid}, friends/{uid}, friendCodes/{мой код}
+     * - Auth: удаление самого Firebase user record (отвязывает Play Games линк)
+     * - Local: полный resetAllProgress (Room → дефолтное состояние)
+     *
+     * После завершения [onComplete(remoteOk)] получает: true если cloud
+     * удалился без ошибок, false если что-то частично не удалось (но
+     * локальный reset гарантирован в любом случае).
+     */
+    fun deleteAccountAndData(onComplete: (remoteOk: Boolean) -> Unit) {
+        viewModelScope.launch {
+            val remoteOk = try { leaderboardRepo.deleteAllRemoteData() } catch (e: Exception) { false }
+            repository.resetAllProgress()
+            onComplete(remoteOk)
+        }
+    }
+
     // ==================== ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ МАГАЗИНА ====================
     fun useCloverBox(callback: (Item?) -> Unit) {
         viewModelScope.launch {
