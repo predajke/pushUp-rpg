@@ -27,12 +27,12 @@ object DailyRewardUtils {
     }
 
     val CYCLE = listOf(
-        DailyReward(day = 1, teeth = 2),
-        DailyReward(day = 2, teeth = 5),
+        DailyReward(day = 1, teeth = 10),
+        DailyReward(day = 2, teeth = 25),
         DailyReward(day = 3, itemRarity = "uncommon"),
-        DailyReward(day = 4, teeth = 10),
+        DailyReward(day = 4, teeth = 50),
         DailyReward(day = 5, isCloverBox = true),
-        DailyReward(day = 6, teeth = 20),
+        DailyReward(day = 6, teeth = 100),
         DailyReward(day = 7, itemRarity = "rare"),
     )
 

@@ -505,13 +505,13 @@ class GameRepository(private val context: Context) : IGameRepository {
     private suspend fun handleMonsterKill(state: GameStateEntity): GameStateEntity {
         val baseTeeth = GameCalculations.getTeethFromMonster(state.monsterLevel)
         val bossMult = if (state.isCurrentBoss) kotlin.random.Random.nextInt(2, 5) else 1
-        val teethFromKill = baseTeeth * bossMult
         val monster = MonsterUtils.getMonsterByLevel(state.monsterLevel)
 
-        // Бонус дропа от достижений и сетов
+        // Бонус дропа и зубов от достижений и сетов
         val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
         val equippedItems = getEquippedItemObjects(state)
         val setBonuses = ItemUtils.getSetBonuses(equippedItems)
+        val teethFromKill = (baseTeeth * bossMult * (1f + achBonuses.teethRatePercent)).roundToInt()
         val dropBonus = achBonuses.dropRatePercent + setBonuses.dropRatePercent
         val isItemDropped = GameCalculations.isItemDropped(state.baseLuck, monster.dropRate * (1f + dropBonus))
 
@@ -1417,7 +1417,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
             val equippedForEnchant = getEquippedItemObjects(state)
             val setBonuses = ItemUtils.getSetBonuses(equippedForEnchant)
-            val enchantBonus = (achBonuses.enchantFlat + setBonuses.enchantPercent) * 100f
+            val enchantBonus = achBonuses.enchantFlat + setBonuses.enchantPercent * 100f
             val activeEvent = EventUtils.getEventById(state.activeEventId)
             val eventBonus = if (activeEvent?.type == EventType.ENCHANTERS_LUCK &&
                 EventUtils.isEventActive(state.eventEndTime)) 5f else 0f
@@ -1433,7 +1433,6 @@ class GameRepository(private val context: Context) : IGameRepository {
                 enchantQuestsList = QuestSystem.addProgress(enchantQuestsList, QuestType.ENCHANT, 1)
                 enchantQuestsList = QuestSystem.addProgress(enchantQuestsList, QuestType.TEETH_SPENT, cost)
                 val enchantQuests = QuestSystem.serialize(enchantQuestsList)
-                // Достижение ach_master_enchant — вещь заточена до +9
                 var afterEnchant = state.copy(
                     inventoryItems = buildInventory(entries),
                     teeth = newTeeth,
@@ -1442,13 +1441,6 @@ class GameRepository(private val context: Context) : IGameRepository {
                     totalEnchantAttempts = state.totalEnchantAttempts + 1,
                     activeQuestsJson = enchantQuests
                 )
-                if (newLevel >= 9) {
-                    val ul = AchievementSystem.getUnlocked(afterEnchant.achievementsJson).toMutableList()
-                    if (ul.none { it.defId == "ach_master_enchant" }) {
-                        ul.add(com.ninthbalcony.pushuprpg.utils.UnlockedAchievement("ach_master_enchant", today))
-                        afterEnchant = afterEnchant.copy(achievementsJson = AchievementSystem.serializeUnlocked(ul))
-                    }
-                }
                 afterEnchant = AchievementSystem.checkAndUnlock(afterEnchant, today)
                 saveStamped(afterEnchant)
                 addLog(

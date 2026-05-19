@@ -53,19 +53,19 @@ object AchievementSystem {
         AchievementDef("ach_no_sweat",        "Ни капли пота",         "No Sweat",           "Убей босса с HP > 50%",           "Kill a boss with HP above 50%",    "ach_no_sweat",        AchBonusType.DAMAGE_PERCENT,    0.05f),
         AchievementDef("ach_night_shift",     "Ночная смена",          "Night Shift",        "Отжимания после 23:00",           "Push-ups after 23:00",             "ach_night_shift",     AchBonusType.XP_PERCENT,        0.03f),
         AchievementDef("ach_early_bird",      "Ранняя пташка",         "Early Bird",         "Отжимания до 7:00",               "Push-ups before 7:00",             "ach_early_bird",      AchBonusType.XP_PERCENT,        0.03f),
-        AchievementDef("ach_immortal",        "Бессмертный",           "Immortal",           "7 дней без смерти",               "7 days without dying",             "ach_immortal",        AchBonusType.HP_FLAT,           25f),
+        AchievementDef("ach_immortal",        "Бессмертный",           "Immortal",           "7-дневный стрик",                 "7-day streak",                     "ach_immortal",        AchBonusType.HP_FLAT,           25f),
         AchievementDef("ach_alchemist",       "Алхимик",               "Alchemist",          "10 операций в Forge",             "10 Forge operations",              "ach_alchemist",       AchBonusType.ENCHANT_FLAT,      10f),
         AchievementDef("ach_dragon_slayer",   "Покоритель дракона",    "Dragon Slayer",      "Убей Ancient Dragon",             "Kill the Ancient Dragon",          "boss_ancient_dragon", AchBonusType.DAMAGE_PERCENT,    0.08f),
         AchievementDef("ach_critical",        "Критический момент",    "Critical Moment",    "Крит во время Burst-атаки",       "Land a crit during a Burst attack","ach_critical",        AchBonusType.CRIT_PERCENT,      0.02f),
         AchievementDef("ach_abyssal_reaper",  "Губитель Бездны",       "Abyss Slayer",       "Убей Бездонного Жнеца 20 раз",    "Kill Abyssal Reaper 20 times",     "boss_abyssal_reaper", AchBonusType.DAMAGE_PERCENT,    0.04f),
-        AchievementDef("ach_skull_crusher",   "Истребитель Черепов",   "Skull Hunter",       "Убей Сокрушителя Черепов 15 раз", "Kill Skull Crusher 15 times",      "boss_skull_crusher",  AchBonusType.CRIT_PERCENT,      0.04f),
+        AchievementDef("ach_skull_crusher",   "Истребитель Черепов",   "Skull Hunter",       "Убей Сокрушителя Черепов 20 раз", "Kill Skull Crusher 20 times",      "boss_skull_crusher",  AchBonusType.CRIT_PERCENT,      0.04f),
         AchievementDef("ach_sky_sentry",      "Покоритель Небес",      "Sky Conqueror",      "Убей Стража Небес 10 раз",        "Kill Sky Sentry 10 times",         "boss_sky_sentry",     AchBonusType.XP_PERCENT,        0.08f),
         AchievementDef("ach_heat_cannon",     "Огнеборец",             "Flame Fighter",      "Убей Пушку Пламени 5 раз",        "Kill Heat Cannon 5 times",         "boss_heat_cannon",    AchBonusType.HP_FLAT,           60f),
-        AchievementDef("ach_void",            "VOID ПОЛУЧЕН. VOID ПОЛУЧИЛ ТЕБЯ.", "YOU GOT THE VOID, VOID GOT YOU.", "Экипируй все 5 предметов набора VOID", "Equip all 5 pieces of the VOID set", "ach_void",        AchBonusType.DAMAGE_PERCENT,    0.25f),
-        AchievementDef("ach_diablo_first",    "Первый Ад",             "First Hell",         "Убей Дьявола Бездны",             "Kill Diablo",                      "boss_dib",            AchBonusType.DAMAGE_PERCENT,    0.12f),
+        AchievementDef("ach_void",            "VOID ПОЛУЧЕН. VOID ПОЛУЧИЛ ТЕБЯ.", "YOU GOT THE VOID, VOID GOT YOU.", "Экипируй все 5 предметов набора VOID", "Equip all 5 pieces of the VOID set", "ach_void",        AchBonusType.DAMAGE_PERCENT,    0.12f),
+        AchievementDef("ach_diablo_first",    "Повелитель Ада",        "Hell Lord",          "Убей Дьявола Бездны 3 раза",      "Kill Diablo 3 times",              "boss_dib",            AchBonusType.DAMAGE_PERCENT,    0.08f),
         AchievementDef("ach_iron_bull_5",     "Бычья охота",           "Bull Hunt",          "Убей Iron Bull 5 раз",            "Kill Iron Bull 5 times",           "boss_oven",           AchBonusType.HP_FLAT,           80f),
-        AchievementDef("ach_king_slayer",     "Убийца Королей",        "King Slayer",        "Убей Королевского Клона",         "Kill King Clone",                  "boss_king",           AchBonusType.DAMAGE_PERCENT,    0.15f),
-        AchievementDef("ach_unrealm_set",     "Облачение Преисподней", "Underrealm Clad",    "Надень 4/4 Unrealm",              "Equip 4/4 Unrealm",                "boss_underworld_demon",AchBonusType.DAMAGE_PERCENT,    0.20f),
+        AchievementDef("ach_king_slayer",     "Убийца Королей",        "King Slayer",        "Убей Королевского Клона 3 раза",  "Kill King Clone 3 times",          "boss_king",           AchBonusType.DAMAGE_PERCENT,    0.10f),
+        AchievementDef("ach_unrealm_set",     "Облачение Преисподней", "Underrealm Clad",    "Надень 4/4 Unrealm",              "Equip 4/4 Unrealm",                "boss_underworld_demon",AchBonusType.XP_PERCENT,        0.15f),
         AchievementDef("ach_holy_set",        "Благодать Эмпирея",     "Empyrean Grace",     "Надень 4/4 Empyrean",             "Equip 4/4 Empyrean",               "boss_iron_golem",     AchBonusType.ARMOR_PERCENT,     0.20f),
         AchievementDef("ach_clone_killer",    "Убийца клонов",         "Clone Killer",       "Убей Накаченного Клона 10 раз",   "Kill Pumped Clone 10 times",       "monster_42",          AchBonusType.DAMAGE_PERCENT,    0.06f),
         AchievementDef("ach_cursed_hunter",   "Охотник на проклятых",  "Cursed Hunter",      "Убей Поражённого Колдуна 10 раз", "Kill Cursed Warlock 10 times",     "monster_45",          AchBonusType.DROP_RATE_PERCENT, 0.05f),
@@ -73,7 +73,7 @@ object AchievementSystem {
         AchievementDef("ach_forge_dmg_9",     "Закалённая сталь",      "Hardened Steel",     "Заточи вещь до +9",               "Enchant an item to +9",            "ach_enchant_done",    AchBonusType.DAMAGE_PERCENT,    0.02f),
         AchievementDef("ach_forge_dmg_15",    "Мощь заточки",          "Enchant Power",      "Заточи вещь до +15",              "Enchant an item to +15",           "ach_enchant_done",    AchBonusType.DAMAGE_PERCENT,    0.03f),
         AchievementDef("ach_forge_dmg_20",    "Сила разрушения",       "Destructive Force",  "Заточи вещь до +20",              "Enchant an item to +20",           "ach_enchant_done",    AchBonusType.DAMAGE_PERCENT,    0.05f),
-        AchievementDef("ach_forge_dmg_25",    "Абсолютная заточка",    "Absolute Edge",      "Заточи вещь до +25",              "Enchant an item to +25",           "ach_enchant_done",    AchBonusType.DAMAGE_PERCENT,    0.08f),
+        AchievementDef("ach_forge_dmg_25",    "Абсолютная заточка",    "Absolute Edge",      "Заточи вещь до +25",              "Enchant an item to +25",           "ach_enchant_done",    AchBonusType.DAMAGE_PERCENT,    0.05f),
         // 10 новых достижений
         AchievementDef("ach_stone_giant_3",   "Каменный охотник",      "Stone Hunter",       "Убей Каменного Великана 3 раза",  "Kill Stone Giant 3 times",         "boss_stone_giant",    AchBonusType.ARMOR_PERCENT,     0.03f),
         AchievementDef("ach_iron_golem_5",    "Голем-охотник",         "Golem Hunter",       "Убей Железного Голема 5 раз",     "Kill Iron Golem 5 times",          "boss_iron_golem",     AchBonusType.HP_FLAT,           50f),
@@ -84,7 +84,31 @@ object AchievementSystem {
         AchievementDef("ach_grinder_5",       "Перемолотый",           "Grind Master",       "Убей Скрежет 5 раз",              "Kill The Grinder 5 times",         "boss_the_grinder",    AchBonusType.XP_PERCENT,        0.05f),
         AchievementDef("ach_underworld_3",    "Повелитель демонов",    "Demon Lord",         "Убей Подземного Демона 3 раза",   "Kill Underworld Demon 3 times",    "boss_underworld_demon",AchBonusType.DAMAGE_PERCENT,    0.06f),
         AchievementDef("ach_goblin_hunter",   "Охотник на гоблинов",   "Goblin Hunter",      "Победи Золотого Гоблина",         "Defeat the Golden Goblin",         "monster_goblin_gold", AchBonusType.TEETH_RATE_PERCENT,0.05f),
-        AchievementDef("ach_prestige_1",      "Элита",                 "Elite",              "Достигни Prestige 1",             "Reach Prestige 1",                 "ach_master_enchant",  AchBonusType.DAMAGE_PERCENT,    0.10f)
+        AchievementDef("ach_prestige_1",      "Элита",                 "Elite",              "Достигни Prestige 1",             "Reach Prestige 1",                 "ach_master_enchant",  AchBonusType.DAMAGE_PERCENT,    0.08f),
+        // ===== TASK 5: новые уникальные =====
+        AchievementDef("ach_iron_fists",      "Стальные кулаки",       "Iron Fists",         "500 критических ударов",          "500 critical hits",                "ach_critical",        AchBonusType.CRIT_PERCENT,      0.03f),
+        AchievementDef("ach_hoarder",         "Накопитель",            "Hoarder",            "Собери 100 предметов",            "Collect 100 items",                "ach_full_wardrobe",   AchBonusType.DROP_RATE_PERCENT, 0.03f),
+        AchievementDef("ach_destroyer",       "Разрушитель",           "Destroyer",          "1 000 000 суммарного урона",      "1,000,000 total damage dealt",     "ach_first_blood",     AchBonusType.DAMAGE_PERCENT,    0.03f),
+        AchievementDef("ach_prestige_3",      "Ветеран",               "Veteran",            "Достигни Prestige 3",             "Reach Prestige 3",                 "ach_master_enchant",  AchBonusType.DAMAGE_PERCENT,    0.06f),
+        AchievementDef("ach_big_burst",       "Мощный рывок",          "Power Surge",        "100+ отжиманий за сессию",        "100+ push-ups in one session",     "ach_berserker",       AchBonusType.XP_PERCENT,        0.06f),
+        AchievementDef("ach_forge_master",    "Великий Кузнец",        "Grand Smith",        "50 слияний предметов",            "50 item merges",                   "ach_alchemist",       AchBonusType.ENCHANT_FLAT,      8f),
+        AchievementDef("ach_conqueror",       "Покоритель",            "Conqueror",          "Убей монстра 50+ уровня",         "Kill a level 50+ monster",         "boss_fleshmeat",      AchBonusType.DAMAGE_PERCENT,    0.04f),
+        AchievementDef("ach_teeth_hoarder",   "Зубной Барон",          "Teeth Baron",        "25 000 зубов суммарно",           "25,000 total teeth earned",        "ach_teeth",           AchBonusType.TEETH_RATE_PERCENT,0.08f),
+        AchievementDef("ach_sniper",          "Снайпер",               "Sniper",             "Один удар > 2000 урона",          "Single hit over 2000 damage",      "ach_skull_crusher",   AchBonusType.CRIT_PERCENT,      0.04f),
+        // ===== TASK 6: доп. тиры боссов =====
+        AchievementDef("ach_stone_giant_10",  "Каменный истребитель",  "Stone Exterminator", "Убей Каменного Великана 10 раз",  "Kill Stone Giant 10 times",        "boss_stone_giant",    AchBonusType.ARMOR_PERCENT,     0.05f),
+        AchievementDef("ach_shadow_lord_15",  "Тёмный охотник",        "Shadow Hunter",      "Убей Повелителя Теней 15 раз",   "Kill Shadow Lord 15 times",        "boss_shadow_lord",    AchBonusType.DAMAGE_PERCENT,    0.04f),
+        AchievementDef("ach_blood_witch_10",  "Ведьмовской следопыт",  "Witch Tracker",      "Убей Кровавую Ведьму 10 раз",    "Kill Blood Witch 10 times",        "boss_blood_witch",    AchBonusType.DROP_RATE_PERCENT, 0.05f),
+        AchievementDef("ach_fleshmeat_15",    "Мясник",                "Butcher",            "Убей Монстра Плоти 15 раз",      "Kill Flesh Monster 15 times",      "boss_fleshmeat",      AchBonusType.DAMAGE_PERCENT,    0.03f),
+        AchievementDef("ach_underworld_10",   "Демонолог",             "Demonologist",       "Убей Подземного Демона 10 раз",  "Kill Underworld Demon 10 times",   "boss_underworld_demon",AchBonusType.DAMAGE_PERCENT,   0.03f),
+        AchievementDef("ach_iron_golem_10",   "Железный охотник",      "Iron Hunter",        "Убей Железного Голема 10 раз",   "Kill Iron Golem 10 times",         "boss_iron_golem",     AchBonusType.ARMOR_PERCENT,     0.03f),
+        // ===== TASK 7: 50 убийств поздних монстров =====
+        AchievementDef("ach_cursed_50",       "Охотник на проклятых II","Cursed Slayer II",  "Убей Поражённого Колдуна 50 раз","Kill Cursed Warlock 50 times",     "monster_45",          AchBonusType.DROP_RATE_PERCENT, 0.05f),
+        AchievementDef("ach_one_arm_50",      "Охотник Мутантов",      "Mutant Hunter",      "Убей Однорукого Мутанта 50 раз", "Kill One-Arm Mutant 50 times",     "monster_44",          AchBonusType.DAMAGE_PERCENT,    0.04f),
+        AchievementDef("ach_demon_knight_50", "Убийца Клонов II",      "Clone Slayer II",    "Убей Клона-Рыцаря 50 раз",       "Kill Demon Knight Clone 50 times", "monster_43",          AchBonusType.CRIT_PERCENT,      0.04f),
+        AchievementDef("ach_clone_50",        "Клономор",              "Clone Reaper",       "Убей Накачанного Клона 50 раз",  "Kill Pumped Clone 50 times",       "monster_42",          AchBonusType.DAMAGE_PERCENT,    0.05f),
+        AchievementDef("ach_abyss_50",        "Пожиратель Бездны",     "Abyss Devourer",     "Убей Бездну 50 раз",             "Kill The Abyss 50 times",          "monster_40",          AchBonusType.ARMOR_PERCENT,     0.05f),
+        AchievementDef("ach_void_titan_50",   "Титанобой",             "Titan Slayer",       "Убей Титана Пустоты 50 раз",     "Kill Void Titan 50 times",         "monster_40",          AchBonusType.DAMAGE_PERCENT,    0.03f)
     )
 
     private val PROGRESSIVE: List<AchievementDef> = listOf(
@@ -213,6 +237,15 @@ object AchievementSystem {
         if (state.totalTeethEarned >= 5000)                                          tryUnlock("ach_rich")
         if ((state.totalEnchantAttempts - state.totalEnchantmentsSuccess) >= 100)    tryUnlock("ach_failed_enchants")
         if (state.prestigeLevel >= 1)                                                tryUnlock("ach_prestige_1")
+        if (state.prestigeLevel >= 3)                                                tryUnlock("ach_prestige_3")
+        if (state.totalCriticalHits >= 500)                                          tryUnlock("ach_iron_fists")
+        if (state.itemsCollected >= 100)                                             tryUnlock("ach_hoarder")
+        if (state.totalDamageDealt >= 1_000_000)                                     tryUnlock("ach_destroyer")
+        if (state.bestSingleSession >= 100)                                          tryUnlock("ach_big_burst")
+        if (state.totalItemsMerged >= 50)                                            tryUnlock("ach_forge_master")
+        if (state.highestMonsterLevelKilled >= 50)                                   tryUnlock("ach_conqueror")
+        if (state.totalTeethEarned >= 25_000)                                        tryUnlock("ach_teeth_hoarder")
+        if (state.highestDamage >= 2_000)                                            tryUnlock("ach_sniper")
         val allSlotsEquipped = listOf(state.equippedHead, state.equippedNecklace, state.equippedWeapon1,
             state.equippedWeapon2, state.equippedPants, state.equippedBoots).all { it.isNotEmpty() }
         if (allSlotsEquipped)                                                        tryUnlock("ach_full_wardrobe")
@@ -223,13 +256,20 @@ object AchievementSystem {
             val type = object : TypeToken<Map<String, Int>>() {}.type
             gson.fromJson(state.bossKillsJson, type) ?: emptyMap()
         } catch (e: Exception) { emptyMap() }
+        if ((bossKills["Ancient Dragon"]         ?: 0) >=  1) tryUnlock("ach_dragon_slayer")
         if ((bossKills["Abyssal Reaper"]         ?: 0) >= 20) tryUnlock("ach_abyssal_reaper")
-        if ((bossKills["Skull Crusher"]          ?: 0) >= 15) tryUnlock("ach_skull_crusher")
+        if ((bossKills["Skull Crusher"]          ?: 0) >= 20) tryUnlock("ach_skull_crusher")
         if ((bossKills["Sky Sentry"]             ?: 0) >= 10) tryUnlock("ach_sky_sentry")
         if ((bossKills["Heat Cannon"]            ?: 0) >=  5) tryUnlock("ach_heat_cannon")
-        if ((bossKills["Diablo"]                 ?: 0) >=  1) tryUnlock("ach_diablo_first")
+        if ((bossKills["Diablo"]                 ?: 0) >=  3) tryUnlock("ach_diablo_first")
         if ((bossKills["Iron Bull"]              ?: 0) >=  5) tryUnlock("ach_iron_bull_5")
-        if ((bossKills["King Clone"]             ?: 0) >=  1) tryUnlock("ach_king_slayer")
+        if ((bossKills["King Clone"]             ?: 0) >=  3) tryUnlock("ach_king_slayer")
+        if ((bossKills["Stone Giant"]            ?: 0) >= 10) tryUnlock("ach_stone_giant_10")
+        if ((bossKills["Shadow Lord"]            ?: 0) >= 15) tryUnlock("ach_shadow_lord_15")
+        if ((bossKills["Blood Witch"]            ?: 0) >= 10) tryUnlock("ach_blood_witch_10")
+        if ((bossKills["Flesh and Meat Monster"] ?: 0) >= 15) tryUnlock("ach_fleshmeat_15")
+        if ((bossKills["Underworld Demon"]       ?: 0) >= 10) tryUnlock("ach_underworld_10")
+        if ((bossKills["Iron Golem"]             ?: 0) >= 10) tryUnlock("ach_iron_golem_10")
         if ((bossKills["Stone Giant"]            ?: 0) >=  3) tryUnlock("ach_stone_giant_3")
         if ((bossKills["Iron Golem"]             ?: 0) >=  5) tryUnlock("ach_iron_golem_5")
         if ((bossKills["Shadow Lord"]            ?: 0) >=  5) tryUnlock("ach_shadow_lord_5")
@@ -244,8 +284,14 @@ object AchievementSystem {
             val type = object : TypeToken<Map<String, Int>>() {}.type
             gson.fromJson(state.bestiaryJson, type) ?: emptyMap()
         } catch (e: Exception) { emptyMap() }
-        if ((bestiary["Pumped Clone"]   ?: 0) >= 10) tryUnlock("ach_clone_killer")
-        if ((bestiary["Cursed Warlock"] ?: 0) >= 10) tryUnlock("ach_cursed_hunter")
+        if ((bestiary["Pumped Clone"]        ?: 0) >= 10) tryUnlock("ach_clone_killer")
+        if ((bestiary["Cursed Warlock"]      ?: 0) >= 10) tryUnlock("ach_cursed_hunter")
+        if ((bestiary["Cursed Warlock"]      ?: 0) >= 50) tryUnlock("ach_cursed_50")
+        if ((bestiary["One-Arm Mutant"]      ?: 0) >= 50) tryUnlock("ach_one_arm_50")
+        if ((bestiary["Demon Knight Clone"]  ?: 0) >= 50) tryUnlock("ach_demon_knight_50")
+        if ((bestiary["Pumped Clone"]        ?: 0) >= 50) tryUnlock("ach_clone_50")
+        if ((bestiary["The Abyss"]           ?: 0) >= 50) tryUnlock("ach_abyss_50")
+        if ((bestiary["Void Titan"]          ?: 0) >= 50) tryUnlock("ach_void_titan_50")
 
         // --- Сеты: экипированные предметы ---
         val equipped6 = listOf(state.equippedHead, state.equippedNecklace,
@@ -261,9 +307,9 @@ object AchievementSystem {
             .maxOrNull() ?: 0
         if (maxEnchantInInv >= 9)  tryUnlock("ach_forge_dmg_9")
         if (maxEnchantInInv >= 10) tryUnlock("ach_enchant_done_2_night")
-        if (maxEnchantInInv >= 15) { tryUnlock("ach_night_smith_15"); tryUnlock("ach_forge_dmg_15") }
+        if (maxEnchantInInv >= 15) tryUnlock("ach_forge_dmg_15")
         if (maxEnchantInInv >= 20) tryUnlock("ach_forge_dmg_20")
-        if (maxEnchantInInv >= 25) { tryUnlock("ach_night_smith_25"); tryUnlock("ach_forge_dmg_25") }
+        if (maxEnchantInInv >= 25) tryUnlock("ach_forge_dmg_25")
 
         // --- VOID: экипированы все 5 предметов набора ---
         val w1base = state.equippedWeapon1.split(":")[0].let { s -> s.split("_").let { p -> if (p.size > 2 && p.last().all { it.isDigit() } && p.last().length > 8) p.dropLast(1).joinToString("_") else s } }
@@ -349,12 +395,21 @@ object AchievementSystem {
                 val t = when (def.tier) { 1->500; 2->1000; 3->2500; 4->5000; 5->10000; else->0 }
                 state.totalTeethEarned to t
             }
-            def.id == "ach_rich"           -> state.totalTeethEarned to 5000
+            def.id == "ach_rich"            -> state.totalTeethEarned to 5000
             def.id == "ach_unstoppable"    -> state.currentStreak to 30
             def.id == "ach_berserker"      -> state.bestSingleSession to 50
             def.id == "ach_immortal"       -> state.currentStreak to 7
             def.id == "ach_failed_enchants"-> (state.totalEnchantAttempts - state.totalEnchantmentsSuccess) to 100
             def.id == "ach_prestige_1"     -> state.prestigeLevel to 1
+            def.id == "ach_prestige_3"     -> state.prestigeLevel to 3
+            def.id == "ach_iron_fists"     -> state.totalCriticalHits to 500
+            def.id == "ach_hoarder"        -> state.itemsCollected to 100
+            def.id == "ach_destroyer"      -> state.totalDamageDealt to 1_000_000
+            def.id == "ach_big_burst"      -> state.bestSingleSession to 100
+            def.id == "ach_forge_master"   -> state.totalItemsMerged to 50
+            def.id == "ach_conqueror"      -> state.highestMonsterLevelKilled to 50
+            def.id == "ach_teeth_hoarder"  -> state.totalTeethEarned to 25_000
+            def.id == "ach_sniper"         -> state.highestDamage to 2_000
             else -> return if (language == "ru") def.descRu else def.descEn
         }
         if (target == 0) return if (language == "ru") def.descRu else def.descEn

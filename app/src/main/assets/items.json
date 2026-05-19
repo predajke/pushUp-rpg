@@ -1465,7 +1465,7 @@
       "stats": {
         "power": 20,
         "armor": 26,
-        "health": 0,
+        "health": 65,
         "luck": 2.8
       },
       "description_ru": "Несут хозяина быстрее ветра.",
@@ -1514,9 +1514,9 @@
       "rarity": "rare",
       "setId": "berserker",
       "stats": {
-        "power": 7,
-        "armor": 14,
-        "health": 29,
+        "power": 5,
+        "armor": 10,
+        "health": 20,
         "luck": 0
       },
       "description_ru": "Комплект Берсерка. 2/3 части: +15%/+35% урон.",
@@ -1531,9 +1531,9 @@
       "rarity": "rare",
       "setId": "guardian",
       "stats": {
-        "power": 3,
-        "armor": 15,
-        "health": 36,
+        "power": 2,
+        "armor": 10,
+        "health": 25,
         "luck": 0
       },
       "description_ru": "Комплект Стража. 2/3 части: +20%/+40% броня.",
@@ -1549,8 +1549,8 @@
       "setId": "guardian",
       "stats": {
         "power": 0,
-        "armor": 13,
-        "health": 44,
+        "armor": 9,
+        "health": 30,
         "luck": 0
       },
       "description_ru": "Комплект Стража. 2/3 части: +20%/+40% броня.",
@@ -1566,8 +1566,8 @@
       "setId": "guardian",
       "stats": {
         "power": 0,
-        "armor": 11,
-        "health": 41,
+        "armor": 8,
+        "health": 27,
         "luck": 0
       },
       "description_ru": "Комплект Стража. 2/3 части: +20%/+40% броня.",
@@ -2332,7 +2332,7 @@
       "name_ru": "Шлем Богомола",
       "name_en": "Mantis Helm",
       "slot": "head",
-      "rarity": "rare",
+      "rarity": "epic",
       "stats": {
         "power": 12,
         "armor": 20,
@@ -2428,7 +2428,7 @@
       "name_ru": "Стальные Латы",
       "name_en": "Steel Plate Boots",
       "slot": "boots",
-      "rarity": "rare",
+      "rarity": "epic",
       "stats": {
         "power": 5,
         "armor": 28,
@@ -2730,10 +2730,10 @@
       "slot": "pants",
       "rarity": "epic",
       "stats": {
-        "power": 22,
-        "armor": 34,
-        "health": 42,
-        "luck": 1.0
+        "power": 15,
+        "armor": 22,
+        "health": 27,
+        "luck": 0.5
       },
       "description_ru": "Прочные, удобные, надёжные. Достойная экипировка для опытного бойца.",
       "description_en": "Durable, comfortable, reliable. Worthy gear for an experienced fighter.",
