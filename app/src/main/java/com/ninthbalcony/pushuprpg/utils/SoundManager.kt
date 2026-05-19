@@ -98,7 +98,7 @@ object SoundManager {
 
     private fun loadSound(context: Context, name: String, onLoaded: (Int) -> Unit) {
         val resId = context.resources.getIdentifier(name, "raw", context.packageName)
-        if (resId != 0) onLoaded(soundPool!!.load(context, resId, 1))
+        if (resId != 0) soundPool?.load(context, resId, 1)?.let(onLoaded)
     }
 
     fun playPunch(enabled: Boolean) {

@@ -38,6 +38,7 @@ import androidx.compose.ui.window.Dialog
 import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
 import com.ninthbalcony.pushuprpg.data.repository.LeaderboardEntry
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
+import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.ui.components.clanTagColor
 import com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId
 import com.ninthbalcony.pushuprpg.utils.countryToFlag
@@ -951,11 +952,11 @@ private fun PlayerProfileDialog(
                         clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("friend code", player.friendCode))
                         android.widget.Toast.makeText(
                             context,
-                            if (language == "ru") "Скопировано" else "Copied",
+                            AppStrings.t(language, "copied"),
                             android.widget.Toast.LENGTH_SHORT,
                         ).show()
                     }) {
-                        Text(if (language == "ru") "Копировать" else "Copy", color = LbOrange, fontSize = 12.sp)
+                        Text(AppStrings.t(language, "btn_copy"), color = LbOrange, fontSize = 12.sp)
                     }
                 }
                 Spacer(Modifier.height(8.dp))

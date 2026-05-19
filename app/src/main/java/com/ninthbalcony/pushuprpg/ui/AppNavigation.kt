@@ -18,6 +18,7 @@ import com.ninthbalcony.pushuprpg.ui.screens.ShopScreen
 import com.ninthbalcony.pushuprpg.ui.screens.StatisticsScreen
 import com.ninthbalcony.pushuprpg.ui.screens.SplashScreen
 import com.ninthbalcony.pushuprpg.ui.screens.ProgressScreen
+import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.ui.screens.AchievementsScreen
 import com.ninthbalcony.pushuprpg.ui.screens.BestiaryScreen
 import com.ninthbalcony.pushuprpg.ui.screens.ItemLogScreen
@@ -53,10 +54,7 @@ fun AppNavigation(viewModel: GameViewModel) {
         viewModel.restoreEvent?.collect { result ->
             when (result) {
                 is com.ninthbalcony.pushuprpg.managers.RestoreResult.Restored -> {
-                    val msg = if (language == "ru")
-                        "Прогресс восстановлен из облака (Lvl ${result.level}, ${result.totalPushUps} отж.)"
-                    else
-                        "Progress restored from cloud (Lvl ${result.level}, ${result.totalPushUps} push-ups)"
+                    val msg = "${AppStrings.t(language, "cloud_restored")} (Lvl ${result.level}, ${result.totalPushUps} ${AppStrings.t(language, "push_ups_short")})"
                     android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_LONG).show()
                 }
             }

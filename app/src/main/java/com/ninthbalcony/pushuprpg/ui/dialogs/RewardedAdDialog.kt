@@ -14,12 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ninthbalcony.pushuprpg.utils.AppStrings
 
 @Composable
 fun RewardedAdDialog(
     title: String,
     description: String,
     rewardText: String,
+    language: String,
     onWatchAd: () -> Unit,
     onDecline: () -> Unit,
     onDismiss: () -> Unit
@@ -45,7 +47,7 @@ fun RewardedAdDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Text(
-                    text = "Reward: $rewardText",
+                    text = "${AppStrings.t(language, "reward_label")} $rewardText",
                     fontSize = 16.sp,
                     color = Color(0xFF4CAF50),
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -59,12 +61,12 @@ fun RewardedAdDialog(
                     containerColor = Color(0xFF4CAF50)
                 )
             ) {
-                Text("Watch Ad")
+                Text(AppStrings.t(language, "ad_reward_title"))
             }
         },
         dismissButton = {
             TextButton(onClick = onDecline) {
-                Text("Skip")
+                Text(AppStrings.t(language, "btn_skip"))
             }
         },
         modifier = Modifier.fillMaxWidth(0.9f)

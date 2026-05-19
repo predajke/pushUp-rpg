@@ -14,11 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ninthbalcony.pushuprpg.utils.AppStrings
 import kotlinx.coroutines.delay
 
 @Composable
 fun AntiCheatWarningDialog(
     remainingCooldownMs: Long,
+    language: String,
     onDismiss: () -> Unit
 ) {
     val remainingSeconds = remember { mutableStateOf(remainingCooldownMs / 1000) }
@@ -35,7 +37,7 @@ fun AntiCheatWarningDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Wait a Moment",
+                text = AppStrings.t(language, "anticheat_title"),
                 fontSize = 20.sp
             )
         },
@@ -45,24 +47,24 @@ fun AntiCheatWarningDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "We detected a rapid save. This is likely an error. Please wait before saving again.",
+                    text = AppStrings.t(language, "anticheat_body"),
                     fontSize = 14.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Text(
-                    text = "Cooldown: ${remainingSeconds.value}s",
+                    text = "${AppStrings.t(language, "anticheat_cooldown")} ${remainingSeconds.value}s",
                     fontSize = 24.sp,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Text(
-                    text = "Rapid saves are prevented to ensure fair gameplay.",
+                    text = AppStrings.t(language, "anticheat_footer"),
                     fontSize = 12.sp
                 )
             }
         },
         confirmButton = {
             Button(onClick = onDismiss) {
-                Text("OK")
+                Text(AppStrings.t(language, "btn_ok"))
             }
         },
         modifier = Modifier.fillMaxWidth(0.9f)

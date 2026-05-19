@@ -297,6 +297,47 @@ object AppStrings {
         "btn_rate_now"      to m("Rate Now", "Оценить", "Calificar Ahora", "Évaluer Maintenant", "Jetzt Bewerten", "Avaliar Agora"),
         "btn_remind_later"  to m("Remind Later", "Напомнить Позже", "Recordar Después", "Me Rappeler Plus Tard", "Später Erinnern", "Lembrar Depois"),
         "btn_never_ask"     to m("Never Ask", "Больше не спрашивать", "Nunca Preguntar", "Ne Pas Demander", "Nicht Mehr Fragen", "Nunca Perguntar"),
+
+        // --- Common buttons ---
+        "close"             to m("Close",       "Закрыть",      "Cerrar",   "Fermer",   "Schließen",    "Fechar"),
+        "btn_ok"            to m("OK",           "ОК",           "OK",       "OK",       "OK",           "OK"),
+        "btn_skip"          to m("Skip",         "Пропустить",   "Saltar",   "Passer",   "Überspringen", "Pular"),
+        "btn_well"          to m("Well",         "Ну",           "Bueno",    "Bon",      "Na ja",        "Bem"),
+        "copied"            to m("Copied",       "Скопировано",  "Copiado",  "Copié",    "Kopiert",      "Copiado"),
+        "btn_copy"          to m("Copy",         "Копировать",   "Copiar",   "Copier",   "Kopieren",     "Copiar"),
+        "reward_label"      to m("Reward:",      "Награда:",     "Recompensa:","Récompense:","Belohnung:", "Recompensa:"),
+
+        // --- Pickers ---
+        "choose_country"    to m("Choose country",  "Выберите страну",  "Elegir país",      "Choisir un pays",  "Land auswählen",   "Escolher país"),
+        "choose_avatar"     to m("Choose avatar",   "Выбор аватара",    "Elegir avatar",    "Choisir avatar",   "Avatar wählen",    "Escolher avatar"),
+
+        // --- Anti-cheat dialog ---
+        "anticheat_title"   to m("Wait a Moment",   "Подождите",        "Espera un momento",    "Attendez un moment",   "Einen Moment bitte",   "Aguarde um momento"),
+        "anticheat_body"    to m(
+            "We detected a rapid save. This is likely an error. Please wait before saving again.",
+            "Обнаружено быстрое сохранение. Вероятно, это ошибка. Подождите перед следующим сохранением.",
+            "Detectamos un guardado rápido. Probablemente es un error. Espera antes de guardar.",
+            "Nous avons détecté une sauvegarde rapide. Veuillez patienter avant de sauvegarder.",
+            "Schnelles Speichern erkannt. Bitte warte vor dem nächsten Speichern.",
+            "Detectamos um salvamento rápido. Aguarde antes de salvar novamente."
+        ),
+        "anticheat_footer"  to m(
+            "Rapid saves are prevented to ensure fair gameplay.",
+            "Быстрые сохранения запрещены для честной игры.",
+            "Los guardados rápidos están prohibidos para garantizar un juego justo.",
+            "Les sauvegardes rapides sont interdites pour un jeu équitable.",
+            "Schnelles Speichern gesperrt für faires Spielen.",
+            "Salvamentos rápidos impedidos para jogo justo."
+        ),
+        "anticheat_cooldown" to m("Cooldown:", "Перезарядка:", "Enfriamiento:", "Recharge:", "Abklingzeit:", "Recarga:"),
+
+        // --- Shop dialogs ---
+        "no_teeth_title"    to m("Come back later",     "Загляни позже",        "Vuelve más tarde",     "Reviens plus tard",    "Komm später wieder",   "Volte mais tarde"),
+        "no_teeth_body"     to m("Not enough teeth...", "Не хватает зубов...",  "No hay suficientes dientes...", "Pas assez de dents...", "Nicht genug Zähne...", "Dentes insuficientes..."),
+
+        // --- Cloud restore ---
+        "cloud_restored"    to m("Progress restored from cloud", "Прогресс восстановлен из облака", "Progreso restaurado de la nube", "Progression restaurée depuis le cloud", "Fortschritt aus der Cloud wiederhergestellt", "Progresso restaurado da nuvem"),
+        "push_ups_short"    to m("push-ups", "отж.", "flexiones", "pompes", "Liegestütze", "flexões"),
     )
 
     fun t(lang: String, key: String): String = data[key]?.get(lang) ?: data[key]?.get("en") ?: key
