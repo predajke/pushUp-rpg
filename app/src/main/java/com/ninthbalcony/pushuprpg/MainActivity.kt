@@ -1,10 +1,10 @@
 package com.ninthbalcony.pushuprpg
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -30,9 +30,6 @@ import com.ninthbalcony.pushuprpg.utils.SoundManager
 import androidx.lifecycle.lifecycleScope
 
 class MainActivity : ComponentActivity() {
-    companion object {
-        private const val TAG = "MainActivity"
-    }
 
     private lateinit var cloudSyncManager: CloudSyncManager
     private lateinit var adManager: AdManager
@@ -40,17 +37,18 @@ class MainActivity : ComponentActivity() {
     private lateinit var antiCheatManager: AntiCheatManager
     private lateinit var onboardingManager: OnboardingManager
 
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) NotificationScheduler.scheduleDailyNotifications(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         // Initialize Firebase
-        try {
-            Firebase.initialize(this)
-            Log.d(TAG, "Firebase initialized")
-        } catch (e: Exception) {
-            Log.w(TAG, "Firebase already initialized: ${e.message}")
-        }
+        try { Firebase.initialize(this) } catch (_: Exception) {}
 
         // Initialize managers
         cloudSyncManager = CloudSyncManager(this, lifecycleScope)
@@ -66,10 +64,7 @@ class MainActivity : ComponentActivity() {
 
         // Request notification permission (Android 13+)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            requestPermissions(
-                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
-                1001
-            )
+            notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
 
         // Schedule daily notifications
@@ -77,16 +72,8 @@ class MainActivity : ComponentActivity() {
 
         // Silent Play Games sign-in
         try {
-            playGamesManager.signIn(this) { success ->
-                if (success) {
-                    Log.d(TAG, "Play Games signed in")
-                } else {
-                    Log.d(TAG, "Play Games sign-in skipped or failed (optional)")
-                }
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "Play Games initialization error: ${e.message}")
-        }
+            playGamesManager.signIn(this) {}
+        } catch (_: Exception) {}
 
         setContent {
             PushUpRPGTheme {
@@ -117,14 +104,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Suppress("OVERRIDE_DEPRECATION")
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1001 && grantResults.firstOrNull() == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            NotificationScheduler.scheduleDailyNotifications(this)
-        }
-    }
-
     override fun onPause() {
         super.onPause()
         SoundManager.pauseWithFade()
@@ -142,6 +121,5 @@ class MainActivity : ComponentActivity() {
         playGamesManager.signOut(this)
         onboardingManager.reset()
         SoundManager.release()
-        Log.d(TAG, "MainActivity destroyed")
     }
 }
