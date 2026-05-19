@@ -414,12 +414,12 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
             }
         }
 
-        if (addResult != null) {
+        addResult?.let { result ->
             Spacer(Modifier.height(6.dp))
             Text(
-                text = addResult!!,
+                text = result,
                 fontSize = 12.sp,
-                color = if (addResult!!.startsWith("✅")) Color(0xFF34C759) else Color(0xFFFF453A),
+                color = if (result.startsWith("✅")) Color(0xFF34C759) else Color(0xFFFF453A),
             )
         }
 

@@ -261,12 +261,14 @@ fun ShopScreen(
         )
     }
 
-    if (showMergedDialog && mergedItem != null) {
-        MergedDialog(
-            item = mergedItem!!,
-            language = language,
-            onDismiss = { showMergedDialog = false; mergedItem = null }
-        )
+    mergedItem?.let { item ->
+        if (showMergedDialog) {
+            MergedDialog(
+                item = item,
+                language = language,
+                onDismiss = { showMergedDialog = false; mergedItem = null }
+            )
+        }
     }
 
     if (showMergeFailDialog) {
@@ -288,18 +290,20 @@ fun ShopScreen(
         NoTeethDialog(language = language, onDismiss = { showNoTeethDialog = false })
     }
 
-    if (showSpinResultDialog && spinResultToShow != null) {
-        SpinResultDialog(
-            result = spinResultToShow!!.reward,
-            wonItemIds = spinResultToShow!!.wonItemIds,
-            language = language,
-            onDismiss = {
-                showSpinResultDialog = false
-                spinResultToShow = null
-                viewModel.clearSpinResult()
-                viewModel.refreshSpinCounters()
-            }
-        )
+    spinResultToShow?.let { spin ->
+        if (showSpinResultDialog) {
+            SpinResultDialog(
+                result = spin.reward,
+                wonItemIds = spin.wonItemIds,
+                language = language,
+                onDismiss = {
+                    showSpinResultDialog = false
+                    spinResultToShow = null
+                    viewModel.clearSpinResult()
+                    viewModel.refreshSpinCounters()
+                }
+            )
+        }
     }
 
     if (showEnchantItemPicker) {

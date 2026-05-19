@@ -67,7 +67,7 @@ fun ItemLogScreen(
     val language = state.language ?: "en"
     val context = LocalContext.current
 
-    val allItems = remember { ItemUtils.loadItems(context) }
+    val allItems = remember { ItemUtils.loadedItems }
     val collectedIds = remember(state.itemLogJson, state.inventoryItems) {
         viewModel.getCollectedItemBaseIds(state)
     }

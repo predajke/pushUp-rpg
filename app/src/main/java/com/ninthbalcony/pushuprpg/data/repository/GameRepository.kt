@@ -293,12 +293,9 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
 
         // Play Games achievements
-        val pushupIncrease = count
-        if ((state.totalPushUpsAllTime + pushupIncrease) % 100 >= state.totalPushUpsAllTime % 100) {
-            val milestones = (state.totalPushUpsAllTime + pushupIncrease) / 100 - state.totalPushUpsAllTime / 100
-            if (milestones > 0) {
-                playGamesManager?.incrementAchievementMasterPushups(milestones)
-            }
+        val milestones = (state.totalPushUpsAllTime + count) / 100 - state.totalPushUpsAllTime / 100
+        if (milestones > 0) {
+            playGamesManager?.incrementAchievementMasterPushups(milestones)
         }
         if (workingState.teeth >= 5000 && state.teeth < 5000) {
             playGamesManager?.unlockAchievementRich()
@@ -950,17 +947,11 @@ class GameRepository(private val context: Context) : IGameRepository {
         return state
     }
 
-    // ==================== ITEMS ====================
-
-    fun loadItems() {
-        ItemUtils.loadItems(context)
-    }
-
     // ==================== МАГАЗИН ====================
 
     override suspend fun getOrRefreshShop(): List<com.ninthbalcony.pushuprpg.data.model.Item> {
         val state = getGameState()
-        val allItems = ItemUtils.loadItems(context)
+        val allItems = ItemUtils.loadedItems
 
         return if (ShopUtils.shouldRefreshShop(state.shopLastRefresh) ||
             state.shopItems.isEmpty()) {
@@ -1036,7 +1027,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val cost = (currentCount + 1) * 3
         if (state.teeth < cost) return false
 
-        val allItems = ItemUtils.loadItems(context)
+        val allItems = ItemUtils.loadedItems
         val baseItems = ShopUtils.generateShopItems(allItems).toMutableList()
         val activeEvent = EventUtils.getEventById(state.activeEventId)
         if (activeEvent?.type == EventType.ENCHANTERS_LUCK &&
@@ -1133,7 +1124,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             entries.removeAt(removeFirst)
             entries.removeAt(removeSecond)
 
-            val allItems = ItemUtils.loadItems(context)
+            val allItems = ItemUtils.loadedItems
             val targetRarity = if (rarity1 == "epic" && rarity2 == "epic" && kotlin.random.Random.nextFloat() < 0.25f)
                 "legendary" else ShopUtils.rollForgeRarity()
 
@@ -1245,8 +1236,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
             when (reward.type) {
                 "clover_box" -> {
-                    val allItems = ItemUtils.loadItems(context)
-                    val epicItem = allItems.filter { it.rarity == "epic" }.randomOrNull()
+                    val epicItem = ItemUtils.loadedItems.filter { it.rarity == "epic" }.randomOrNull()
                     if (epicItem != null) {
                         val uid = "${epicItem.id}_${System.currentTimeMillis()}"
                         val entries = parseInventory(updatedState.inventoryItems)
@@ -1262,8 +1252,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                     }
                 }
                 "boss_cube" -> {
-                    val allItems = ItemUtils.loadItems(context)
-                    val legendaryItem = allItems.filter { it.rarity == "legendary" }.randomOrNull()
+                    val legendaryItem = ItemUtils.loadedItems.filter { it.rarity == "legendary" }.randomOrNull()
                     if (legendaryItem != null) {
                         val uid = "${legendaryItem.id}_${System.currentTimeMillis()}"
                         val entries = parseInventory(updatedState.inventoryItems)
@@ -1292,13 +1281,12 @@ class GameRepository(private val context: Context) : IGameRepository {
                     }
                 }
                 "rare_spin", "uncommon_spin", "common_spin" -> {
-                    val allItems = ItemUtils.loadItems(context)
                     val rarity = when (reward.type) {
                         "rare_spin"     -> "rare"
                         "uncommon_spin" -> "uncommon"
                         else            -> "common"
                     }
-                    val item = allItems.filter { it.rarity == rarity }.randomOrNull()
+                    val item = ItemUtils.loadedItems.filter { it.rarity == rarity }.randomOrNull()
                     if (item != null) {
                         val uid = "${item.id}_${System.currentTimeMillis()}"
                         val entries = parseInventory(updatedState.inventoryItems)
@@ -1349,9 +1337,8 @@ class GameRepository(private val context: Context) : IGameRepository {
         val state = getGameState()
         if (state.cloverBoxUsedToday >= 2) return null
 
-        val allItems = ItemUtils.loadItems(context)
         val targetRarity = ShopUtils.rollCloverBoxRarity()
-        val eligible = allItems.filter { it.rarity == targetRarity }
+        val eligible = ItemUtils.loadedItems.filter { it.rarity == targetRarity }
         if (eligible.isEmpty()) return null
 
         val item = eligible.random()
@@ -1535,8 +1522,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
             var newItemLog = state.itemLogJson
             if (def.rewardItemRarity != null) {
-                val allItems = ItemUtils.loadItems(context)
-                val eligible = allItems.filter { it.rarity == def.rewardItemRarity }
+                val eligible = ItemUtils.loadedItems.filter { it.rarity == def.rewardItemRarity }
                 val item = eligible.randomOrNull()
                 if (item != null) {
                     val uniqueId = "${item.id}_${System.currentTimeMillis()}"
@@ -1591,9 +1577,8 @@ class GameRepository(private val context: Context) : IGameRepository {
             var newItemLog = state.itemLogJson
 
             if (reward.isCloverBox) {
-                val allItems = ItemUtils.loadItems(context)
                 val targetRarity = ShopUtils.rollCloverBoxRarity()
-                val item = allItems.filter { it.rarity == targetRarity }.randomOrNull()
+                val item = ItemUtils.loadedItems.filter { it.rarity == targetRarity }.randomOrNull()
                 if (item != null) {
                     val uniqueId = "${item.id}_${System.currentTimeMillis()}"
                     val entries = parseInventory(newState.inventoryItems)
@@ -1605,8 +1590,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                     )
                 }
             } else if (reward.itemRarity != null) {
-                val allItems = ItemUtils.loadItems(context)
-                val item = allItems.filter { it.rarity == reward.itemRarity }.randomOrNull()
+                val item = ItemUtils.loadedItems.filter { it.rarity == reward.itemRarity }.randomOrNull()
                 if (item != null) {
                     val uniqueId = "${item.id}_${System.currentTimeMillis()}"
                     val entries = parseInventory(newState.inventoryItems)
@@ -1646,7 +1630,6 @@ class GameRepository(private val context: Context) : IGameRepository {
 
             // Опциональный гарантированный предмет.
             if (milestone.itemRarity != null) {
-                ItemUtils.loadItems(context)
                 val item = ItemUtils.getRandomItemOfRarity(milestone.itemRarity)
                 if (item != null) {
                     val uniqueId = "${item.id}_${System.currentTimeMillis()}"
@@ -1741,7 +1724,7 @@ class GameRepository(private val context: Context) : IGameRepository {
      * Использовать ТОЛЬКО для тестирования!
      */
     override suspend fun addDebugItemsForTest() {
-        val allItems = ItemUtils.loadItems(context)
+        val allItems = ItemUtils.loadedItems
         val slots = listOf("head", "necklace", "weapon", "pants", "boots")
         val entries = mutableListOf<String>()
         for (slot in slots) {
