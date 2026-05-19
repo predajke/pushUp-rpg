@@ -338,6 +338,106 @@ object AppStrings {
         // --- Cloud restore ---
         "cloud_restored"    to m("Progress restored from cloud", "Прогресс восстановлен из облака", "Progreso restaurado de la nube", "Progression restaurée depuis le cloud", "Fortschritt aus der Cloud wiederhergestellt", "Progresso restaurado da nuvem"),
         "push_ups_short"    to m("push-ups", "отж.", "flexiones", "pompes", "Liegestütze", "flexões"),
+
+        // --- Navigation ---
+        "leaderboard"       to m("Leaderboard",     "Таблица лидеров",  "Marcador",             "Classement",           "Bestenliste",          "Placar"),
+
+        // --- Main Menu extras ---
+        "next_attack"       to m("Next attack:",    "След. атака:",     "Próx. ataque:",        "Proch. attaque:",      "Nächster Angriff:",    "Próx. ataque:"),
+        "golden_goblin"     to m("Golden Goblin",   "Золотой Гоблин",   "Duende Dorado",        "Gobelin d'Or",         "Goldener Kobold",      "Goblin Dourado"),
+        "goblin_escaped"    to m("Goblin escaped!", "Гоблин сбежал!",   "¡El duende escapó!",   "Le gobelin s'est enfui!","Kobold entkommen!",   "Goblin escapou!"),
+        "teeth_earned_popup" to m("You earned",     "Ты получил",       "Ganaste",              "Tu as gagné",          "Du hast verdient",     "Você ganhou"),
+        "awesome"           to m("Awesome!",        "Отлично!",         "¡Genial!",             "Super!",               "Toll!",                "Incrível!"),
+        "day_label"         to m("Day",             "День",             "Día",                  "Jour",                 "Tag",                  "Dia"),
+        "next_reward"       to m("Next reward:",    "Следующая награда:","Próxima recompensa:",  "Prochaine récompense:","Nächste Belohnung:",   "Próxima recompensa:"),
+        "days_to_go"        to m("days to go",      "дн. осталось",     "días restantes",       "jours restants",       "Tage verbleiben",      "dias restantes"),
+        "stat_points_label" to m("Stat points:",    "Очков:",           "Puntos:",              "Points:",              "Punkte:",              "Pontos:"),
+        "item_rarity_label" to m("item",            "предмет",          "objeto",               "objet",                "Gegenstand",           "item"),
+
+        // --- Bestiary ---
+        "damage_label"      to m("Damage",          "Урон",             "Daño",                 "Dégâts",               "Schaden",              "Dano"),
+        "drop_label"        to m("Drop",            "Дроп",             "Botín",                "Butin",                "Beute",                "Loot"),
+
+        // --- Item Log ---
+        "sets_label"        to m("Sets",            "Сеты",             "Sets",                 "Sets",                 "Sets",                 "Sets"),
+
+        // --- Leaderboard screen ---
+        "lb_global"         to m("Global",          "Глобально",        "Global",               "Mondial",              "Global",               "Global"),
+        "lb_country"        to m("Country",         "Страна",           "País",                 "Pays",                 "Land",                 "País"),
+        "lb_friends"        to m("Friends",         "Друзья",           "Amigos",               "Amis",                 "Freunde",              "Amigos"),
+        "lb_period_day"     to m("Day",             "День",             "Día",                  "Jour",                 "Tag",                  "Dia"),
+        "lb_period_week"    to m("Week",            "Неделя",           "Semana",               "Semaine",              "Woche",                "Semana"),
+        "lb_period_month"   to m("Month",           "Месяц",            "Mes",                  "Mois",                 "Monat",                "Mês"),
+        "lb_period_all"     to m("All Time",        "За всё",           "Todo el tiempo",       "Depuis toujours",      "Gesamte Zeit",         "Todo o tempo"),
+        "lb_searching"      to m("Searching players...", "Ищем игроков...", "Buscando jugadores...", "Recherche joueurs...", "Spieler suchen...", "Procurando jogadores..."),
+        "lb_filter_name"    to m("Filter by name…", "Фильтр по имени…", "Filtrar por nombre…",  "Filtrer par nom…",     "Nach Name filtern…",   "Filtrar por nome…"),
+        "lb_empty"          to m("Be first! Leaderboard is empty.", "Будь первым! Лидерборд пока пуст.", "¡Sé el primero! Marcador vacío.", "Sois le premier! Classement vide.", "Sei der Erste! Bestenliste leer.", "Seja o primeiro! Placar vazio."),
+        "lb_push_ups_header" to m("PUSH-UPS",       "ОТЖИМАНИЯ",        "FLEXIONES",            "POMPES",               "LIEGESTÜTZE",          "FLEXÕES"),
+        "lb_streak_header"  to m("LONGEST STREAK",  "ДЛИННЫЙ СТРИК",    "RACHA MÁS LARGA",      "PLUS LONGUE SÉRIE",    "LÄNGSTE SERIE",        "MAIOR SEQUÊNCIA"),
+        "lb_teeth_header"   to m("TOTAL TEETH",     "ВСЕГО ЗУБОВ",      "TOTAL DIENTES",        "TOTAL DENTS",          "GESAMTE ZÄHNE",        "TOTAL DENTES"),
+        "lb_code"           to m("Code:",           "Код:",             "Código:",              "Code:",                "Code:",                "Código:"),
+        "lb_already_friend" to m("✓ Already friend","✓ В друзьях",      "✓ Ya amigo",           "✓ Déjà ami",           "✓ Bereits Freund",     "✓ Já amigo"),
+        "lb_add_friend"     to m("+ Add friend",    "+ Добавить",       "+ Añadir amigo",       "+ Ajouter ami",        "+ Freund hinzufügen",  "+ Adicionar amigo"),
+        "lb_prestige"       to m("Prestige",        "Ресет",            "Prestigio",            "Prestige",             "Prestige",             "Prestígio"),
+
+        // --- Inventory extras ---
+        "reset_bonus_label" to m("🔄 Reset Bonus:",    "🔄 Бонус ресета:",       "🔄 Bono Reinicio:",     "🔄 Bonus Réinit.:",    "🔄 Reset-Bonus:",          "🔄 Bônus Reinício:"),
+        "achievement_boosts_label" to m("📜 Achievement Boosts:", "📜 Бонусы достижений:", "📜 Mejoras Logros:", "📜 Boosts Succès:", "📜 Erfolgs-Boni:", "📜 Bônus Conquistas:"),
+        "set_modifiers_label" to m("⚙️ Set Modifiers:", "⚙️ Модификаторы наборов:", "⚙️ Modificadores Set:", "⚙️ Modificateurs Set:", "⚙️ Set-Modifikatoren:", "⚙️ Modificadores Set:"),
+        "stat_points_dist"  to m("Stat points to distribute:", "Очков для распределения:", "Puntos para distribuir:", "Points à distribuer:", "Punkte zu verteilen:", "Pontos a distribuir:"),
+        "tonnage_label"     to m("Tonnage",         "Тоннаж",           "Tonelaje",             "Tonnage",              "Tonnage",              "Tonelagem"),
+
+        // --- Profile ---
+        "play_games_not_connected" to m("Play Games — not connected", "Play Games — не подключено", "Play Games — no conectado", "Play Games — non connecté", "Play Games — nicht verbunden", "Play Games — não conectado"),
+        "save_progress_desc" to m("Save progress across reinstalls", "Сохрани прогресс между переустановками", "Guarda progreso entre reinstalaciones", "Sauvegarde entre réinstallations", "Fortschritt bei Neuinstallation sichern", "Salva progresso entre reinstalações"),
+        "sign_out"          to m("Sign out",        "Выйти",            "Cerrar sesión",        "Se déconnecter",       "Abmelden",             "Sair"),
+        "sign_in"           to m("Sign in",         "Войти",            "Iniciar sesión",       "Se connecter",         "Anmelden",             "Entrar"),
+        "change_avatar_btn" to m("Change Avatar →", "Сменить аватар →", "Cambiar avatar →",     "Changer avatar →",     "Avatar ändern →",      "Mudar avatar →"),
+        "your_code"         to m("Your code:",      "Мой код:",         "Tu código:",           "Ton code:",            "Dein Code:",           "Seu código:"),
+        "friend_code_label" to m("Friend code",     "Код друга",        "Código de amigo",      "Code d'ami",           "Freundescode",         "Código de amigo"),
+        "btn_add"           to m("Add",             "Добавить",         "Añadir",               "Ajouter",              "Hinzufügen",           "Adicionar"),
+        "friends_header"    to m("Friends",         "Друзья",           "Amigos",               "Amis",                 "Freunde",              "Amigos"),
+        "friends_empty"     to m("List is empty. Share your code or add a friend by their code.", "Список пуст. Поделись своим кодом или добавь друга по коду.", "Lista vacía. Comparte tu código.", "Liste vide. Partage ton code.", "Liste leer. Teile deinen Code.", "Lista vazia. Compartilhe seu código."),
+        "color_label"       to m("Color:",          "Цвет:",            "Color:",               "Couleur:",             "Farbe:",               "Cor:"),
+
+        // --- Settings extras ---
+        "profile_tab"       to m("Profile",         "Профиль",          "Perfil",               "Profil",               "Profil",               "Perfil"),
+        "sound_vibration_section" to m("🔊 Sound & Vibration", "🔊 Звук и вибрация", "🔊 Sonido y vibración", "🔊 Son & Vibration", "🔊 Ton & Vibration", "🔊 Som e vibração"),
+        "sound_music_label" to m("Sound & Music",   "Звуки и музыка",   "Sonido y música",      "Son & Musique",        "Ton & Musik",          "Som e música"),
+        "vibration_label"   to m("Vibration",       "Вибрация",         "Vibración",            "Vibration",            "Vibration",            "Vibração"),
+        "stats_section_label" to m("⚖️ Stats",      "⚖️ Параметры",     "⚖️ Stats",             "⚖️ Stats",             "⚖️ Werte",             "⚖️ Atributos"),
+        "body_weight_label" to m("Body weight (kg):","Вес тела (кг):",  "Peso corporal (kg):",  "Poids corporel (kg):", "Körpergewicht (kg):",  "Peso corporal (kg):"),
+
+        // --- Shop extras ---
+        "night_mode_max"    to m("Maximum night level +25!", "Максимальный ночной уровень +25!", "¡Nivel nocturno máximo +25!", "Niveau nocturne maximum +25!", "Maximales Nachtlevel +25!", "Nível noturno máximo +25!"),
+        "unlocks_at_level"  to m("Unlocks at level", "Открывается на уровне", "Se desbloquea en nivel", "Se débloque au niveau", "Freigabe ab Level", "Libera no nível"),
+        "shop_update_label" to m("Update:",         "Обновление:",      "Actualización:",       "Mise à jour:",         "Aktualisierung:",      "Atualização:"),
+        "reroll_reset_in"   to m("Cost resets in:", "Сброс стоимости через:", "Costo se reinicia en:", "Coût réinitialisé dans:", "Kosten zurückgesetzt in:", "Custo reiniciado em:"),
+        "purchased_label"   to m("Purchased!",      "Куплено!",         "¡Comprado!",           "Acheté!",              "Gekauft!",             "Comprado!"),
+        "free_item_label"   to m("Free Item!",      "Бесплатный предмет!", "¡Objeto gratis!",   "Objet gratuit!",       "Gratis-Gegenstand!",   "Item grátis!"),
+        "free_points_label" to m("Free Points!",    "Бесплатные очки!", "¡Puntos gratis!",      "Points gratuits!",     "Gratis-Punkte!",       "Pontos grátis!"),
+        "watch_ad_btn"      to m("Watch AD",        "Смотреть рекламу", "Ver anuncio",          "Regarder pub",         "Werbung sehen",        "Ver anúncio"),
+        "you_won_label"     to m("You Won!",        "Ты выиграл!",      "¡Ganaste!",            "Tu as gagné!",         "Du hast gewonnen!",    "Você ganhou!"),
+        "night_mode_enchant" to m("🌙 Night Mode · Max +", "🌙 Ночной режим · Макс +", "🌙 Modo nocturno · Máx +", "🌙 Mode nuit · Max +", "🌙 Nachtmodus · Max +", "🌙 Modo noturno · Máx +"),
+
+        // --- Quests extras ---
+        "reroll_quest_desc" to m("Get 3 new random daily quests!", "Получите 3 новых случайных ежедневных задания!", "¡Obtén 3 nuevas misiones aleatorias!", "Obtenez 3 nouvelles quêtes aléatoires!", "Erhalte 3 neue zufällige Tagesquests!", "Obtenha 3 novas missões aleatórias!"),
+        "reroll_quest_reward" to m("3 new quests",  "3 новых задания",  "3 misiones nuevas",    "3 nouvelles quêtes",   "3 neue Quests",        "3 novas missões"),
+        "reroll_quests_used" to m("🎬 Reroll Quests (used)", "🎬 Перебросить задания (исп.)", "🎬 Nuevas misiones (usadas)", "🎬 Relancer quêtes (utilisé)", "🎬 Quests neu würfeln (verbraucht)", "🎬 Novas missões (usado)"),
+        "reroll_quests_btn" to m("🎬 Watch Ad to Reroll Daily", "🎬 Перебросить ежедневные задания", "🎬 Ver anuncio para renovar", "🎬 Regarder pub pour relancer", "🎬 Anzeige für neue Tagesquests", "🎬 Ver anúncio para renovar"),
+
+        // --- Statistics extras ---
+        "daily_spin_section" to m("🎰 Daily Spin",  "🎰 Вращение ленты","🎰 Giro diario",       "🎰 Tour quotidien",    "🎰 Tägliches Drehen",  "🎰 Giro diário"),
+        "teeth_from_spin"   to m("Teeth from spin", "Зубы с ленты",     "Dientes del giro",     "Dents du tour",        "Zähne vom Drehen",     "Dentes do giro"),
+        "items_from_spin"   to m("Items from spin", "Вещи с ленты",     "Objetos del giro",     "Objets du tour",       "Gegenstände vom Drehen","Itens do giro"),
+        "teeth_sources_section" to m("🦷 Teeth sources", "🦷 Источники зубов", "🦷 Fuentes de dientes", "🦷 Sources de dents", "🦷 Zähne-Quellen", "🦷 Fontes de dentes"),
+        "from_quests"       to m("From quests",     "С квестов",        "De misiones",          "Des quêtes",           "Von Quests",           "De missões"),
+        "from_ads"          to m("From ads",        "С рекламы",        "De anuncios",          "Des publicités",       "Von Anzeigen",         "De anúncios"),
+        "successful_merges" to m("Successful merges","Успешных merge",   "Fusiones exitosas",    "Fusions réussies",     "Erfolgreiche Verschmelzungen","Fusões bem-sucedidas"),
+        "failed_merges"     to m("Failed merges",   "Неудачных merge",  "Fusiones fallidas",    "Fusions échouées",     "Fehlgeschlagene Verschmelzungen","Fusões fracassadas"),
+        "successful_enchants" to m("Successful enchants","Успешных enchant","Encantos exitosos", "Enchantements réussis","Erfolgreiche Verzauberungen","Encantos bem-sucedidos"),
+        "failed_enchants"   to m("Failed enchants", "Неудачных enchant","Encantos fallidos",    "Enchantements échoués","Fehlgeschlagene Verzauberungen","Encantos fracassados"),
+        "total_label"       to m("total",           "всего",            "total",                "total",                "gesamt",               "total"),
     )
 
     fun t(lang: String, key: String): String = data[key]?.get(lang) ?: data[key]?.get("en") ?: key

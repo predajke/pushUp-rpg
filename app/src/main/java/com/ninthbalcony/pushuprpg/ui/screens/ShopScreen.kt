@@ -520,8 +520,7 @@ fun ShopScreen(
                                 EnchantResult.NOT_ENOUGH_TEETH -> showNoTeethDialog = true
                                 EnchantResult.MAX_LEVEL      -> {
                                     resultMessage = if (isNightGrindstone) {
-                                        if (language == "ru") "Максимальный ночной уровень +25!"
-                                        else "Maximum night level +25!"
+                                        AppStrings.t(language, "night_mode_max")
                                     } else AppStrings.t(language, "enchant_max")
                                     showResultDialog = true
                                 }

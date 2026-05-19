@@ -60,8 +60,8 @@ fun QuestsScreen(
     if (adQuestRerollPending) {
         com.ninthbalcony.pushuprpg.ui.dialogs.RewardedAdDialog(
             title = AppStrings.t(language, "ad_title"),
-            description = if (language == "ru") "Получите 3 новых случайных ежедневных задания!" else "Get 3 new random daily quests!",
-            rewardText = if (language == "ru") "3 новых задания" else "3 new quests",
+            description = AppStrings.t(language, "reroll_quest_desc"),
+            rewardText = AppStrings.t(language, "reroll_quest_reward"),
             language = language,
             onWatchAd = { activity?.let { viewModel.playAdQuestReroll(it) } },
             onDecline = { viewModel.dismissAdQuestReroll() },
@@ -147,9 +147,9 @@ fun QuestsScreen(
                     ) {
                         Text(
                             text = if (alreadyRerolledToday)
-                                (if (language == "ru") "🎬 Перебросить задания (исп.)" else "🎬 Reroll Quests (used)")
+                                AppStrings.t(language, "reroll_quests_used")
                             else
-                                (if (language == "ru") "🎬 Перебросить ежедневные задания" else "🎬 Watch Ad to Reroll Daily"),
+                                AppStrings.t(language, "reroll_quests_btn"),
                             fontSize = 12.sp
                         )
                     }

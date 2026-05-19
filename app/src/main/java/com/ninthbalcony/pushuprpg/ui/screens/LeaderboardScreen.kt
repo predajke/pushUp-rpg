@@ -406,17 +406,17 @@ fun LeaderboardScreen(
 
     val scopes = remember(language) {
         listOf(
-            LbScope.GLOBAL  to if (language == "ru") "Глобально" else "Global",
-            LbScope.COUNTRY to if (language == "ru") "Страна"    else "Country",
-            LbScope.FRIENDS to if (language == "ru") "Друзья"    else "Friends",
+            LbScope.GLOBAL  to AppStrings.t(language, "lb_global"),
+            LbScope.COUNTRY to AppStrings.t(language, "lb_country"),
+            LbScope.FRIENDS to AppStrings.t(language, "lb_friends"),
         )
     }
     val periods = remember(language) {
         listOf(
-            LbPeriod.DAY   to if (language == "ru") "День"   else "Day",
-            LbPeriod.WEEK  to if (language == "ru") "Неделя" else "Week",
-            LbPeriod.MONTH to if (language == "ru") "Месяц"  else "Month",
-            LbPeriod.ALL   to if (language == "ru") "За всё" else "All Time",
+            LbPeriod.DAY   to AppStrings.t(language, "lb_period_day"),
+            LbPeriod.WEEK  to AppStrings.t(language, "lb_period_week"),
+            LbPeriod.MONTH to AppStrings.t(language, "lb_period_month"),
+            LbPeriod.ALL   to AppStrings.t(language, "lb_period_all"),
         )
     }
 
@@ -535,7 +535,7 @@ fun LeaderboardScreen(
             ) {
                 Text("🔍", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
                 Spacer(Modifier.width(6.dp))
-                val placeholder = if (language == "ru") "Фильтр по имени…" else "Filter by name…"
+                val placeholder = AppStrings.t(language, "lb_filter_name")
                 BasicTextField(
                     value = query,
                     onValueChange = { query = it },
@@ -568,10 +568,7 @@ fun LeaderboardScreen(
                 onRefresh = { viewModel.refreshLeaderboard(force = true) },
             ) {
                 if (!isLoading && filtered.isEmpty()) {
-                    val emptyMsg = if (language == "ru")
-                        "Будь первым! Лидерборд пока пуст."
-                    else
-                        "Be the first! Leaderboard is empty."
+                    val emptyMsg = AppStrings.t(language, "lb_empty")
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(emptyMsg, color = LbTextMute, fontSize = 12.sp)
                     }
@@ -878,7 +875,7 @@ private fun PlayerProfileDialog(
             // Level / prestige
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = (if (language == "ru") "Уровень " else "Level ") + player.lvl,
+                    text = "${AppStrings.t(language, "stat_level")} ${player.lvl}",
                     color = LbOrange,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -888,7 +885,7 @@ private fun PlayerProfileDialog(
                     Text(text = "·", color = LbTextMute, fontSize = 13.sp)
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = (if (language == "ru") "Ресет " else "Prestige ") + player.res,
+                        text = "${AppStrings.t(language, "lb_prestige")} ${player.res}",
                         color = Color(0xFF3FA9F5),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -906,19 +903,19 @@ private fun PlayerProfileDialog(
                     .padding(12.dp),
             ) {
                 StatLine(
-                    label = if (language == "ru") "ОТЖИМАНИЯ" else "PUSH-UPS",
+                    label = AppStrings.t(language, "lb_push_ups_header"),
                     value = fmt(player.totalPushUps),
                     valueColor = LbOrange2,
                 )
                 Spacer(Modifier.height(6.dp))
                 StatLine(
-                    label = if (language == "ru") "ДЛИННЫЙ СТРИК" else "LONGEST STREAK",
+                    label = AppStrings.t(language, "lb_streak_header"),
                     value = "${player.longestStreak}d",
                     valueColor = LbGreen2,
                 )
                 Spacer(Modifier.height(6.dp))
                 StatLine(
-                    label = if (language == "ru") "ВСЕГО ЗУБОВ" else "TOTAL TEETH",
+                    label = AppStrings.t(language, "lb_teeth_header"),
                     value = fmt(player.totalTeethEarned),
                     valueColor = LbGold,
                 )
@@ -933,7 +930,7 @@ private fun PlayerProfileDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = if (language == "ru") "Код:" else "Code:",
+                        text = AppStrings.t(language, "lb_code"),
                         color = LbTextMute,
                         fontSize = 12.sp,
                     )
@@ -973,7 +970,7 @@ private fun PlayerProfileDialog(
                     shape = RoundedCornerShape(8.dp),
                 ) {
                     Text(
-                        if (language == "ru") "Закрыть" else "Close",
+                        AppStrings.t(language, "close"),
                         color = LbTextMute,
                     )
                 }
@@ -986,7 +983,7 @@ private fun PlayerProfileDialog(
                         enabled = false,
                     ) {
                         Text(
-                            text = if (language == "ru") "✓ В друзьях" else "✓ Already friend",
+                            text = AppStrings.t(language, "lb_already_friend"),
                             color = Color(0xFF34C759),
                             fontWeight = FontWeight.SemiBold,
                         )
@@ -999,7 +996,7 @@ private fun PlayerProfileDialog(
                         colors = ButtonDefaults.buttonColors(containerColor = LbOrange),
                     ) {
                         Text(
-                            text = if (language == "ru") "+ Добавить" else "+ Add friend",
+                            text = AppStrings.t(language, "lb_add_friend"),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                         )

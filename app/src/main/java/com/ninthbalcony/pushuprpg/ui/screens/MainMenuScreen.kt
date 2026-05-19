@@ -700,7 +700,7 @@ fun LeaderboardShortcutButton(
     language: String,
     onClick: () -> Unit
 ) {
-    val label = if (language == "ru") "Таблица лидеров" else "Leaderboard"
+    val label = AppStrings.t(language, "leaderboard")
     val context = LocalContext.current
     val bgResId = remember {
         context.resources.getIdentifier("bg_leaderboard", "drawable", context.packageName)
@@ -778,7 +778,7 @@ fun DailyRewardDialog(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = if (language == "ru") "День ${reward.day} / 7" else "Day ${reward.day} / 7",
+                text = "${AppStrings.t(language, "day_label")} ${reward.day} / 7",
                 color = TextMuted,
                 fontSize = 13.sp
             )
@@ -841,20 +841,19 @@ fun StreakRewardDialog(
                     color = GoldAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = rewardDescription(pending, ru), color = TextPrimary, fontSize = 13.sp,
+                Text(text = rewardDescription(pending, language), color = TextPrimary, fontSize = 13.sp,
                     textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = onClaim,
                     colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent)
                 ) {
-                    Text(if (ru) "Забрать" else "Claim", color = Color.White)
+                    Text(AppStrings.t(language, "btn_claim"), color = Color.White)
                 }
             } else if (next != null) {
                 val daysLeft = next.day - streak
                 Text(
-                    text = if (ru) "Следующая награда: День ${next.day}"
-                           else "Next reward: Day ${next.day}",
+                    text = "${AppStrings.t(language, "next_reward")} ${AppStrings.t(language, "day_label")} ${next.day}",
                     color = TextSecondary, fontSize = 13.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
@@ -866,11 +865,11 @@ fun StreakRewardDialog(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = if (ru) "Осталось $daysLeft дн." else "$daysLeft days to go",
+                    text = "$daysLeft ${AppStrings.t(language, "days_to_go")}",
                     color = TextMuted, fontSize = 11.sp
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(text = rewardDescription(next, ru), color = TextPrimary, fontSize = 12.sp,
+                Text(text = rewardDescription(next, language), color = TextPrimary, fontSize = 12.sp,
                     textAlign = TextAlign.Center)
             } else {
                 Text(
@@ -882,7 +881,7 @@ fun StreakRewardDialog(
 
             Spacer(modifier = Modifier.height(16.dp))
             TextButton(onClick = onDismiss) {
-                Text(if (ru) "Закрыть" else "Close", color = TextMuted)
+                Text(AppStrings.t(language, "close"), color = TextMuted)
             }
         }
     }
@@ -910,25 +909,25 @@ fun StreakClaimedDialog(
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = rewardDescription(milestone, ru), color = TextPrimary, fontSize = 14.sp,
+            Text(text = rewardDescription(milestone, language), color = TextPrimary, fontSize = 14.sp,
                 textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent)
             ) {
-                Text(if (ru) "Отлично!" else "Awesome!", color = Color.White)
+                Text(AppStrings.t(language, "awesome"), color = Color.White)
             }
         }
     }
 }
 
-private fun rewardDescription(m: com.ninthbalcony.pushuprpg.utils.StreakMilestone, ru: Boolean): String {
+private fun rewardDescription(m: com.ninthbalcony.pushuprpg.utils.StreakMilestone, language: String): String {
     val parts = mutableListOf<String>()
     if (m.teeth > 0) parts += "+${m.teeth} 🦷"
-    if (m.statPoints > 0) parts += if (ru) "+${m.statPoints} stat pts" else "+${m.statPoints} stat pts"
-    if (m.spinTokens > 0) parts += if (ru) "+${m.spinTokens} 🎰" else "+${m.spinTokens} 🎰"
-    if (m.itemRarity != null) parts += if (ru) "предмет ${m.itemRarity}" else "${m.itemRarity} item"
+    if (m.statPoints > 0) parts += "+${m.statPoints} stat pts"
+    if (m.spinTokens > 0) parts += "+${m.spinTokens} 🎰"
+    if (m.itemRarity != null) parts += "${m.itemRarity} ${AppStrings.t(language, "item_rarity_label")}"
     return parts.joinToString(" • ")
 }
 
@@ -1109,10 +1108,7 @@ fun EventBanner(
         Box(modifier = Modifier.padding(10.dp)) {
             if (activeEvent == null) {
                 Text(
-                    text = if (language == "ru")
-                        "Событий пока нет. Продолжай тренироваться!"
-                    else
-                        "No events right now. Keep training!",
+                    text = AppStrings.t(language, "logs_empty"),
                     fontSize = 13.sp,
                     color = TextSecondary
                 )
@@ -1668,8 +1664,7 @@ fun BattleArena(
                         )
                         // Countdown до следующей атаки монстра в auto-tick.
                         Text(
-                            text = if (state.language == "ru") "След. атака: $countdownText"
-                                   else "Next attack: $countdownText",
+                            text = "${AppStrings.t(state.language, "next_attack")} $countdownText",
                             fontSize = 10.sp,
                             color = TextMuted,
                             textAlign = TextAlign.End,

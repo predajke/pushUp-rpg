@@ -90,7 +90,7 @@ fun StatisticsScreen(
             val weekBest = weekStats.maxOfOrNull { it.second } ?: 0
             BarChartPanel(
                 title = AppStrings.t(language, "stats_last_week"),
-                subtitle = "$weekTotal ${if (language == "ru") "всего" else "total"} · ${AppStrings.t(language, "stats_best_day")} $weekBest",
+                subtitle = "$weekTotal ${AppStrings.t(language, "total_label")} · ${AppStrings.t(language, "stats_best_day")} $weekBest",
                 labels = weekStats.map { it.first },
                 values = weekStats.map { it.second },
                 showLegend = true,
@@ -102,7 +102,7 @@ fun StatisticsScreen(
             val yearBestLabel = yearStats.maxByOrNull { it.second }?.first ?: ""
             BarChartPanel(
                 title = AppStrings.t(language, "stats_last_year"),
-                subtitle = "$yearTotal ${if (language == "ru") "всего" else "total"} · ${AppStrings.t(language, "stats_best_month")} $yearBestLabel",
+                subtitle = "$yearTotal ${AppStrings.t(language, "total_label")} · ${AppStrings.t(language, "stats_best_month")} $yearBestLabel",
                 labels = yearStats.map { it.first },
                 values = yearStats.map { it.second },
                 showLegend = false,
@@ -540,58 +540,58 @@ fun RpgStatsCard(
         )
 
         // ── Вращение ленты ──
-        StatSectionHeader(if (language == "ru") "🎰 Вращение ленты" else "🎰 Daily Spin")
+        StatSectionHeader(AppStrings.t(language, "daily_spin_section"))
         StatDivider()
         StatRow(
-            label = if (language == "ru") "Зубы с ленты" else "Teeth from spin",
+            label = AppStrings.t(language, "teeth_from_spin"),
             value = "+${state.teethFromSpin} 🦷",
             valueColor = Color(0xFF4CAF50)
         )
         StatDivider()
         StatRow(
-            label = if (language == "ru") "Вещи с ленты" else "Items from spin",
+            label = AppStrings.t(language, "items_from_spin"),
             value = "+${state.itemsFromSpin}",
             valueColor = Color(0xFF4CAF50)
         )
 
         // ── Источники зубов ──
-        StatSectionHeader(if (language == "ru") "🦷 Источники зубов" else "🦷 Teeth sources")
+        StatSectionHeader(AppStrings.t(language, "teeth_sources_section"))
         StatDivider()
         StatRow(
-            label = if (language == "ru") "С квестов" else "From quests",
+            label = AppStrings.t(language, "from_quests"),
             value = "+${state.teethFromQuests} 🦷",
             valueColor = Color(0xFF4CAF50)
         )
         StatDivider()
         StatRow(
-            label = if (language == "ru") "С рекламы" else "From ads",
+            label = AppStrings.t(language, "from_ads"),
             value = "+${state.teethFromAds} 🦷",
             valueColor = Color(0xFF4CAF50)
         )
 
         // ── Forge & Enchant ──
-        StatSectionHeader(if (language == "ru") "🔨 Forge & Enchant" else "🔨 Forge & Enchant")
+        StatSectionHeader("🔨 Forge & Enchant")
         StatDivider()
         StatRow(
-            label = if (language == "ru") "Успешных merge" else "Successful merges",
+            label = AppStrings.t(language, "successful_merges"),
             value = "${state.totalItemsMerged}",
             valueColor = GoldAccent
         )
         StatDivider()
         StatRow(
-            label = if (language == "ru") "Неудачных merge" else "Failed merges",
+            label = AppStrings.t(language, "failed_merges"),
             value = "${(state.totalMergeAttempts - state.totalItemsMerged).coerceAtLeast(0)}",
             valueColor = Color(0xFFE53935)
         )
         StatDivider()
         StatRow(
-            label = if (language == "ru") "Успешных enchant" else "Successful enchants",
+            label = AppStrings.t(language, "successful_enchants"),
             value = "${state.totalEnchantmentsSuccess}",
             valueColor = GoldAccent
         )
         StatDivider()
         StatRow(
-            label = if (language == "ru") "Неудачных enchant" else "Failed enchants",
+            label = AppStrings.t(language, "failed_enchants"),
             value = "${(state.totalEnchantAttempts - state.totalEnchantmentsSuccess).coerceAtLeast(0)}",
             valueColor = Color(0xFFE53935)
         )

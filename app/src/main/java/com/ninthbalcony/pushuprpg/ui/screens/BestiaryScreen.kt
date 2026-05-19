@@ -215,15 +215,15 @@ private fun BestiaryCard(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 MonsterStatChip(
-                    label = if (language == "ru") "HP" else "HP",
+                    label = "HP",
                     value = monster.maxHp.toString()
                 )
                 MonsterStatChip(
-                    label = if (language == "ru") "Урон" else "Damage",
+                    label = AppStrings.t(language, "damage_label"),
                     value = monster.damage.toString()
                 )
                 MonsterStatChip(
-                    label = if (language == "ru") "Дроп" else "Drop",
+                    label = AppStrings.t(language, "drop_label"),
                     value = "${(monster.dropRate * 100).toInt()}%"
                 )
             }

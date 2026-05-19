@@ -145,24 +145,23 @@ private fun PlayGamesCard(viewModel: GameViewModel, language: String) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = if (signedIn) {
-                    if (language == "ru") "Play Games" else "Play Games"
+                    "Play Games"
                 } else {
-                    if (language == "ru") "Play Games — не подключено" else "Play Games — not connected"
+                    AppStrings.t(language, "play_games_not_connected")
                 },
                 color = TextPrimary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                text = if (signedIn) playerName else
-                    if (language == "ru") "Сохрани прогресс между переустановками" else "Save progress across reinstalls",
+                text = if (signedIn) playerName else AppStrings.t(language, "save_progress_desc"),
                 color = if (signedIn) Color(0xFF34C759) else TextMuted,
                 fontSize = 11.sp,
             )
         }
         if (signedIn) {
             TextButton(onClick = { activity?.let { viewModel.signOutPlayGames(it) } }) {
-                Text(if (language == "ru") "Выйти" else "Sign out", color = TextMuted, fontSize = 12.sp)
+                Text(AppStrings.t(language, "sign_out"), color = TextMuted, fontSize = 12.sp)
             }
         } else {
             Button(
@@ -172,7 +171,7 @@ private fun PlayGamesCard(viewModel: GameViewModel, language: String) {
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
             ) {
                 Text(
-                    if (language == "ru") "Войти" else "Sign in",
+                    AppStrings.t(language, "sign_in"),
                     color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -297,7 +296,7 @@ private fun AvatarCard(
             shape = RoundedCornerShape(10.dp),
         ) {
             Text(
-                text = if (language == "ru") "Сменить аватар →" else "Change Avatar →",
+                text = AppStrings.t(language, "change_avatar_btn"),
                 color = OrangeAccent,
             )
         }
@@ -337,7 +336,7 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = if (language == "ru") "Мой код:" else "Your code:",
+                text = AppStrings.t(language, "your_code"),
                 color = TextSecondary,
                 fontSize = 12.sp,
             )
@@ -386,7 +385,7 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
                 textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp, color = TextPrimary),
                 placeholder = {
                     Text(
-                        text = if (language == "ru") "Код друга" else "Friend code",
+                        text = AppStrings.t(language, "friend_code_label"),
                         color = TextMuted,
                         fontSize = 12.sp
                     )
@@ -410,7 +409,7 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
             ) {
-                Text(if (language == "ru") "Добавить" else "Add", color = Color.White, fontSize = 13.sp)
+                Text(AppStrings.t(language, "btn_add"), color = Color.White, fontSize = 13.sp)
             }
         }
 
@@ -427,7 +426,7 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
 
         // ── Friends list ────────────────────────────────────────────────
         Text(
-            text = if (language == "ru") "Друзья" else "Friends",
+            text = AppStrings.t(language, "friends_header"),
             fontSize = 14.sp,
             color = TextPrimary,
             fontWeight = FontWeight.Bold,
@@ -435,10 +434,7 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
         Spacer(Modifier.height(6.dp))
         if (friends.isEmpty()) {
             Text(
-                text = if (language == "ru")
-                    "Список пуст. Поделись своим кодом или добавь друга по коду."
-                else
-                    "No friends yet. Share your code or add by code.",
+                text = AppStrings.t(language, "friends_empty"),
                 fontSize = 12.sp,
                 color = TextMuted,
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -546,7 +542,7 @@ private fun ClanTagEditorDialog(
                 ),
             )
             Spacer(Modifier.height(16.dp))
-            Text("Color:", color = TextSecondary, fontSize = 13.sp)
+            Text(AppStrings.t(language, "color_label"), color = TextSecondary, fontSize = 13.sp)
             Spacer(Modifier.height(8.dp))
             // Color chips
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
