@@ -36,6 +36,7 @@ import com.ninthbalcony.pushuprpg.ui.components.clanTagColor
 import com.ninthbalcony.pushuprpg.ui.components.CLAN_TAG_COLOR_MAP
 import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId
+import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.AvatarSystem
 import com.ninthbalcony.pushuprpg.utils.countryToFlag
 
@@ -53,6 +54,7 @@ fun ProfileTab(
     if (showCountryPicker) {
         CountryPickerDialog(
             currentCode = state.playerCountry,
+            language = language,
             onPick = { code ->
                 viewModel.updatePlayerCountry(code)
                 showCountryPicker = false
@@ -79,6 +81,7 @@ fun ProfileTab(
         ClanTagEditorDialog(
             currentTag = state.clanTag,
             currentColor = state.clanTagColor,
+            language = language,
             onSave = { tag, color ->
                 viewModel.updateClanTag(tag, color)
                 showClanEditor = false
@@ -355,13 +358,13 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
                         clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("friend code", myCode))
                         android.widget.Toast.makeText(
                             context,
-                            if (language == "ru") "Скопировано" else "Copied",
+                            AppStrings.t(language, "copied"),
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
                     },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
                 ) {
-                    Text(if (language == "ru") "Копировать" else "Copy", color = OrangeAccent, fontSize = 12.sp)
+                    Text(AppStrings.t(language, "btn_copy"), color = OrangeAccent, fontSize = 12.sp)
                 }
             }
         }
@@ -504,6 +507,7 @@ private fun FriendRow(friend: LeaderboardEntry, onRemove: () -> Unit) {
 private fun ClanTagEditorDialog(
     currentTag: String,
     currentColor: String,
+    language: String,
     onSave: (tag: String, color: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -571,13 +575,13 @@ private fun ClanTagEditorDialog(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(8.dp),
-                ) { Text("Cancel", color = TextSecondary) }
+                ) { Text(AppStrings.t(language, "btn_cancel"), color = TextSecondary) }
                 Button(
                     onClick = { onSave(tag, color) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
-                ) { Text("Save", color = Color.White, fontWeight = FontWeight.Bold) }
+                ) { Text(AppStrings.t(language, "btn_save"), color = Color.White, fontWeight = FontWeight.Bold) }
             }
         }
     }

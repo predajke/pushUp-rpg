@@ -236,6 +236,7 @@ fun MainMenuScreen(
                 // Should not happen, but just in case show cooldown
                 com.ninthbalcony.pushuprpg.ui.dialogs.AntiCheatWarningDialog(
                     remainingCooldownMs = cooldown.remainingMs,
+                    language = language,
                     onDismiss = { viewModel.clearAntiCheatCooldown() }
                 )
             }
@@ -245,6 +246,7 @@ fun MainMenuScreen(
                     title = AppStrings.t(language, "ad_title"),
                     description = AppStrings.t(language, "ad_description_cheat"),
                     rewardText = AppStrings.t(language, "ad_button_watch"),
+                    language = language,
                     onWatchAd = {
                         (context as? android.app.Activity)?.let { viewModel.playAntiCheatAd(it) }
                     },
@@ -262,6 +264,7 @@ fun MainMenuScreen(
                 // For now, we'll show a warning that forces user to wait or watch ad
                 com.ninthbalcony.pushuprpg.ui.dialogs.AntiCheatWarningDialog(
                     remainingCooldownMs = cooldown.remainingMs,
+                    language = language,
                     onDismiss = { viewModel.clearAntiCheatCooldown() }
                 )
             }

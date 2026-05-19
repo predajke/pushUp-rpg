@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId
+import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.AvatarSystem
 
 /**
@@ -43,7 +44,7 @@ fun AvatarPickerDialog(
                 .padding(16.dp)
         ) {
             Text(
-                text = if (language == "ru") "Выбор аватара" else "Choose avatar",
+                text = AppStrings.t(language, "choose_avatar"),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
@@ -120,7 +121,7 @@ fun AvatarPickerDialog(
                 onClick = onDismiss,
                 modifier = Modifier.align(Alignment.End),
             ) {
-                Text(if (language == "ru") "Закрыть" else "Close", color = TextSecondary)
+                Text(AppStrings.t(language, "close"), color = TextSecondary)
             }
         }
     }

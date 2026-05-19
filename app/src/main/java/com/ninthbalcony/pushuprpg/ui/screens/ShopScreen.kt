@@ -45,7 +45,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.fadeIn
-import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -199,6 +198,7 @@ fun ShopScreen(
             title = AppStrings.t(language, "ad_title"),
             description = AppStrings.t(language, "ad_reward_desc"),
             rewardText = "+$adRewardPending 🦷",
+            language = language,
             onWatchAd = { (context as? android.app.Activity)?.let { viewModel.playRewardedAd(it) } },
             onDecline = { viewModel.dismissAdReward() },
             onDismiss = { viewModel.dismissAdReward() }
@@ -210,6 +210,7 @@ fun ShopScreen(
             title = AppStrings.t(language, "ad_title"),
             description = AppStrings.t(language, "ad_reward_desc"),
             rewardText = "+1 🎰",
+            language = language,
             onWatchAd = { (context as? android.app.Activity)?.let { viewModel.playAdSpin(it) } },
             onDecline = { viewModel.dismissAdSpin() },
             onDismiss = { viewModel.dismissAdSpin() }
@@ -280,11 +281,11 @@ fun ShopScreen(
     }
 
     if (showCursedDialog) {
-        CursedDialog(onDismiss = { showCursedDialog = false })
+        CursedDialog(language = language, onDismiss = { showCursedDialog = false })
     }
 
     if (showNoTeethDialog) {
-        NoTeethDialog(onDismiss = { showNoTeethDialog = false })
+        NoTeethDialog(language = language, onDismiss = { showNoTeethDialog = false })
     }
 
     if (showSpinResultDialog && spinResultToShow != null) {
@@ -1445,7 +1446,7 @@ fun MergeFailDialog(language: String, onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth(0.65f).height(40.dp)
                 ) {
-                    Text("Well", color = Color.White, fontSize = 15.sp)
+                    Text(AppStrings.t(language, "btn_well"), color = Color.White, fontSize = 15.sp)
                 }
             }
         }
@@ -1499,7 +1500,7 @@ fun EnchantedDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
-fun CursedDialog(onDismiss: () -> Unit) {
+fun CursedDialog(language: String, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val bgResId = remember { context.resources.getIdentifier("bg_enc_no", "drawable", context.packageName) }
     Dialog(onDismissRequest = onDismiss) {
@@ -1536,7 +1537,7 @@ fun CursedDialog(onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.fillMaxWidth(0.65f).height(40.dp)
                 ) {
-                    Text("Well", color = Color.White, fontSize = 15.sp)
+                    Text(AppStrings.t(language, "btn_well"), color = Color.White, fontSize = 15.sp)
                 }
             }
         }
@@ -1544,7 +1545,7 @@ fun CursedDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
-fun NoTeethDialog(onDismiss: () -> Unit) {
+fun NoTeethDialog(language: String, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val bgResId = remember { context.resources.getIdentifier("bg_enc_noteeth", "drawable", context.packageName) }
     Dialog(onDismissRequest = onDismiss) {
@@ -1567,9 +1568,9 @@ fun NoTeethDialog(onDismiss: () -> Unit) {
                 modifier = Modifier.padding(36.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Come back later", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text(AppStrings.t(language, "no_teeth_title"), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                 Spacer(modifier = Modifier.height(6.dp))
-                Text("Not enough teeth...", fontSize = 16.sp, color = TextSecondary)
+                Text(AppStrings.t(language, "no_teeth_body"), fontSize = 16.sp, color = TextSecondary)
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = onDismiss,

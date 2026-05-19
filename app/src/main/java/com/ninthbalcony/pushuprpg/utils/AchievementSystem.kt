@@ -164,15 +164,16 @@ object AchievementSystem {
 
     fun getBonusLabel(def: AchievementDef, language: String): String {
         val v = def.bonusValue
+        val pct = (v * 100).toInt()
         return when (def.bonusType) {
-            AchBonusType.XP_PERCENT          -> "+${(v * 100).toInt()}% XP"
-            AchBonusType.DAMAGE_PERCENT       -> "+${(v * 100).toInt()}% урон"
-            AchBonusType.DROP_RATE_PERCENT    -> "+${(v * 100).toInt()}% дроп"
-            AchBonusType.ARMOR_PERCENT        -> "+${(v * 100).toInt()}% броня"
-            AchBonusType.HP_FLAT              -> "+${v.toInt()} HP"
-            AchBonusType.CRIT_PERCENT         -> "+${(v * 100).toInt()}% крит"
-            AchBonusType.ENCHANT_FLAT         -> "+${v.toInt()}% заточка"
-            AchBonusType.TEETH_RATE_PERCENT   -> "+${(v * 100).toInt()}% зубы"
+            AchBonusType.XP_PERCENT        -> "+$pct% XP"
+            AchBonusType.DAMAGE_PERCENT    -> "+$pct% " + when (language) { "ru" -> "урон"; "es" -> "daño"; "fr" -> "dégâts"; "de" -> "Schaden"; "pt" -> "dano"; else -> "DMG" }
+            AchBonusType.DROP_RATE_PERCENT -> "+$pct% " + when (language) { "ru" -> "дроп"; "es" -> "botín"; "fr" -> "butin"; "de" -> "Beute"; "pt" -> "loot"; else -> "drop" }
+            AchBonusType.ARMOR_PERCENT     -> "+$pct% " + when (language) { "ru" -> "броня"; "es" -> "armadura"; "fr" -> "armure"; "de" -> "Rüstung"; "pt" -> "armadura"; else -> "armor" }
+            AchBonusType.HP_FLAT           -> "+${v.toInt()} HP"
+            AchBonusType.CRIT_PERCENT      -> "+$pct% " + when (language) { "ru" -> "крит"; "es" -> "crítico"; "fr" -> "critique"; "de" -> "Krit"; "pt" -> "crítico"; else -> "crit" }
+            AchBonusType.ENCHANT_FLAT      -> "+${v.toInt()} " + when (language) { "ru" -> "заточка"; "es" -> "forja"; "fr" -> "forge"; "de" -> "Schmieden"; "pt" -> "forja"; else -> "forge" }
+            AchBonusType.TEETH_RATE_PERCENT-> "+$pct% " + when (language) { "ru" -> "зубы"; "es" -> "dientes"; "fr" -> "dents"; "de" -> "Zähne"; "pt" -> "dentes"; else -> "teeth" }
         }
     }
 

@@ -517,7 +517,6 @@ class GameRepository(private val context: Context) : IGameRepository {
         var itemsCollectedAdd = 0
         var droppedRarity = ""
         if (isItemDropped) {
-            ItemUtils.loadItems(context)
             val dropped = ItemUtils.getRandomItemByRarity()
             if (dropped != null) {
                 val uniqueId = "${dropped.id}_${System.currentTimeMillis()}"

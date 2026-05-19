@@ -20,7 +20,6 @@ import com.ninthbalcony.pushuprpg.managers.AntiCheatManager
 import com.ninthbalcony.pushuprpg.managers.CloudSyncManager
 import com.ninthbalcony.pushuprpg.managers.OnboardingManager
 import com.ninthbalcony.pushuprpg.managers.PlayGamesManager
-import com.ninthbalcony.pushuprpg.managers.RateUsManager
 import com.ninthbalcony.pushuprpg.ui.AppNavigation
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
 import com.ninthbalcony.pushuprpg.ui.theme.DarkBackground
@@ -39,7 +38,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var adManager: AdManager
     private lateinit var playGamesManager: PlayGamesManager
     private lateinit var antiCheatManager: AntiCheatManager
-    private lateinit var rateUsManager: RateUsManager
     private lateinit var onboardingManager: OnboardingManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,7 +58,6 @@ class MainActivity : ComponentActivity() {
         adManager.preloadRewardedAd()
         playGamesManager = PlayGamesManager(this, lifecycleScope)
         antiCheatManager = AntiCheatManager()
-        rateUsManager = RateUsManager()
         onboardingManager = OnboardingManager()
         SoundManager.init(this)
 
@@ -117,6 +114,14 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(viewModel = viewModel)
                 }
             }
+        }
+    }
+
+    @Suppress("OVERRIDE_DEPRECATION")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1001 && grantResults.firstOrNull() == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            NotificationScheduler.scheduleDailyNotifications(this)
         }
     }
 

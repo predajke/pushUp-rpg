@@ -28,7 +28,6 @@ import com.ninthbalcony.pushuprpg.utils.ActiveQuest
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.QuestSystem
 import com.ninthbalcony.pushuprpg.utils.SoundManager
-import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
@@ -63,6 +62,7 @@ fun QuestsScreen(
             title = AppStrings.t(language, "ad_title"),
             description = if (language == "ru") "Получите 3 новых случайных ежедневных задания!" else "Get 3 new random daily quests!",
             rewardText = if (language == "ru") "3 новых задания" else "3 new quests",
+            language = language,
             onWatchAd = { activity?.let { viewModel.playAdQuestReroll(it) } },
             onDecline = { viewModel.dismissAdQuestReroll() },
             onDismiss = { viewModel.dismissAdQuestReroll() }

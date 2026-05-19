@@ -40,7 +40,6 @@ import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.GameCalculations
 import com.ninthbalcony.pushuprpg.utils.ItemUtils
-import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 

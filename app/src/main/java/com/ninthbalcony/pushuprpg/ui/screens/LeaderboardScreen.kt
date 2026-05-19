@@ -38,6 +38,7 @@ import androidx.compose.ui.window.Dialog
 import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
 import com.ninthbalcony.pushuprpg.data.repository.LeaderboardEntry
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
+import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.ui.components.clanTagColor
 import com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId
 import com.ninthbalcony.pushuprpg.utils.countryToFlag
@@ -90,6 +91,7 @@ data class LeaderboardPlayer(
     val gender: String = "male",
     val totalTeethEarned: Int = 0,
     val longestStreak: Int = 0,
+    val lastUpdated: Long = 0L,
 )
 
 enum class LbScope { GLOBAL, COUNTRY, FRIENDS }
@@ -118,6 +120,7 @@ private fun applyFilters(
     players: List<LeaderboardPlayer>,
     me: LeaderboardPlayer,
     scope: LbScope,
+    period: LbPeriod,
     query: String,
 ): List<LeaderboardPlayer> {
     var list = players
@@ -125,6 +128,16 @@ private fun applyFilters(
         LbScope.COUNTRY -> list.filter { it.country == me.country || it.isMe }
         LbScope.FRIENDS -> list.filter { it.isFriend || it.isMe }
         LbScope.GLOBAL  -> list
+    }
+    if (period != LbPeriod.ALL) {
+        val windowMs = when (period) {
+            LbPeriod.DAY   -> 86_400_000L
+            LbPeriod.WEEK  -> 7 * 86_400_000L
+            LbPeriod.MONTH -> 30 * 86_400_000L
+            LbPeriod.ALL   -> Long.MAX_VALUE
+        }
+        val cutoff = System.currentTimeMillis() - windowMs
+        list = list.filter { it.isMe || it.lastUpdated == 0L || it.lastUpdated > cutoff }
     }
     if (query.isNotBlank()) list = list.filter { it.name.contains(query, ignoreCase = true) }
     return list
@@ -389,7 +402,7 @@ fun LeaderboardScreen(
         val merged = (liveEntries + friends).distinctBy { it.uid }
         mapEntriesToPlayers(merged, me, friendUids)
     }
-    val filtered = remember(players, scope, query) { applyFilters(players, me, scope, query) }
+    val filtered = remember(players, me, scope, period, query) { applyFilters(players, me, scope, period, query) }
 
     val scopes = remember(language) {
         listOf(
@@ -749,6 +762,7 @@ private fun mapEntriesToPlayers(
             gender = e.gender,
             totalTeethEarned = e.totalTeethEarned,
             longestStreak = e.longestStreak,
+            lastUpdated = e.lastUpdated,
         )
     }
     // If we didn't see ourselves in the snapshot yet (sign-in just finished, no
@@ -938,11 +952,11 @@ private fun PlayerProfileDialog(
                         clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("friend code", player.friendCode))
                         android.widget.Toast.makeText(
                             context,
-                            if (language == "ru") "Скопировано" else "Copied",
+                            AppStrings.t(language, "copied"),
                             android.widget.Toast.LENGTH_SHORT,
                         ).show()
                     }) {
-                        Text(if (language == "ru") "Копировать" else "Copy", color = LbOrange, fontSize = 12.sp)
+                        Text(AppStrings.t(language, "btn_copy"), color = LbOrange, fontSize = 12.sp)
                     }
                 }
                 Spacer(Modifier.height(8.dp))

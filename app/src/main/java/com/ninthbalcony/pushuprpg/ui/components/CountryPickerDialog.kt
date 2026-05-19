@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.ninthbalcony.pushuprpg.ui.theme.*
+import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.allCountryCodes
 import com.ninthbalcony.pushuprpg.utils.countryDisplayName
 import com.ninthbalcony.pushuprpg.utils.countryToFlag
@@ -23,6 +24,7 @@ import com.ninthbalcony.pushuprpg.utils.countryToFlag
 @Composable
 fun CountryPickerDialog(
     currentCode: String,
+    language: String,
     onPick: (code: String) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -47,7 +49,7 @@ fun CountryPickerDialog(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Choose country",
+                text = AppStrings.t(language, "choose_country"),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
@@ -91,7 +93,7 @@ fun CountryPickerDialog(
                 onClick = onDismiss,
                 modifier = Modifier.align(Alignment.End),
             ) {
-                Text("Close", color = TextSecondary)
+                Text(AppStrings.t(language, "close"), color = TextSecondary)
             }
         }
     }
