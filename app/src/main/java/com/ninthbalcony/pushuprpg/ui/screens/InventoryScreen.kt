@@ -761,16 +761,14 @@ private fun InventoryStatsPanel(
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
                     if (achBonuses.damagePercent > 0) {
                         Text(
-                            text = "+${(achBonuses.damagePercent * 100).toInt()}% " +
-                                (if (language == "ru") "урон" else "dmg"),
+                            text = "+${(achBonuses.damagePercent * 100).toInt()}% ${AppStrings.t(language, "stat_power")}",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
                     }
                     if (achBonuses.armorPercent > 0) {
                         Text(
-                            text = "+${(achBonuses.armorPercent * 100).toInt()}% " +
-                                (if (language == "ru") "броня" else "armor"),
+                            text = "+${(achBonuses.armorPercent * 100).toInt()}% ${AppStrings.t(language, "stat_armor")}",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
@@ -859,16 +857,14 @@ private fun InventoryStatsPanel(
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
                     if (setBonuses.damagePercent > 0) {
                         Text(
-                            text = "+${(setBonuses.damagePercent * 100).toInt()}% " +
-                                (if (language == "ru") "урон" else "dmg"),
+                            text = "+${(setBonuses.damagePercent * 100).toInt()}% ${AppStrings.t(language, "stat_power")}",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
                     }
                     if (setBonuses.armorPercent > 0) {
                         Text(
-                            text = "+${(setBonuses.armorPercent * 100).toInt()}% " +
-                                (if (language == "ru") "броня" else "armor"),
+                            text = "+${(setBonuses.armorPercent * 100).toInt()}% ${AppStrings.t(language, "stat_armor")}",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )

@@ -571,8 +571,7 @@ private fun LockedSection(name: String, unlockLevel: Int, backgroundKey: String,
             Text(text = name, color = TextMuted, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = if (language == "ru") "Открывается на $unlockLevel уровне"
-                       else "Unlocks at level $unlockLevel",
+                text = "${AppStrings.t(language, "unlocks_at_level")} $unlockLevel",
                 color = TextMuted.copy(alpha = 0.6f),
                 fontSize = 13.sp
             )
@@ -643,10 +642,7 @@ fun ShopSection(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = if (language == "ru")
-                            "Обновление: ${ShopUtils.getTimeUntilRefresh(state.shopLastRefresh)}"
-                        else
-                            "Reset in: ${ShopUtils.getTimeUntilRefresh(state.shopLastRefresh)}",
+                        text = "${AppStrings.t(language, "shop_update_label")} ${ShopUtils.getTimeUntilRefresh(state.shopLastRefresh)}",
                         fontSize = 11.sp,
                         color = TextMuted
                     )
@@ -746,7 +742,7 @@ fun ShopSection(
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = if (rerollResetLabel != null)
-                    (if (language == "ru") "Сброс стоимости через: $rerollResetLabel" else "Cost resets in: $rerollResetLabel")
+                    "${AppStrings.t(language, "reroll_reset_in")} $rerollResetLabel"
                 else
                     (if (language == "ru") "Стоимость рерола: $rerollCost 🦷 (×3 за каждый рерол)" else "Reroll cost: $rerollCost 🦷 (×3 each reroll)"),
                 fontSize = 12.sp,
@@ -1675,7 +1671,7 @@ fun BuySuccessDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (language == "ru") "Куплено!" else "Purchased!",
+                    text = AppStrings.t(language, "purchased_label"),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = GoldAccent
@@ -1715,7 +1711,7 @@ fun BuySuccessDialog(
                     modifier = Modifier.height(36.dp),
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp)
                 ) {
-                    Text("OK", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(AppStrings.t(language, "btn_ok"), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -1777,7 +1773,7 @@ fun CloverBoxResultDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (language == "ru") "Бесплатный предмет!" else "Free Item!",
+                    text = AppStrings.t(language, "free_item_label"),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = GoldAccent
@@ -1817,7 +1813,7 @@ fun CloverBoxResultDialog(
                     modifier = Modifier.height(36.dp),
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp)
                 ) {
-                    Text("OK", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(AppStrings.t(language, "btn_ok"), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -1854,7 +1850,7 @@ fun FreePointsResultDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (language == "ru") "Бесплатные очки!" else "Free Points!",
+                    text = AppStrings.t(language, "free_points_label"),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = GoldAccent
@@ -1890,7 +1886,7 @@ fun FreePointsResultDialog(
                     modifier = Modifier.height(36.dp),
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 0.dp)
                 ) {
-                    Text("OK", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(AppStrings.t(language, "btn_ok"), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -1984,8 +1980,7 @@ fun GrindstoneSection(
             )
             if (isNightMode) {
                 Text(
-                    text = if (language == "ru") "🌙 Ночной режим · Макс +$maxEnchant"
-                           else "🌙 Night Mode · Max +$maxEnchant",
+                    text = "${AppStrings.t(language, "night_mode_enchant")}$maxEnchant",
                     fontSize = 11.sp,
                     color = Color(0xFFBB86FC)
                 )
@@ -2273,7 +2268,7 @@ fun EnchantItemPickerDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B1A1A))
                 ) {
                     Text(
-                        text = if (language == "ru") "Снять" else "Remove",
+                        text = AppStrings.t(language, "btn_unequip"),
                         color = Color.White
                     )
                 }
@@ -2422,7 +2417,7 @@ private fun DailySpinSection(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = if (language == "ru") "Реклама" else "Watch AD",
+                            text = AppStrings.t(language, "watch_ad_btn"),
                             fontSize = 12.sp, fontWeight = FontWeight.Bold
                         )
                         Text(
@@ -2638,7 +2633,7 @@ private fun SpinResultDialog(
             ) {
                 // Заголовок по центру
                 Text(
-                    text = if (language == "ru") "Ты выиграл!" else "You Won!",
+                    text = AppStrings.t(language, "you_won_label"),
                     color = Color(0xFFFFD700),
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
@@ -2705,7 +2700,7 @@ private fun SpinResultDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("OK", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                    Text(AppStrings.t(language, "btn_ok"), fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
                 }
             }
         }
