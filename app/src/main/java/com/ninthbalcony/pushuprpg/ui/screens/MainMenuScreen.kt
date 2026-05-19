@@ -1796,7 +1796,7 @@ fun BattleArena(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "$monsterName (${state.monsterLevel} lvl)",
+                            text = "$monsterName (${battleAnimation?.monsterLevel ?: state.monsterLevel} lvl)",
                             fontSize = 12.sp, color = TextSecondary,
                             textAlign = TextAlign.Center, maxLines = 2,
                             overflow = TextOverflow.Ellipsis,

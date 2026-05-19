@@ -8,6 +8,7 @@ data class BattleHit(
     val damage: Int,
     val isCrit: Boolean,
     val monsterName: String,
+    val monsterLevel: Int,
     val monsterMaxHp: Int,
     val monsterImageRes: String,
     val monsterHpAfter: Int,

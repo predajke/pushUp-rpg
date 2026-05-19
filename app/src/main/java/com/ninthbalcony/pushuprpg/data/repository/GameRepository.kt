@@ -342,6 +342,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 damage = dmg,
                 isCrit = isCrit,
                 monsterName = current.monsterName,
+                monsterLevel = current.monsterLevel,
                 monsterMaxHp = current.monsterMaxHp,
                 monsterImageRes = current.monsterImageRes,
                 monsterHpAfter = newMonsterHp,
@@ -475,11 +476,11 @@ class GameRepository(private val context: Context) : IGameRepository {
         return Gson().toJson(logList)
     }
 
-    // Минимум 20 убийств warm-up, затем 2% на каждое убийство.
-    // Mean ≈ 20 + 50 = 70 убийств между гоблинами.
+    // Минимум 50 убийств warm-up, затем 1% на каждое убийство.
+    // Mean ≈ 50 + 100 = 150 убийств между гоблинами.
     private fun shouldSpawnGoblin(killsSince: Int): Boolean {
-        if (killsSince < 20) return false
-        return kotlin.random.Random.nextInt(100) < 2
+        if (killsSince < 50) return false
+        return kotlin.random.Random.nextInt(100) < 1
     }
 
     /** Обрабатывает смерть монстра: дроп лута/зубов, спавн нового */
