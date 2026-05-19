@@ -79,7 +79,7 @@ fun CountryPickerDialog(
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("Search…", color = TextMuted) },
+                placeholder = { Text(AppStrings.t(language, "search_hint"), color = TextMuted) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = OrangeAccent,
                     unfocusedBorderColor = TextMuted,

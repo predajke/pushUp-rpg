@@ -310,6 +310,13 @@ object AppStrings {
         // --- Pickers ---
         "choose_country"    to m("Choose country",  "Выберите страну",  "Elegir país",      "Choisir un pays",  "Land auswählen",   "Escolher país"),
         "choose_avatar"     to m("Choose avatar",   "Выбор аватара",    "Elegir avatar",    "Choisir avatar",   "Avatar wählen",    "Escolher avatar"),
+        "search_hint"       to m("Search…",         "Поиск…",           "Buscar…",          "Rechercher…",      "Suchen…",          "Pesquisar…"),
+
+        // --- Streak dialogs ---
+        "streak_in_row"     to m("in a row",        "подряд",           "seguidos",         "d'affilée",        "in Folge",         "seguidos"),
+        "streak_reward_ready" to m("reward ready!", "награда готова!",  "¡recompensa lista!","récompense prête!","Belohnung bereit!","recompensa pronta!"),
+        "streak_all_claimed" to m("All rewards claimed! Incredible streak.", "Все награды получены! Невероятный streak.", "¡Todas las recompensas obtenidas! Racha increíble.", "Toutes les récompenses obtenues ! Série incroyable.", "Alle Belohnungen erhalten! Unglaubliche Serie.", "Todas as recompensas obtidas! Sequência incrível."),
+        "streak_day_unlocked" to m("unlocked!",     "разблокирован!",   "¡desbloqueado!",   "débloqué !",       "freigeschaltet!",  "desbloqueado!"),
 
         // --- Anti-cheat dialog ---
         "anticheat_title"   to m("Wait a Moment",   "Подождите",        "Espera un momento",    "Attendez un moment",   "Einen Moment bitte",   "Aguarde um momento"),

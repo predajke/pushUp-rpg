@@ -815,7 +815,6 @@ fun StreakRewardDialog(
     val pending = com.ninthbalcony.pushuprpg.utils.StreakRewards
         .pendingClaim(streak, state.lastStreakRewardClaimedDay)
     val next = com.ninthbalcony.pushuprpg.utils.StreakRewards.nextMilestone(streak)
-    val ru = language == "ru"
     val context = LocalContext.current
     val bgResId = remember { context.resources.getIdentifier("bg_fight_4", "drawable", context.packageName) }
 
@@ -840,7 +839,7 @@ fun StreakRewardDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
             Text(
-                text = if (ru) "🔥 Streak — $streak дней подряд" else "🔥 Streak — $streak days in a row",
+                text = "🔥 Streak — $streak ${AppStrings.t(language, "streak_days")} ${AppStrings.t(language, "streak_in_row")}",
                 color = OrangeAccent,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -850,8 +849,7 @@ fun StreakRewardDialog(
 
             if (pending != null) {
                 Text(
-                    text = if (ru) "🎁 Награда за День ${pending.day} готова!"
-                           else "🎁 Day ${pending.day} reward is ready!",
+                    text = "🎁 ${AppStrings.t(language, "day_label")} ${pending.day}: ${AppStrings.t(language, "streak_reward_ready")}",
                     color = GoldAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -887,8 +885,7 @@ fun StreakRewardDialog(
                     textAlign = TextAlign.Center)
             } else {
                 Text(
-                    text = if (ru) "🏆 Все награды получены! Невероятный streak."
-                           else "🏆 All rewards claimed! Incredible streak.",
+                    text = "🏆 ${AppStrings.t(language, "streak_all_claimed")}",
                     color = GoldAccent, fontSize = 13.sp, textAlign = TextAlign.Center
                 )
             }
@@ -908,7 +905,6 @@ fun StreakClaimedDialog(
     language: String,
     onDismiss: () -> Unit
 ) {
-    val ru = language == "ru"
     val context = LocalContext.current
     val bgResId = remember { context.resources.getIdentifier("bg_fight_5", "drawable", context.packageName) }
     Dialog(onDismissRequest = onDismiss) {
@@ -932,8 +928,7 @@ fun StreakClaimedDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
             Text(
-                text = if (ru) "🎉 День ${milestone.day} разблокирован!"
-                       else "🎉 Day ${milestone.day} unlocked!",
+                text = "🎉 ${AppStrings.t(language, "day_label")} ${milestone.day} ${AppStrings.t(language, "streak_day_unlocked")}",
                 color = GoldAccent, fontSize = 20.sp, fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
@@ -955,7 +950,7 @@ fun StreakClaimedDialog(
 private fun rewardDescription(m: com.ninthbalcony.pushuprpg.utils.StreakMilestone, language: String): String {
     val parts = mutableListOf<String>()
     if (m.teeth > 0) parts += "+${m.teeth} 🦷"
-    if (m.statPoints > 0) parts += "+${m.statPoints} stat pts"
+    if (m.statPoints > 0) parts += "+${m.statPoints} ➕"
     if (m.spinTokens > 0) parts += "+${m.spinTokens} 🎰"
     if (m.itemRarity != null) parts += "${m.itemRarity} ${AppStrings.t(language, "item_rarity_label")}"
     return parts.joinToString(" • ")

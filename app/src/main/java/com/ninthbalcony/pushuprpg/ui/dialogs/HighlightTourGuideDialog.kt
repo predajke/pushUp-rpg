@@ -44,20 +44,13 @@ fun HighlightTourGuideDialog(
     onSkip: () -> Unit,
     onComplete: () -> Unit
 ) {
-    if (currentStep >= OnboardingManager.TOTAL_STEPS) {
-        android.util.Log.d("HighlightTour", "Dialog skipped - step=$currentStep")
-        return
-    }
+    if (currentStep >= OnboardingManager.TOTAL_STEPS) return
 
-    // If no target rect provided, use a default rect in center
     val displayRect = if (targetRect == Rect.Zero) {
-        // Default rect in center of screen (will be visible in middle)
         Rect(left = 200f, top = 400f, right = 880f, bottom = 800f)
     } else {
         targetRect
     }
-
-    android.util.Log.d("HighlightTour", "Showing dialog at step=$currentStep, rect=$targetRect")
 
     Dialog(
         onDismissRequest = onSkip,
