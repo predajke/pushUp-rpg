@@ -1593,7 +1593,7 @@ fun ResultDialog(
     val context = LocalContext.current
     val bgResId = remember(showBg) {
         if (showBg) context.resources.getIdentifier("event_bg_spirit", "drawable", context.packageName)
-        else 0
+        else context.resources.getIdentifier("bg_fight_3", "drawable", context.packageName)
     }
     Dialog(onDismissRequest = onDismiss) {
         Box(

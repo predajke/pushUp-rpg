@@ -816,15 +816,29 @@ fun StreakRewardDialog(
         .pendingClaim(streak, state.lastStreakRewardClaimedDay)
     val next = com.ninthbalcony.pushuprpg.utils.StreakRewards.nextMilestone(streak)
     val ru = language == "ru"
+    val context = LocalContext.current
+    val bgResId = remember { context.resources.getIdentifier("bg_fight_4", "drawable", context.packageName) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(24.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .clip(RoundedCornerShape(16.dp))
         ) {
+            if (bgResId != 0) Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             Text(
                 text = if (ru) "🔥 Streak — $streak дней подряд" else "🔥 Streak — $streak days in a row",
                 color = OrangeAccent,
@@ -884,6 +898,7 @@ fun StreakRewardDialog(
                 Text(AppStrings.t(language, "close"), color = TextMuted)
             }
         }
+        }
     }
 }
 
@@ -894,14 +909,28 @@ fun StreakClaimedDialog(
     onDismiss: () -> Unit
 ) {
     val ru = language == "ru"
+    val context = LocalContext.current
+    val bgResId = remember { context.resources.getIdentifier("bg_fight_5", "drawable", context.packageName) }
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(24.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .clip(RoundedCornerShape(16.dp))
         ) {
+            if (bgResId != 0) Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             Text(
                 text = if (ru) "🎉 День ${milestone.day} разблокирован!"
                        else "🎉 Day ${milestone.day} unlocked!",
@@ -918,6 +947,7 @@ fun StreakClaimedDialog(
             ) {
                 Text(AppStrings.t(language, "awesome"), color = Color.White)
             }
+        }
         }
     }
 }
