@@ -20,6 +20,7 @@ import com.ninthbalcony.pushuprpg.utils.QuestSystem
 import com.ninthbalcony.pushuprpg.utils.ActiveQuest
 import com.ninthbalcony.pushuprpg.utils.AchievementSystem
 import com.ninthbalcony.pushuprpg.utils.UnlockedAchievement
+import com.ninthbalcony.pushuprpg.data.model.EventType
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -363,8 +364,9 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                 _adSpinPending.value = false
                 viewModelScope.launch {
                     repository.addSpinFromAd()
-                    _availableSpins.value = repository.getAvailableSpins()
-                    _adViewsToday.value = repository.getGameState().dailySpinAdViewsToday
+                    val state = repository.getGameState()
+                    _availableSpins.value = state.spinTokens
+                    _adViewsToday.value = state.dailySpinAdViewsToday
                 }
             },
             onAdDismissed = { _adSpinPending.value = false }
@@ -608,36 +610,20 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     }
 
     fun getEquippedItems(state: GameStateEntity): List<Item> {
-        val slots = listOf(
+        return listOf(
             state.equippedHead, state.equippedNecklace, state.equippedWeapon1,
             state.equippedWeapon2, state.equippedPants, state.equippedBoots
-        ).filter { it.isNotEmpty() }
-
-        return slots.mapNotNull { entry ->
-            ItemUtils.getItemById(getBaseId(entry))
-        }
+        ).filter { it.isNotEmpty() }.mapNotNull { ItemUtils.getItemById(it) }
     }
 
     fun getEnchantLevel(state: GameStateEntity, itemId: String): Int {
-        // Сначала ищем в инвентаре
         val invEntry = state.inventoryItems.split(",").find { it.split(":")[0] == itemId }
         if (invEntry != null) return invEntry.split(":").getOrNull(1)?.toIntOrNull() ?: 0
-        // Затем ищем в equipped slots (вещь могла быть экипирована)
         val equippedEntry = listOf(
             state.equippedHead, state.equippedNecklace, state.equippedWeapon1,
             state.equippedWeapon2, state.equippedPants, state.equippedBoots
         ).find { it.split(":")[0] == itemId }
         return equippedEntry?.split(":")?.getOrNull(1)?.toIntOrNull() ?: 0
-    }
-
-    private fun getBaseId(entry: String): String {
-        val idPart = entry.split(":")[0]
-        val parts = idPart.split("_")
-        return if (parts.size > 2 && parts.last().all { it.isDigit() } && parts.last().length > 8) {
-            parts.dropLast(1).joinToString("_")
-        } else {
-            idPart
-        }
     }
 
     // ==================== ПЕРЕМЕННЫЕ ДЛЯ МАГАЗИНА (SHOP) ====================
@@ -800,14 +786,6 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
     fun spendStatPoint(stat: String) {
         viewModelScope.launch { repository.spendStatPoint(stat) }
-    }
-
-    fun buyShopItem(itemId: String) {
-        viewModelScope.launch { repository.buyShopItem(itemId) }
-    }
-
-    fun enchantItem(itemId: String) {
-        viewModelScope.launch { repository.enchantItem(itemId) }
     }
 
     fun resetAllProgress() {
@@ -1083,19 +1061,20 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
     fun getEnchantInfo(state: GameStateEntity, item: Item): Pair<Float, Int> {
         val enchantLevel = getEnchantLevel(state, item.id)
-        val isNight = state.activeEventId in NIGHT_ENCHANT_EVENT_IDS &&
-            com.ninthbalcony.pushuprpg.utils.EventUtils.isEventActive(state.eventEndTime)
+        val isNight = state.activeEventId in EventUtils.NIGHT_ENCHANT_EVENT_IDS &&
+            EventUtils.isEventActive(state.eventEndTime)
         val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
-        val equippedForBonus = getEquippedItems(state)
-        val setBonuses = ItemUtils.getSetBonuses(equippedForBonus)
+        val setBonuses = ItemUtils.getSetBonuses(getEquippedItems(state))
         val enchantBonus = (achBonuses.enchantFlat + setBonuses.enchantPercent) * 100f
-        val chance = repository.calculateEnchantChance(state.baseLuck, state.currentStreak, enchantBonus, isNight)
+        val activeEvent = EventUtils.getEventById(state.activeEventId)
+        val eventBonus = if (activeEvent?.type == EventType.ENCHANTERS_LUCK &&
+            EventUtils.isEventActive(state.eventEndTime)) 5f else 0f
+        val chance = repository.calculateEnchantChance(state.baseLuck, state.currentStreak, enchantBonus + eventBonus, isNight)
         val cost = repository.calculateEnchantCost(item.rarity, enchantLevel, isNight)
         return Pair(chance, cost)
     }
 
     companion object {
-        val NIGHT_ENCHANT_EVENT_IDS = setOf(6, 9, 10, 11)
         val CLAN_TAG_COLORS = setOf("default", "blue", "green", "red", "yellow")
     }
 

@@ -93,14 +93,16 @@ class AdManager(private val context: Context) {
                     }
                 }
             )
-        } else if (rewardedAd != null) {
-            // Ad is already preloaded, show immediately
-            Log.d(TAG, "Showing preloaded ad")
-            displayAd(activity, rewardedAd!!, onRewardEarned, onAdDismissed)
-            rewardedAd = null
         } else {
-            Log.d(TAG, "Ad is loading, waiting...")
-            onAdDismissed()
+            val ad = rewardedAd
+            if (ad != null) {
+                rewardedAd = null
+                Log.d(TAG, "Showing preloaded ad")
+                displayAd(activity, ad, onRewardEarned, onAdDismissed)
+            } else {
+                Log.d(TAG, "Ad is loading, waiting...")
+                onAdDismissed()
+            }
         }
     }
 
