@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.ninthbalcony.pushuprpg.ui.theme.ButtonGreen
 import com.ninthbalcony.pushuprpg.ui.theme.DarkSurface
 import com.ninthbalcony.pushuprpg.ui.theme.GoldAccent
 import com.ninthbalcony.pushuprpg.ui.theme.OrangeAccent
@@ -101,7 +102,7 @@ fun RateUsDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 44.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    colors = ButtonDefaults.buttonColors(containerColor = ButtonGreen),
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(buttonRate, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)

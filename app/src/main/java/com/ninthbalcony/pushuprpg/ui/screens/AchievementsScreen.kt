@@ -291,7 +291,7 @@ private fun AchievementRow(
 private fun achBonusDotColor(type: AchBonusType): Color = when (type) {
     AchBonusType.DAMAGE_PERCENT       -> Color(0xFFFF4444)
     AchBonusType.XP_PERCENT           -> Color(0xFFFFD700)
-    AchBonusType.DROP_RATE_PERCENT    -> Color(0xFF4CAF50)
+    AchBonusType.DROP_RATE_PERCENT    -> UncommonColor
     AchBonusType.ARMOR_PERCENT        -> Color(0xFF2196F3)
     AchBonusType.HP_FLAT              -> Color(0xFF44CC44)
     AchBonusType.CRIT_PERCENT         -> Color(0xFFFF6B00)

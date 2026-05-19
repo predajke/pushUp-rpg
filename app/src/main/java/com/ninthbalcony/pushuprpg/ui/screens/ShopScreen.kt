@@ -2580,7 +2580,7 @@ private fun SpinResultDialog(
         "boss_cube"     -> Color(0xFFFFD700)
         "clover_box"    -> Color(0xFF9C27B0)
         "rare_spin"     -> Color(0xFF2196F3)
-        "uncommon_spin" -> Color(0xFF4CAF50)
+        "uncommon_spin" -> UncommonColor
         "common_spin"   -> Color(0xFFE0E0E0)
         else            -> Color(0xFFE0E0E0)
     }

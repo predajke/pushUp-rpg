@@ -545,13 +545,13 @@ fun RpgStatsCard(
         StatRow(
             label = AppStrings.t(language, "teeth_from_spin"),
             value = "+${state.teethFromSpin} 🦷",
-            valueColor = Color(0xFF4CAF50)
+            valueColor = UncommonColor
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "items_from_spin"),
             value = "+${state.itemsFromSpin}",
-            valueColor = Color(0xFF4CAF50)
+            valueColor = UncommonColor
         )
 
         // ── Источники зубов ──
@@ -560,13 +560,13 @@ fun RpgStatsCard(
         StatRow(
             label = AppStrings.t(language, "from_quests"),
             value = "+${state.teethFromQuests} 🦷",
-            valueColor = Color(0xFF4CAF50)
+            valueColor = UncommonColor
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "from_ads"),
             value = "+${state.teethFromAds} 🦷",
-            valueColor = Color(0xFF4CAF50)
+            valueColor = UncommonColor
         )
 
         // ── Forge & Enchant ──

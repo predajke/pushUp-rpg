@@ -22,9 +22,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.ninthbalcony.pushuprpg.ui.theme.ButtonGreen
 import com.ninthbalcony.pushuprpg.ui.theme.DarkCard
 import com.ninthbalcony.pushuprpg.ui.theme.TextPrimary
 import com.ninthbalcony.pushuprpg.ui.theme.TextSecondary
+import com.ninthbalcony.pushuprpg.ui.theme.UncommonColor
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 
 @Composable
@@ -76,7 +78,7 @@ fun RewardedAdDialog(
                 Text(
                     text = "${AppStrings.t(language, "reward_label")} $rewardText",
                     fontSize = 16.sp,
-                    color = Color(0xFF4CAF50),
+                    color = UncommonColor,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Row(
@@ -89,7 +91,7 @@ fun RewardedAdDialog(
                     Button(
                         onClick = onWatchAd,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                        colors = ButtonDefaults.buttonColors(containerColor = ButtonGreen)
                     ) {
                         Text(AppStrings.t(language, "ad_reward_title"), color = Color.White)
                     }

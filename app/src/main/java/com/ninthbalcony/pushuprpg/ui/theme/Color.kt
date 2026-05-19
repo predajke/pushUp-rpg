@@ -51,3 +51,7 @@ val ButtonGreenLight = Color(0xFF43A047)
 val ButtonRed = Color(0xFFC62828)
 val ButtonRedLight = Color(0xFFE53935)
 val ButtonGray = Color(0xFF37474F)
+
+// Подиум лидерборда (2-е, 3-е места)
+val PodiumSilver = Color(0xFFCFD2D6)
+val PodiumBronze = Color(0xFFCD8C4A)
