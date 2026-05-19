@@ -46,6 +46,8 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     val recentLogs = repository.getRecentLogsFlow()
     val allLogs = repository.getAllLogsFlow()
 
+    private val rateUsManager = com.ninthbalcony.pushuprpg.managers.RateUsManager()
+
     // ==================== ONLINE LEADERBOARD ====================
     // Anonymous Firebase auth + debounced push of public profile + read-side
     // fetch with in-memory TTL cache.
@@ -561,7 +563,6 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     fun checkAndShowRateUs(gameState: GameStateEntity?) {
         if (gameState == null) return
 
-        val rateUsManager = com.ninthbalcony.pushuprpg.managers.RateUsManager()
         val shouldShow = rateUsManager.shouldShowRateUsDialog(
             installDate = gameState.installDate,
             rateUsLastShowDate = gameState.rateUsLastShowDate,
@@ -757,18 +758,18 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
             val rawWeek = repository.getLast7DaysStats().associate { it.date to it.count }
             val today = java.time.LocalDate.now()
+            val dayFmt = java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.ENGLISH)
             _weekStats.value = (6 downTo 0).map { i ->
                 val d = today.minusDays(i.toLong())
-                val label = d.format(java.time.format.DateTimeFormatter.ofPattern("EEE", java.util.Locale.ENGLISH)).take(3)
-                label to (rawWeek[d.toString()] ?: 0)
+                d.format(dayFmt).take(3) to (rawWeek[d.toString()] ?: 0)
             }
 
             val rawYear = repository.getLast12MonthsStats().associate { it.date to it.count }
+            val monthKeyFmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM")
+            val monthLabelFmt = java.time.format.DateTimeFormatter.ofPattern("MMM", java.util.Locale.ENGLISH)
             _yearStats.value = (11 downTo 0).map { i ->
                 val m = today.minusMonths(i.toLong())
-                val key = m.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"))
-                val label = m.format(java.time.format.DateTimeFormatter.ofPattern("MMM", java.util.Locale.ENGLISH))
-                label to (rawYear[key] ?: 0)
+                m.format(monthLabelFmt) to (rawYear[m.format(monthKeyFmt)] ?: 0)
             }
         }
     }

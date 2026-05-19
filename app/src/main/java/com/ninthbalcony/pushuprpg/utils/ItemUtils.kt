@@ -64,14 +64,20 @@ object ItemUtils {
     }
 
     private fun rollRarity(): String {
-        return when (Random.nextFloat() * 100f) {
-            in 0f..54f  -> "common"
-            in 54f..78f -> "uncommon"
-            in 78f..92f -> "rare"
-            in 92f..98f -> "epic"
-            else        -> "legendary"
+        val roll = Random.nextFloat() * 100f
+        return when {
+            roll < RARITY_COMMON_MAX    -> "common"
+            roll < RARITY_UNCOMMON_MAX  -> "uncommon"
+            roll < RARITY_RARE_MAX      -> "rare"
+            roll < RARITY_EPIC_MAX      -> "epic"
+            else                        -> "legendary"
         }
     }
+
+    private const val RARITY_COMMON_MAX   = 54f
+    private const val RARITY_UNCOMMON_MAX = 78f
+    private const val RARITY_RARE_MAX     = 92f
+    private const val RARITY_EPIC_MAX     = 98f
 
     fun getRarityColor(rarity: String): Long {
         return when (rarity) {
