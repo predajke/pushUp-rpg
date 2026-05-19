@@ -700,7 +700,7 @@ fun LeaderboardShortcutButton(
     language: String,
     onClick: () -> Unit
 ) {
-    val label = if (language == "ru") "Таблица лидеров" else "Leaderboard"
+    val label = AppStrings.t(language, "leaderboard")
     val context = LocalContext.current
     val bgResId = remember {
         context.resources.getIdentifier("bg_leaderboard", "drawable", context.packageName)
@@ -778,7 +778,7 @@ fun DailyRewardDialog(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = if (language == "ru") "День ${reward.day} / 7" else "Day ${reward.day} / 7",
+                text = "${AppStrings.t(language, "day_label")} ${reward.day} / 7",
                 color = TextMuted,
                 fontSize = 13.sp
             )
@@ -815,18 +815,31 @@ fun StreakRewardDialog(
     val pending = com.ninthbalcony.pushuprpg.utils.StreakRewards
         .pendingClaim(streak, state.lastStreakRewardClaimedDay)
     val next = com.ninthbalcony.pushuprpg.utils.StreakRewards.nextMilestone(streak)
-    val ru = language == "ru"
+    val context = LocalContext.current
+    val bgResId = remember { context.resources.getIdentifier("bg_fight_4", "drawable", context.packageName) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(24.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .clip(RoundedCornerShape(16.dp))
         ) {
+            if (bgResId != 0) Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             Text(
-                text = if (ru) "🔥 Streak — $streak дней подряд" else "🔥 Streak — $streak days in a row",
+                text = "🔥 Streak — $streak ${AppStrings.t(language, "streak_days")} ${AppStrings.t(language, "streak_in_row")}",
                 color = OrangeAccent,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -836,25 +849,23 @@ fun StreakRewardDialog(
 
             if (pending != null) {
                 Text(
-                    text = if (ru) "🎁 Награда за День ${pending.day} готова!"
-                           else "🎁 Day ${pending.day} reward is ready!",
+                    text = "🎁 ${AppStrings.t(language, "day_label")} ${pending.day}: ${AppStrings.t(language, "streak_reward_ready")}",
                     color = GoldAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = rewardDescription(pending, ru), color = TextPrimary, fontSize = 13.sp,
+                Text(text = rewardDescription(pending, language), color = TextPrimary, fontSize = 13.sp,
                     textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = onClaim,
                     colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent)
                 ) {
-                    Text(if (ru) "Забрать" else "Claim", color = Color.White)
+                    Text(AppStrings.t(language, "btn_claim"), color = Color.White)
                 }
             } else if (next != null) {
                 val daysLeft = next.day - streak
                 Text(
-                    text = if (ru) "Следующая награда: День ${next.day}"
-                           else "Next reward: Day ${next.day}",
+                    text = "${AppStrings.t(language, "next_reward")} ${AppStrings.t(language, "day_label")} ${next.day}",
                     color = TextSecondary, fontSize = 13.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
@@ -866,24 +877,24 @@ fun StreakRewardDialog(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = if (ru) "Осталось $daysLeft дн." else "$daysLeft days to go",
+                    text = "$daysLeft ${AppStrings.t(language, "days_to_go")}",
                     color = TextMuted, fontSize = 11.sp
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(text = rewardDescription(next, ru), color = TextPrimary, fontSize = 12.sp,
+                Text(text = rewardDescription(next, language), color = TextPrimary, fontSize = 12.sp,
                     textAlign = TextAlign.Center)
             } else {
                 Text(
-                    text = if (ru) "🏆 Все награды получены! Невероятный streak."
-                           else "🏆 All rewards claimed! Incredible streak.",
+                    text = "🏆 ${AppStrings.t(language, "streak_all_claimed")}",
                     color = GoldAccent, fontSize = 13.sp, textAlign = TextAlign.Center
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
             TextButton(onClick = onDismiss) {
-                Text(if (ru) "Закрыть" else "Close", color = TextMuted)
+                Text(AppStrings.t(language, "close"), color = TextMuted)
             }
+        }
         }
     }
 }
@@ -894,41 +905,54 @@ fun StreakClaimedDialog(
     language: String,
     onDismiss: () -> Unit
 ) {
-    val ru = language == "ru"
+    val context = LocalContext.current
+    val bgResId = remember { context.resources.getIdentifier("bg_fight_5", "drawable", context.packageName) }
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(24.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .clip(RoundedCornerShape(16.dp))
         ) {
+            if (bgResId != 0) Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
             Text(
-                text = if (ru) "🎉 День ${milestone.day} разблокирован!"
-                       else "🎉 Day ${milestone.day} unlocked!",
+                text = "🎉 ${AppStrings.t(language, "day_label")} ${milestone.day} ${AppStrings.t(language, "streak_day_unlocked")}",
                 color = GoldAccent, fontSize = 20.sp, fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = rewardDescription(milestone, ru), color = TextPrimary, fontSize = 14.sp,
+            Text(text = rewardDescription(milestone, language), color = TextPrimary, fontSize = 14.sp,
                 textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent)
             ) {
-                Text(if (ru) "Отлично!" else "Awesome!", color = Color.White)
+                Text(AppStrings.t(language, "awesome"), color = Color.White)
             }
+        }
         }
     }
 }
 
-private fun rewardDescription(m: com.ninthbalcony.pushuprpg.utils.StreakMilestone, ru: Boolean): String {
+private fun rewardDescription(m: com.ninthbalcony.pushuprpg.utils.StreakMilestone, language: String): String {
     val parts = mutableListOf<String>()
     if (m.teeth > 0) parts += "+${m.teeth} 🦷"
-    if (m.statPoints > 0) parts += if (ru) "+${m.statPoints} stat pts" else "+${m.statPoints} stat pts"
-    if (m.spinTokens > 0) parts += if (ru) "+${m.spinTokens} 🎰" else "+${m.spinTokens} 🎰"
-    if (m.itemRarity != null) parts += if (ru) "предмет ${m.itemRarity}" else "${m.itemRarity} item"
+    if (m.statPoints > 0) parts += "+${m.statPoints} ➕"
+    if (m.spinTokens > 0) parts += "+${m.spinTokens} 🎰"
+    if (m.itemRarity != null) parts += "${m.itemRarity} ${AppStrings.t(language, "item_rarity_label")}"
     return parts.joinToString(" • ")
 }
 
@@ -1109,10 +1133,7 @@ fun EventBanner(
         Box(modifier = Modifier.padding(10.dp)) {
             if (activeEvent == null) {
                 Text(
-                    text = if (language == "ru")
-                        "Событий пока нет. Продолжай тренироваться!"
-                    else
-                        "No events right now. Keep training!",
+                    text = AppStrings.t(language, "logs_empty"),
                     fontSize = 13.sp,
                     color = TextSecondary
                 )
@@ -1668,8 +1689,7 @@ fun BattleArena(
                         )
                         // Countdown до следующей атаки монстра в auto-tick.
                         Text(
-                            text = if (state.language == "ru") "След. атака: $countdownText"
-                                   else "Next attack: $countdownText",
+                            text = "${AppStrings.t(state.language, "next_attack")} $countdownText",
                             fontSize = 10.sp,
                             color = TextMuted,
                             textAlign = TextAlign.End,
@@ -1743,7 +1763,7 @@ fun BattleArena(
                         DrawableImage(name = "monster_goblin_gold", modifier = Modifier.size(110.dp))
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (state.language == "ru") "Золотой Гоблин" else "Golden Goblin",
+                            text = AppStrings.t(state.language, "golden_goblin"),
                             fontSize = 12.sp, color = GoldAccent,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
@@ -1980,7 +2000,7 @@ fun LevelUpDialog(
                     color = GoldAccent
                 )
                 Text(
-                    text = if (language == "ru") "Уровень $newLevel" else "Level $newLevel",
+                    text = "${AppStrings.t(language, "stat_level")} $newLevel",
                     fontSize = 16.sp,
                     color = TextSecondary
                 )
@@ -1988,10 +2008,7 @@ fun LevelUpDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = if (language == "ru")
-                        "Очков для распределения: $unspentPoints"
-                    else
-                        "Points to spend: $unspentPoints",
+                    text = "${AppStrings.t(language, "stat_points_dist")} $unspentPoints",
                     fontSize = 14.sp,
                     color = TextPrimary
                 )
@@ -2146,12 +2163,12 @@ private fun GoblinEndDialog(teethEarned: Int, language: String, onDismiss: () ->
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
             Text(
-                text = if (language == "ru") "Гоблин сбежал!" else "Goblin escaped!",
+                text = AppStrings.t(language, "goblin_escaped"),
                 color = GoldAccent, fontWeight = FontWeight.Bold, fontSize = 20.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = if (language == "ru") "Ты получил $teethEarned 🦷!" else "You earned $teethEarned 🦷!",
+                text = "${AppStrings.t(language, "teeth_earned_popup")} $teethEarned 🦷!",
                 color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )

@@ -106,7 +106,7 @@ fun SettingsScreen(
                 }
                 Text(
                     text = if (selectedTab == 0)
-                        (if (language == "ru") "Профиль" else "Profile")
+                        AppStrings.t(language, "profile_tab")
                     else
                         AppStrings.t(language, "settings"),
                     fontSize = 20.sp,
@@ -122,8 +122,8 @@ fun SettingsScreen(
                 contentColor = OrangeAccent,
             ) {
                 listOf(
-                    if (language == "ru") "Профиль" else "Profile",
-                    if (language == "ru") "Настройки" else "Settings",
+                    AppStrings.t(language, "profile_tab"),
+                    AppStrings.t(language, "settings"),
                 ).forEachIndexed { i, title ->
                     Tab(
                         selected = selectedTab == i,
@@ -201,7 +201,7 @@ private fun SettingsTabContent(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { showCheatHelp = false }) { Text("OK", color = OrangeAccent) }
+                TextButton(onClick = { showCheatHelp = false }) { Text(AppStrings.t(language, "btn_ok"), color = OrangeAccent) }
             },
             containerColor = DarkSurface
         )
@@ -297,7 +297,7 @@ private fun SettingsTabContent(
         }
 
         // --- Sound & Vibration ---
-        SettingsSection(title = if (language == "ru") "🔊 Звук и вибрация" else "🔊 Sound & Vibration") {
+        SettingsSection(title = AppStrings.t(language, "sound_vibration_section")) {
             val context = LocalContext.current
             val prefs = remember { context.getSharedPreferences("pushup_prefs", android.content.Context.MODE_PRIVATE) }
             var soundsEnabled by remember { mutableStateOf(prefs.getBoolean("sounds_enabled", true)) }
@@ -308,7 +308,7 @@ private fun SettingsTabContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(if (language == "ru") "Звуки и музыка" else "Sound & Music", fontSize = 15.sp, color = TextPrimary)
+                Text(AppStrings.t(language, "sound_music_label"), fontSize = 15.sp, color = TextPrimary)
                 Switch(
                     checked = soundsEnabled,
                     onCheckedChange = {
@@ -325,7 +325,7 @@ private fun SettingsTabContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(if (language == "ru") "Вибрация" else "Vibration", fontSize = 15.sp, color = TextPrimary)
+                Text(AppStrings.t(language, "vibration_label"), fontSize = 15.sp, color = TextPrimary)
                 Switch(
                     checked = vibrationEnabled,
                     onCheckedChange = {
@@ -338,7 +338,7 @@ private fun SettingsTabContent(
         }
 
         // --- Body weight ---
-        SettingsSection(title = if (language == "ru") "⚖️ Параметры" else "⚖️ Stats") {
+        SettingsSection(title = AppStrings.t(language, "stats_section_label")) {
             // Row.height(28.dp) был слишком мал для OutlinedTextField (min content
             // height ~56dp) — текст обрезался изнутри, и пользователь не видел
             // ни введённое значение, ни сохранённое. Убираем фиксированную высоту.
@@ -348,7 +348,7 @@ private fun SettingsTabContent(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = if (language == "ru") "Вес тела (кг):" else "Body weight (kg):",
+                    text = AppStrings.t(language, "body_weight_label"),
                     fontSize = 13.sp,
                     color = TextSecondary,
                     modifier = Modifier.weight(1f)
@@ -434,7 +434,7 @@ private fun SettingsTabContent(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    text = if (language == "ru") "Выйти" else "Log out",
+                    text = AppStrings.t(language, "sign_out"),
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )

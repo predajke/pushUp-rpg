@@ -41,12 +41,7 @@ fun CenterOnboardingDialog(
     onSkip: () -> Unit,
     onComplete: () -> Unit
 ) {
-    android.util.Log.d("CenterOnboarding", "Dialog composable called with step=$currentStep, language=$language")
-
-    if (currentStep >= OnboardingManager.TOTAL_STEPS) {
-        android.util.Log.d("CenterOnboarding", "Dialog returning early - step >= TOTAL")
-        return
-    }
+    if (currentStep >= OnboardingManager.TOTAL_STEPS) return
 
     // Get icon for each step
     val stepIcon: ImageVector = when (currentStep) {
@@ -110,9 +105,7 @@ fun CenterOnboardingDialog(
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                // Title
                 val title = onboardingManager.getStepTitle(currentStep, language)
-                android.util.Log.d("CenterOnboarding", "Title: $title")
                 Text(
                     text = title,
                     fontSize = 28.sp,
@@ -124,9 +117,7 @@ fun CenterOnboardingDialog(
                         .padding(bottom = 16.dp)
                 )
 
-                // Description
                 val description = onboardingManager.getStepDescription(currentStep, language)
-                android.util.Log.d("CenterOnboarding", "Description: ${description.take(50)}...")
                 Text(
                     text = description,
                     fontSize = 16.sp,

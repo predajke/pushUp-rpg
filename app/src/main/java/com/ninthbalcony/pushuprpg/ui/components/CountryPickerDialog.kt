@@ -1,5 +1,6 @@
 package com.ninthbalcony.pushuprpg.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,7 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,15 +44,29 @@ fun CountryPickerDialog(
             }
             .sortedBy { it.second }
     }
+    val context = LocalContext.current
+    val bgResId = remember { context.resources.getIdentifier("bg_fight_4", "drawable", context.packageName) }
 
     Dialog(onDismissRequest = onDismiss) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 560.dp)
                 .background(DarkSurface, RoundedCornerShape(16.dp))
-                .padding(16.dp)
+                .clip(RoundedCornerShape(16.dp))
         ) {
+            if (bgResId != 0) Image(
+                painter = painterResource(id = bgResId),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize(),
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
             Text(
                 text = AppStrings.t(language, "choose_country"),
                 fontSize = 18.sp,
@@ -60,7 +79,7 @@ fun CountryPickerDialog(
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                placeholder = { Text("Search…", color = TextMuted) },
+                placeholder = { Text(AppStrings.t(language, "search_hint"), color = TextMuted) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = OrangeAccent,
                     unfocusedBorderColor = TextMuted,
@@ -95,6 +114,7 @@ fun CountryPickerDialog(
             ) {
                 Text(AppStrings.t(language, "close"), color = TextSecondary)
             }
+        }
         }
     }
 }

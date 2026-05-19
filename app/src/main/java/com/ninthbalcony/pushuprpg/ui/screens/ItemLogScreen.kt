@@ -67,7 +67,7 @@ fun ItemLogScreen(
     val language = state.language ?: "en"
     val context = LocalContext.current
 
-    val allItems = remember { ItemUtils.loadItems(context) }
+    val allItems = remember { ItemUtils.loadedItems }
     val collectedIds = remember(state.itemLogJson, state.inventoryItems) {
         viewModel.getCollectedItemBaseIds(state)
     }
@@ -144,7 +144,7 @@ fun ItemLogScreen(
             // ── Заголовок секции Сеты ──
             if (setGroups.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }, key = "header_sets") {
-                    SectionHeader(if (language == "ru") "Сеты" else "Sets")
+                    SectionHeader(AppStrings.t(language, "sets_label"))
                 }
             }
 
@@ -323,7 +323,7 @@ private fun ItemDetailDialog(
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (language == "ru") "Закрыть" else "Close", color = TextPrimary)
+                Text(AppStrings.t(language, "close"), color = TextPrimary)
             }
         }
         }

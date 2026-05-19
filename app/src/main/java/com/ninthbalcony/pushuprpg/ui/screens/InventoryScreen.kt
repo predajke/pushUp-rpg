@@ -655,10 +655,7 @@ private fun InventoryStatsPanel(
                 }
                 if (hasPoints) {
                     Text(
-                        text = if (language == "ru")
-                            "У вас ${state.unspentStatPoints} очков"
-                        else
-                            "You have ${state.unspentStatPoints} points",
+                        text = "${AppStrings.t(language, "stat_points_dist")} ${state.unspentStatPoints}",
                         fontSize = 12.sp,
                         color = GoldAccent,
                         fontWeight = FontWeight.Bold
@@ -722,7 +719,7 @@ private fun InventoryStatsPanel(
             if (state.prestigeLevel > 0) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = if (language == "ru") "🔄 Бонус ресета:" else "🔄 Reset Bonus:",
+                    text = AppStrings.t(language, "reset_bonus_label"),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF3FA9F5)
@@ -731,12 +728,12 @@ private fun InventoryStatsPanel(
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
                     val pct = state.prestigeLevel * 2
                     Text(
-                        text = "+${pct}% " + (if (language == "ru") "урон" else "power"),
+                        text = "+${pct}% " + AppStrings.t(language, "stat_power"),
                         fontSize = 12.sp,
                         color = TextSecondary
                     )
                     Text(
-                        text = "+${pct}% " + (if (language == "ru") "защита" else "defense"),
+                        text = "+${pct}% " + AppStrings.t(language, "stat_armor"),
                         fontSize = 12.sp,
                         color = TextSecondary
                     )
@@ -755,7 +752,7 @@ private fun InventoryStatsPanel(
                 achBonuses.dropRatePercent > 0 || achBonuses.teethRatePercent > 0) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = if (language == "ru") "📜 Бонусы достижений:" else "📜 Achievement Boosts:",
+                    text = AppStrings.t(language, "achievement_boosts_label"),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = OrangeAccent
@@ -764,16 +761,14 @@ private fun InventoryStatsPanel(
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
                     if (achBonuses.damagePercent > 0) {
                         Text(
-                            text = "+${(achBonuses.damagePercent * 100).toInt()}% " +
-                                (if (language == "ru") "урон" else "dmg"),
+                            text = "+${(achBonuses.damagePercent * 100).toInt()}% ${AppStrings.t(language, "stat_power")}",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
                     }
                     if (achBonuses.armorPercent > 0) {
                         Text(
-                            text = "+${(achBonuses.armorPercent * 100).toInt()}% " +
-                                (if (language == "ru") "броня" else "armor"),
+                            text = "+${(achBonuses.armorPercent * 100).toInt()}% ${AppStrings.t(language, "stat_armor")}",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
@@ -853,7 +848,7 @@ private fun InventoryStatsPanel(
             if (setBonuses.damagePercent > 0 || setBonuses.armorPercent > 0) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = if (language == "ru") "⚙️ Модификаторы наборов:" else "⚙️ Set Modifiers:",
+                    text = AppStrings.t(language, "set_modifiers_label"),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = OrangeAccent
@@ -862,16 +857,14 @@ private fun InventoryStatsPanel(
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
                     if (setBonuses.damagePercent > 0) {
                         Text(
-                            text = "+${(setBonuses.damagePercent * 100).toInt()}% " +
-                                (if (language == "ru") "урон" else "dmg"),
+                            text = "+${(setBonuses.damagePercent * 100).toInt()}% ${AppStrings.t(language, "stat_power")}",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
                     }
                     if (setBonuses.armorPercent > 0) {
                         Text(
-                            text = "+${(setBonuses.armorPercent * 100).toInt()}% " +
-                                (if (language == "ru") "броня" else "armor"),
+                            text = "+${(setBonuses.armorPercent * 100).toInt()}% ${AppStrings.t(language, "stat_armor")}",
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
@@ -890,7 +883,7 @@ private fun InventoryStatsPanel(
                     Text(text = "🏋️", fontSize = 16.sp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (language == "ru") "Тоннаж" else "Tonnage",
+                        text = AppStrings.t(language, "tonnage_label"),
                         fontSize = 14.sp,
                         color = TextSecondary,
                         modifier = Modifier.weight(1f)
@@ -1234,11 +1227,10 @@ fun InventoryScreen(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            val sellLabel = if (language == "ru")
-                                "Продать ${selectedIds.size} предм."
-                            else
-                                "Sell ${selectedIds.size} items"
-                            Text(sellLabel, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text(
+                                "${AppStrings.t(language, "btn_sell")} ${selectedIds.size}",
+                                fontWeight = FontWeight.Bold, fontSize = 15.sp
+                            )
                         }
                     }
                 }

@@ -9,6 +9,8 @@ object ItemUtils {
 
     private var allItems: List<Item> = emptyList()
 
+    val loadedItems: List<Item> get() = allItems
+
     fun loadItems(context: Context): List<Item> {
         if (allItems.isNotEmpty()) return allItems
         return try {

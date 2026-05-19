@@ -9,6 +9,9 @@ object EventUtils {
     val EVENT_DURATION_MS = 3L * 60 * 60 * 1000  // 3 часа
     val EVENT_INTERVAL_MS = 1L * 60 * 60 * 1000  // каждый 1 час
 
+    // IDs событий, активирующих ночной режим заточки
+    val NIGHT_ENCHANT_EVENT_IDS = setOf(6, 9, 10, 11)
+
     private val allEvents = listOf(
         GameEvent(
             id = 1,

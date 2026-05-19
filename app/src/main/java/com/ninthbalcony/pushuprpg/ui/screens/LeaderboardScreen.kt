@@ -38,6 +38,7 @@ import androidx.compose.ui.window.Dialog
 import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
 import com.ninthbalcony.pushuprpg.data.repository.LeaderboardEntry
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
+import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.ui.components.clanTagColor
 import com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId
@@ -45,27 +46,14 @@ import com.ninthbalcony.pushuprpg.utils.countryToFlag
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-// ── Design tokens (Variant A) ─────────────────────────────────────────────────
+// Subtle 6%-white separator — единственный локальный токен, остальные — из темы
+private val LbLine = Color(0x0FFFFFFF)
 
-private val LbBg       = Color(0xFF100F12)
-private val LbPanel    = Color(0xFF1C1A1E)
-private val LbLine     = Color(0x0FFFFFFF)   // rgba(255,255,255,0.06)
-private val LbText     = Color(0xFFECE6D8)
-private val LbTextDim  = Color(0xFF9B9389)
-private val LbTextMute = Color(0xFF6E675F)
-private val LbOrange   = Color(0xFFFF8A2A)
-private val LbOrange2  = Color(0xFFFFB152)
-private val LbGreen    = Color(0xFF34C759)
-private val LbGreen2   = Color(0xFF5FDF7A)
-private val LbGold     = Color(0xFFF3C969)
-private val LbSilver   = Color(0xFFCFD2D6)
-private val LbBronze   = Color(0xFFCD8C4A)
-
-// Hoisted brushes
-private val BrushBg        = Brush.verticalGradient(listOf(Color(0xFF131115), Color(0xFF0C0B0E)))
-private val BrushActiveTab = Brush.horizontalGradient(listOf(LbOrange2, LbOrange))
-private val BrushStickyMe  = Brush.verticalGradient(listOf(Color(0x0DFF8A2A), Color(0x66000000)))
-private val BrushMeCard    = Brush.verticalGradient(listOf(Color(0x21FF8A2A), Color(0x0AFF8A2A)))
+// Hoisted brushes (используют цвета темы)
+private val BrushBg        = Brush.verticalGradient(listOf(DarkSurface, DarkBackground))
+private val BrushActiveTab = Brush.horizontalGradient(listOf(OrangeLight, OrangeAccent))
+private val BrushStickyMe  = Brush.verticalGradient(listOf(OrangeAccent.copy(alpha = 0.05f), Color(0x66000000)))
+private val BrushMeCard    = Brush.verticalGradient(listOf(OrangeAccent.copy(alpha = 0.13f), OrangeAccent.copy(alpha = 0.04f)))
 
 // ── Data model ────────────────────────────────────────────────────────────────
 
@@ -164,10 +152,10 @@ private fun LbAvatar(
         else -> Color(0x332A2428)
     }
     val derivedBg: Brush = when (rank) {
-        1    -> Brush.radialGradient(listOf(Color(0xFF6C4D18), Color(0xFF1A1719)))
-        2    -> Brush.radialGradient(listOf(Color(0xFF4A4D54), Color(0xFF1A1719)))
-        3    -> Brush.radialGradient(listOf(Color(0xFF5A3A1C), Color(0xFF1A1719)))
-        else -> Brush.radialGradient(listOf(Color(0xFF2A2428), Color(0xFF1A1719)))
+        1    -> Brush.radialGradient(listOf(Color(0xFF6C4D18), DarkCard))
+        2    -> Brush.radialGradient(listOf(Color(0xFF4A4D54), DarkCard))
+        3    -> Brush.radialGradient(listOf(Color(0xFF5A3A1C), DarkCard))
+        else -> Brush.radialGradient(listOf(DarkSurfaceVariant, DarkCard))
     }
     Box(
         modifier = Modifier
@@ -179,7 +167,7 @@ private fun LbAvatar(
     ) {
         Text(
             text = initial,
-            color = LbText,
+            color = TextPrimary,
             fontSize = (size.value * 0.40f).sp,
             fontWeight = FontWeight.Bold,
         )
@@ -198,8 +186,8 @@ private fun LbColumnHeader() {
     ) {
         Text(
             text = "#",
-            color = LbTextMute,
-            fontSize = 9.5.sp,
+            color = TextMuted,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.14.sp,
             textAlign = TextAlign.Start,
@@ -208,8 +196,8 @@ private fun LbColumnHeader() {
         Spacer(Modifier.width(4.dp))
         Text(
             text = "NAME",
-            color = LbTextMute,
-            fontSize = 9.5.sp,
+            color = TextMuted,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.14.sp,
             modifier = Modifier.weight(1f),
@@ -217,8 +205,8 @@ private fun LbColumnHeader() {
         Spacer(Modifier.width(6.dp))
         Text(
             text = "LVL",
-            color = LbTextMute,
-            fontSize = 9.5.sp,
+            color = TextMuted,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.14.sp,
             textAlign = TextAlign.End,
@@ -227,8 +215,8 @@ private fun LbColumnHeader() {
         Spacer(Modifier.width(6.dp))
         Text(
             text = "PUSH",
-            color = LbOrange,
-            fontSize = 9.5.sp,
+            color = OrangeAccent,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.14.sp,
             textAlign = TextAlign.End,
@@ -237,8 +225,8 @@ private fun LbColumnHeader() {
         Spacer(Modifier.width(6.dp))
         Text(
             text = "PWR",
-            color = LbGreen,
-            fontSize = 9.5.sp,
+            color = UncommonColor,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.14.sp,
             textAlign = TextAlign.End,
@@ -252,10 +240,10 @@ private fun LbColumnHeader() {
 @Composable
 private fun LbPlayerRow(p: LeaderboardPlayer, onClick: (() -> Unit)? = null) {
     val rankColor = when (p.rank) {
-        1    -> LbGold
-        2    -> LbSilver
-        3    -> LbBronze
-        else -> LbTextMute
+        1    -> GoldAccent
+        2    -> PodiumSilver
+        3    -> PodiumBronze
+        else -> TextMuted
     }
     Row(
         modifier = Modifier
@@ -296,7 +284,7 @@ private fun LbPlayerRow(p: LeaderboardPlayer, onClick: (() -> Unit)? = null) {
             }
             Text(
                 text = p.name,
-                color = if (p.isMe) Color.White else LbText,
+                color = if (p.isMe) Color.White else TextPrimary,
                 fontSize = 13.sp,
                 fontWeight = if (p.isMe) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
@@ -306,8 +294,8 @@ private fun LbPlayerRow(p: LeaderboardPlayer, onClick: (() -> Unit)? = null) {
         Spacer(Modifier.width(6.dp))
         Text(
             text = p.lvl.toString(),
-            color = LbTextDim,
-            fontSize = 12.5.sp,
+            color = TextSecondary,
+            fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.End,
             modifier = Modifier.width(44.dp),
@@ -315,8 +303,8 @@ private fun LbPlayerRow(p: LeaderboardPlayer, onClick: (() -> Unit)? = null) {
         Spacer(Modifier.width(6.dp))
         Text(
             text = fmt(p.totalPushUps),
-            color = LbOrange2,
-            fontSize = 12.5.sp,
+            color = OrangeLight,
+            fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.End,
             modifier = Modifier.width(38.dp),
@@ -324,8 +312,8 @@ private fun LbPlayerRow(p: LeaderboardPlayer, onClick: (() -> Unit)? = null) {
         Spacer(Modifier.width(6.dp))
         Text(
             text = fmt(p.power),
-            color = LbGreen2,
-            fontSize = 12.5.sp,
+            color = HealthColor,
+            fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.End,
             modifier = Modifier.width(50.dp),
@@ -354,14 +342,14 @@ private fun TabPill(
                 if (selected) Modifier.background(BrushActiveTab)
                 else Modifier.background(Color(0x08FFFFFF), shape)
             )
-            .border(1.dp, if (selected) Color(0x99FF8A2A) else LbLine, shape)
+            .border(1.dp, if (selected) OrangeAccent.copy(alpha = 0.6f) else LbLine, shape)
             .clickable(onClick = onClick)
             .padding(vertical = verticalPadding),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
-            color = if (selected) Color(0xFF15110A) else LbTextDim,
+            color = if (selected) DarkBackground else TextSecondary,
             fontSize = fontSize.sp,
             fontWeight = FontWeight.SemiBold,
         )
@@ -406,17 +394,17 @@ fun LeaderboardScreen(
 
     val scopes = remember(language) {
         listOf(
-            LbScope.GLOBAL  to if (language == "ru") "Глобально" else "Global",
-            LbScope.COUNTRY to if (language == "ru") "Страна"    else "Country",
-            LbScope.FRIENDS to if (language == "ru") "Друзья"    else "Friends",
+            LbScope.GLOBAL  to AppStrings.t(language, "lb_global"),
+            LbScope.COUNTRY to AppStrings.t(language, "lb_country"),
+            LbScope.FRIENDS to AppStrings.t(language, "lb_friends"),
         )
     }
     val periods = remember(language) {
         listOf(
-            LbPeriod.DAY   to if (language == "ru") "День"   else "Day",
-            LbPeriod.WEEK  to if (language == "ru") "Неделя" else "Week",
-            LbPeriod.MONTH to if (language == "ru") "Месяц"  else "Month",
-            LbPeriod.ALL   to if (language == "ru") "За всё" else "All Time",
+            LbPeriod.DAY   to AppStrings.t(language, "lb_period_day"),
+            LbPeriod.WEEK  to AppStrings.t(language, "lb_period_week"),
+            LbPeriod.MONTH to AppStrings.t(language, "lb_period_month"),
+            LbPeriod.ALL   to AppStrings.t(language, "lb_period_all"),
         )
     }
 
@@ -436,7 +424,7 @@ fun LeaderboardScreen(
             ) {
                 Text(
                     text = "‹",
-                    color = LbTextDim,
+                    color = TextSecondary,
                     fontSize = 18.sp,
                     modifier = Modifier
                         .align(Alignment.CenterStart)
@@ -447,15 +435,15 @@ fun LeaderboardScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text("✦", color = LbGold.copy(alpha = 0.85f), fontSize = 12.sp)
+                    Text("✦", color = GoldAccent.copy(alpha = 0.85f), fontSize = 12.sp)
                     Text(
                         text = "LEADERBOARD",
-                        color = LbGold,
+                        color = GoldAccent,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.22.sp,
                     )
-                    Text("✦", color = LbGold.copy(alpha = 0.85f), fontSize = 12.sp)
+                    Text("✦", color = GoldAccent.copy(alpha = 0.85f), fontSize = 12.sp)
                 }
             }
             Box(Modifier.fillMaxWidth().height(1.dp).background(LbLine))
@@ -475,8 +463,8 @@ fun LeaderboardScreen(
                             "⚠ Нет подключения — данные могут быть устаревшими"
                         else
                             "⚠ Offline — data may be stale",
-                        color = Color(0xFFFF8A8A),
-                        fontSize = 11.sp,
+                        color = ButtonRedLight,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
@@ -535,16 +523,16 @@ fun LeaderboardScreen(
             ) {
                 Text("🔍", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
                 Spacer(Modifier.width(6.dp))
-                val placeholder = if (language == "ru") "Фильтр по имени…" else "Filter by name…"
+                val placeholder = AppStrings.t(language, "lb_filter_name")
                 BasicTextField(
                     value = query,
                     onValueChange = { query = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    cursorBrush = SolidColor(LbOrange),
-                    textStyle = TextStyle(color = LbText, fontSize = 12.sp),
+                    cursorBrush = SolidColor(OrangeAccent),
+                    textStyle = TextStyle(color = TextPrimary, fontSize = 12.sp),
                     decorationBox = { inner ->
-                        if (query.isEmpty()) Text(placeholder, color = LbTextMute, fontSize = 12.sp)
+                        if (query.isEmpty()) Text(placeholder, color = TextMuted, fontSize = 12.sp)
                         inner()
                     }
                 )
@@ -568,12 +556,9 @@ fun LeaderboardScreen(
                 onRefresh = { viewModel.refreshLeaderboard(force = true) },
             ) {
                 if (!isLoading && filtered.isEmpty()) {
-                    val emptyMsg = if (language == "ru")
-                        "Будь первым! Лидерборд пока пуст."
-                    else
-                        "Be the first! Leaderboard is empty."
+                    val emptyMsg = AppStrings.t(language, "lb_empty")
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(emptyMsg, color = LbTextMute, fontSize = 12.sp)
+                        Text(emptyMsg, color = TextMuted, fontSize = 12.sp)
                     }
                 } else {
                     LazyColumn(
@@ -632,8 +617,8 @@ private fun StickyMeRow(
         Spacer(Modifier.height(10.dp))
         Text(
             text = "YOUR STANDING",
-            color = LbOrange,
-            fontSize = 9.5.sp,
+            color = OrangeAccent,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.18.sp,
         )
@@ -649,7 +634,7 @@ private fun StickyMeRow(
         ) {
             Text(
                 text = "#${me.rank}",
-                color = LbOrange2,
+                color = OrangeLight,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Start,
@@ -690,8 +675,8 @@ private fun StickyMeRow(
             Spacer(Modifier.width(6.dp))
             Text(
                 text = me.lvl.toString(),
-                color = LbTextDim,
-                fontSize = 12.5.sp,
+                color = TextSecondary,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.End,
                 modifier = Modifier.width(44.dp),
@@ -699,8 +684,8 @@ private fun StickyMeRow(
             Spacer(Modifier.width(6.dp))
             Text(
                 text = fmt(me.totalPushUps),
-                color = LbOrange2,
-                fontSize = 12.5.sp,
+                color = OrangeLight,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.End,
                 modifier = Modifier.width(38.dp),
@@ -708,8 +693,8 @@ private fun StickyMeRow(
             Spacer(Modifier.width(6.dp))
             Text(
                 text = fmt(me.power),
-                color = LbGreen2,
-                fontSize = 12.5.sp,
+                color = HealthColor,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.End,
                 modifier = Modifier.width(50.dp),
@@ -827,7 +812,7 @@ private fun PlayerProfileDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF1A1719), RoundedCornerShape(16.dp))
+                .background(DarkCard, RoundedCornerShape(16.dp))
                 .border(1.dp, Color(0x33FF8A2A), RoundedCornerShape(16.dp))
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -837,7 +822,7 @@ private fun PlayerProfileDialog(
                 modifier = Modifier
                     .size(96.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color(0xFF2A2428)),
+                    .background(DarkSurfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
                 if (avatarResId != 0) {
@@ -878,17 +863,17 @@ private fun PlayerProfileDialog(
             // Level / prestige
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = (if (language == "ru") "Уровень " else "Level ") + player.lvl,
-                    color = LbOrange,
+                    text = "${AppStrings.t(language, "stat_level")} ${player.lvl}",
+                    color = OrangeAccent,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
                 if (player.res > 0) {
                     Spacer(Modifier.width(8.dp))
-                    Text(text = "·", color = LbTextMute, fontSize = 13.sp)
+                    Text(text = "·", color = TextMuted, fontSize = 13.sp)
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = (if (language == "ru") "Ресет " else "Prestige ") + player.res,
+                        text = "${AppStrings.t(language, "lb_prestige")} ${player.res}",
                         color = Color(0xFF3FA9F5),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -906,21 +891,21 @@ private fun PlayerProfileDialog(
                     .padding(12.dp),
             ) {
                 StatLine(
-                    label = if (language == "ru") "ОТЖИМАНИЯ" else "PUSH-UPS",
+                    label = AppStrings.t(language, "lb_push_ups_header"),
                     value = fmt(player.totalPushUps),
-                    valueColor = LbOrange2,
+                    valueColor = OrangeLight,
                 )
                 Spacer(Modifier.height(6.dp))
                 StatLine(
-                    label = if (language == "ru") "ДЛИННЫЙ СТРИК" else "LONGEST STREAK",
+                    label = AppStrings.t(language, "lb_streak_header"),
                     value = "${player.longestStreak}d",
-                    valueColor = LbGreen2,
+                    valueColor = HealthColor,
                 )
                 Spacer(Modifier.height(6.dp))
                 StatLine(
-                    label = if (language == "ru") "ВСЕГО ЗУБОВ" else "TOTAL TEETH",
+                    label = AppStrings.t(language, "lb_teeth_header"),
                     value = fmt(player.totalTeethEarned),
-                    valueColor = LbGold,
+                    valueColor = GoldAccent,
                 )
             }
 
@@ -933,18 +918,18 @@ private fun PlayerProfileDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = if (language == "ru") "Код:" else "Code:",
-                        color = LbTextMute,
+                        text = AppStrings.t(language, "lb_code"),
+                        color = TextMuted,
                         fontSize = 12.sp,
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
                         text = player.friendCode,
-                        color = LbOrange,
+                        color = OrangeAccent,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
-                            .background(LbOrange.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
+                            .background(OrangeAccent.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
                             .padding(horizontal = 10.dp, vertical = 4.dp),
                     )
                     Spacer(Modifier.weight(1f))
@@ -956,7 +941,7 @@ private fun PlayerProfileDialog(
                             android.widget.Toast.LENGTH_SHORT,
                         ).show()
                     }) {
-                        Text(AppStrings.t(language, "btn_copy"), color = LbOrange, fontSize = 12.sp)
+                        Text(AppStrings.t(language, "btn_copy"), color = OrangeAccent, fontSize = 12.sp)
                     }
                 }
                 Spacer(Modifier.height(8.dp))
@@ -973,8 +958,8 @@ private fun PlayerProfileDialog(
                     shape = RoundedCornerShape(8.dp),
                 ) {
                     Text(
-                        if (language == "ru") "Закрыть" else "Close",
-                        color = LbTextMute,
+                        AppStrings.t(language, "close"),
+                        color = TextMuted,
                     )
                 }
                 if (isAlreadyFriend) {
@@ -982,12 +967,12 @@ private fun PlayerProfileDialog(
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF34C759).copy(alpha = 0.18f)),
+                        colors = ButtonDefaults.buttonColors(containerColor = UncommonColor.copy(alpha = 0.18f)),
                         enabled = false,
                     ) {
                         Text(
-                            text = if (language == "ru") "✓ В друзьях" else "✓ Already friend",
-                            color = Color(0xFF34C759),
+                            text = AppStrings.t(language, "lb_already_friend"),
+                            color = UncommonColor,
                             fontWeight = FontWeight.SemiBold,
                         )
                     }
@@ -996,10 +981,10 @@ private fun PlayerProfileDialog(
                         onClick = onAddFriend,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = LbOrange),
+                        colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
                     ) {
                         Text(
-                            text = if (language == "ru") "+ Добавить" else "+ Add friend",
+                            text = AppStrings.t(language, "lb_add_friend"),
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                         )
@@ -1019,7 +1004,7 @@ private fun StatLine(label: String, value: String, valueColor: Color) {
     ) {
         Text(
             text = label,
-            color = LbTextMute,
+            color = TextMuted,
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.14.sp,
