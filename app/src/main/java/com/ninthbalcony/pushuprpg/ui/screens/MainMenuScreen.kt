@@ -1738,7 +1738,7 @@ fun BattleArena(
                         DrawableImage(name = "monster_goblin_gold", modifier = Modifier.size(110.dp))
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (state.language == "ru") "Золотой Гоблин" else "Golden Goblin",
+                            text = AppStrings.t(state.language, "golden_goblin"),
                             fontSize = 12.sp, color = GoldAccent,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
@@ -1975,7 +1975,7 @@ fun LevelUpDialog(
                     color = GoldAccent
                 )
                 Text(
-                    text = if (language == "ru") "Уровень $newLevel" else "Level $newLevel",
+                    text = "${AppStrings.t(language, "stat_level")} $newLevel",
                     fontSize = 16.sp,
                     color = TextSecondary
                 )
@@ -1983,10 +1983,7 @@ fun LevelUpDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = if (language == "ru")
-                        "Очков для распределения: $unspentPoints"
-                    else
-                        "Points to spend: $unspentPoints",
+                    text = "${AppStrings.t(language, "stat_points_dist")} $unspentPoints",
                     fontSize = 14.sp,
                     color = TextPrimary
                 )
@@ -2141,12 +2138,12 @@ private fun GoblinEndDialog(teethEarned: Int, language: String, onDismiss: () ->
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
             Text(
-                text = if (language == "ru") "Гоблин сбежал!" else "Goblin escaped!",
+                text = AppStrings.t(language, "goblin_escaped"),
                 color = GoldAccent, fontWeight = FontWeight.Bold, fontSize = 20.sp
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = if (language == "ru") "Ты получил $teethEarned 🦷!" else "You earned $teethEarned 🦷!",
+                text = "${AppStrings.t(language, "teeth_earned_popup")} $teethEarned 🦷!",
                 color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
