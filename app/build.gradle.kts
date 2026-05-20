@@ -118,9 +118,6 @@ dependencies {
     // Bridges Firebase's Task<T> → Kotlin coroutines (.await())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 
-    // Network Connectivity
-    implementation("androidx.work:work-runtime-ktx:2.10.1")
-
     // Testing
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
