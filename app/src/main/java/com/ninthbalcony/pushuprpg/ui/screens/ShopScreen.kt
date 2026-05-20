@@ -493,6 +493,7 @@ fun ShopScreen(
             )
 
             // --- Точильный камень ---
+            val enchantInfo = selectedEnchantItem?.let { viewModel.getEnchantInfo(state, it) }
             if (state.playerLevel >= 6 || state.prestigeLevel >= 1) GrindstoneSection(
                 state = state,
                 language = language,
@@ -528,7 +529,8 @@ fun ShopScreen(
                         }
                     }
                 },
-                getEnchantInfo = { item -> viewModel.getEnchantInfo(state, item) },
+                enchantChance = enchantInfo?.first ?: 0f,
+                enchantCost = enchantInfo?.second ?: 0,
                 getEnchantLevel = { item -> viewModel.getEnchantLevel(state, item.id) }
             ) else LockedSection(
                 name = AppStrings.t(language, "grindstone"),
@@ -1907,7 +1909,8 @@ fun GrindstoneSection(
     context: android.content.Context? = null,
     onSelectItem: (Item?) -> Unit,
     onEnchant: () -> Unit,
-    getEnchantInfo: (Item) -> Pair<Float, Int>,
+    enchantChance: Float,
+    enchantCost: Int,
     getEnchantLevel: (Item) -> Int
 ) {
     val context = LocalContext.current
@@ -2078,17 +2081,16 @@ fun GrindstoneSection(
 
                     // Информация о шансе и стоимости
                     if (selectedEnchantItem != null) {
-                        val (chance, cost) = getEnchantInfo(selectedEnchantItem)
                         val currentLevel = getEnchantLevel(selectedEnchantItem)
 
                         Text(
-                            text = "Chance = ${String.format("%.1f", chance)}%",
+                            text = "Chance = ${String.format("%.1f", enchantChance)}%",
                             fontSize = 12.sp,
                             color = GoldAccent,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Cost = $cost 🦷",
+                            text = "Cost = $enchantCost 🦷",
                             fontSize = 12.sp,
                             color = Color(0xFFE0E0E0)
                         )
