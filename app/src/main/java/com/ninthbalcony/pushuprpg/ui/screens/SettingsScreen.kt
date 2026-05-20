@@ -15,9 +15,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -304,7 +307,7 @@ private fun SettingsTabContent(
             var vibrationEnabled by remember { mutableStateOf(prefs.getBoolean("vibration_enabled", true)) }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(32.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -316,12 +319,12 @@ private fun SettingsTabContent(
                         prefs.edit().putBoolean("sounds_enabled", it).apply()
                         if (!it) com.ninthbalcony.pushuprpg.utils.SoundManager.stopMusic()
                     },
+                    modifier = Modifier.scale(0.8f),
                     colors = SwitchDefaults.colors(checkedThumbColor = OrangeAccent, checkedTrackColor = OrangeAccent.copy(alpha = 0.4f))
                 )
             }
-            Spacer(Modifier.height(8.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(32.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -332,6 +335,7 @@ private fun SettingsTabContent(
                         vibrationEnabled = it
                         prefs.edit().putBoolean("vibration_enabled", it).apply()
                     },
+                    modifier = Modifier.scale(0.8f),
                     colors = SwitchDefaults.colors(checkedThumbColor = OrangeAccent, checkedTrackColor = OrangeAccent.copy(alpha = 0.4f))
                 )
             }
@@ -353,7 +357,7 @@ private fun SettingsTabContent(
                     color = TextSecondary,
                     modifier = Modifier.weight(1f)
                 )
-                OutlinedTextField(
+                BasicTextField(
                     value = weightInput,
                     onValueChange = { v ->
                         if (v.length <= 3 && v.all { it.isDigit() }) {
@@ -361,16 +365,24 @@ private fun SettingsTabContent(
                             v.toFloatOrNull()?.let { viewModel.updateBodyWeight(it) }
                         }
                     },
-                    modifier = Modifier.width(90.dp),
+                    modifier = Modifier
+                        .width(64.dp)
+                        .height(34.dp)
+                        .border(1.dp, TextMuted, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 8.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = OrangeAccent,
-                        unfocusedBorderColor = TextMuted,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary
+                    cursorBrush = SolidColor(OrangeAccent),
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                        color = TextPrimary
                     ),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, textAlign = TextAlign.Center)
+                    decorationBox = { inner ->
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            inner()
+                        }
+                    }
                 )
             }
         }

@@ -25,7 +25,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 14
-        versionName = "1.0.6a"
+        versionName = "1.0.6b"
 
         // Bundle native debug symbols into the AAB so Play Console / Crashlytics
         // can de-symbolicate native crash stack traces (Firebase, Play Services, Lottie).

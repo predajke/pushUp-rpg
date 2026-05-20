@@ -290,16 +290,19 @@ private fun InventoryGrid(
                 fontSize = 14.sp,
                 color = TextSecondary
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = when (sortOrder) { SortOrder.NONE -> "↕"; SortOrder.ASC -> "↑"; SortOrder.DESC -> "↓" },
-                    fontSize = 18.sp,
+                    fontSize = 22.sp,
                     color = if (sortOrder == SortOrder.NONE) TextMuted else TextPrimary,
                     modifier = Modifier.clickable { onSortChange() }.padding(4.dp)
                 )
                 Text(
                     text = "☑",
-                    fontSize = 16.sp,
+                    fontSize = 22.sp,
                     color = if (multiSelectMode) OrangeAccent else TextMuted,
                     modifier = Modifier.clickable { onMultiSelectToggle() }.padding(4.dp)
                 )
@@ -650,7 +653,8 @@ private fun InventoryStatsPanel(
                             "🏅 Resets: ${state.prestigeLevel}",
                         fontSize = 12.sp,
                         color = LuckColor,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(end = 36.dp)
                     )
                 }
                 if (hasPoints) {

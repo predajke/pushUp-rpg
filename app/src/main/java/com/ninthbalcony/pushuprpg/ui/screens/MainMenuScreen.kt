@@ -1813,18 +1813,34 @@ fun BattleArena(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Button(
-                    onClick = onPunch,
-                    enabled = if (state.isGoldenGoblinActive) !state.isPlayerDead
-                              else punchesRemaining > 0 && cooldownSec == 0L && !state.isPlayerDead,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.isGoldenGoblinActive) GoldAccent else ButtonRed,
-                        disabledContainerColor = ButtonGray
-                    ),
-                    modifier = Modifier.height(34.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                    shape = RoundedCornerShape(6.dp)
+                val isPunchEnabled = if (state.isGoldenGoblinActive) !state.isPlayerDead
+                                     else punchesRemaining > 0 && cooldownSec == 0L && !state.isPlayerDead
+                val punchContainerColor = when {
+                    !isPunchEnabled -> ButtonGray
+                    state.isGoldenGoblinActive -> GoldAccent
+                    else -> ButtonRed
+                }
+                val punchBgId = remember {
+                    context.resources.getIdentifier("bg_actach_panel", "drawable", context.packageName)
+                }
+                Box(
+                    modifier = Modifier
+                        .height(34.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .border(1.dp, Color.Black, RoundedCornerShape(6.dp))
+                        .background(punchContainerColor)
+                        .then(if (isPunchEnabled) Modifier.clickable(onClick = onPunch) else Modifier),
+                    contentAlignment = Alignment.Center
                 ) {
+                    if (punchBgId != 0) {
+                        Image(
+                            painter = painterResource(id = punchBgId),
+                            contentDescription = null,
+                            modifier = Modifier.matchParentSize(),
+                            contentScale = ContentScale.Crop,
+                            alpha = 0.3f
+                        )
+                    }
                     Text(
                         text = when {
                             state.isPlayerDead -> "💀 Dead"
@@ -1835,7 +1851,8 @@ fun BattleArena(
                         },
                         fontSize = if (state.isGoldenGoblinActive) 15.sp else 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (state.isGoldenGoblinActive) Color.Black else Color.White
+                        color = if (state.isGoldenGoblinActive) Color.Black else Color.White,
+                        modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
                 Spacer(modifier = Modifier.height(2.dp))

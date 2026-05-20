@@ -914,8 +914,7 @@ fun ForgeSection(
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .clip(RoundedCornerShape(8.dp))
-                                .clickable(enabled = slot1Item != null && slot2Item != null) { onMerge() }
-                                .padding(horizontal = 12.dp),  // внутренние отступы слева/справа
+                                .clickable(enabled = slot1Item != null && slot2Item != null) { onMerge() },
                             contentAlignment = Alignment.Center
                         ) {
                             if (mergeBtnBg != 0 && slot1Item != null && slot2Item != null) {
@@ -931,7 +930,8 @@ fun ForgeSection(
                                 text = AppStrings.t(language, "btn_merge"),
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFC34017),  // новый цвет текста
-                                fontSize = 15.sp
+                                fontSize = 15.sp,
+                                modifier = Modifier.padding(horizontal = 12.dp)
                             )
                         }
                         // Recycle button

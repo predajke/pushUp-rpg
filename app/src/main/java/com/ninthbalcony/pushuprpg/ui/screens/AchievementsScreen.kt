@@ -59,18 +59,20 @@ fun AchievementsScreen(
 
     BackHandler(onBack = saveAndBack)
 
-    val uniqueDefs = AchievementSystem.ALL.filter { it.tier == 0 }
-    val progressiveDefs = AchievementSystem.ALL.filter { it.tier > 0 }
+    var hideLocked by remember { mutableStateOf(false) }
+    val uniqueDefs = AchievementSystem.ALL.filter { it.tier == 0 && (!hideLocked || it.id in unlockedIds) }
+    val progressiveDefs = AchievementSystem.ALL.filter { it.tier > 0 && (!hideLocked || it.id in unlockedIds) }
 
     val context = LocalContext.current
     val achBtnBgId = remember {
         context.resources.getIdentifier("bg_actach_panel", "drawable", context.packageName)
     }
 
+    Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
+    ScreenBackground("bg_inventory_overall")
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkBackground)
             .navigationBarsPadding()
     ) {
         TopAppBar(
@@ -105,11 +107,24 @@ fun AchievementsScreen(
                 color = TextSecondary,
                 fontSize = 14.sp
             )
-            if (activeIds.isNotEmpty()) {
-                TextButton(onClick = { activeIds = mutableListOf() }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (activeIds.isNotEmpty()) {
+                    TextButton(onClick = { activeIds = mutableListOf() }) {
+                        Text(
+                            text = AppStrings.t(language, "btn_unselect_all"),
+                            color = TextMuted,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+                TextButton(onClick = { hideLocked = !hideLocked }) {
                     Text(
-                        text = AppStrings.t(language, "btn_unselect_all"),
-                        color = TextMuted,
+                        text = if (hideLocked) {
+                            if (language == "ru") "Показать" else "Show"
+                        } else {
+                            if (language == "ru") "Скрыть" else "Hide"
+                        },
+                        color = if (hideLocked) OrangeAccent else TextMuted,
                         fontSize = 13.sp
                     )
                 }
@@ -207,6 +222,7 @@ fun AchievementsScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
             )
         }
+    }
     }
 }
 

@@ -44,10 +44,10 @@ fun StatisticsScreen(
         viewModel.loadPeriodStats()
     }
 
+    Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
+    ScreenBackground("bg_mainmenu_overall")
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBackground)
+        modifier = Modifier.fillMaxSize()
     ) {
         // --- Топбар ---
         Row(
@@ -133,6 +133,7 @@ fun StatisticsScreen(
                 )
             }
         }
+    }
     }
 }
 
