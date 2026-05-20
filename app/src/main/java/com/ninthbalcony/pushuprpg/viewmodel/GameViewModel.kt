@@ -1065,7 +1065,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
             EventUtils.isEventActive(state.eventEndTime)
         val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
         val setBonuses = ItemUtils.getSetBonuses(getEquippedItems(state))
-        val enchantBonus = (achBonuses.enchantFlat + setBonuses.enchantPercent) * 100f
+        val enchantBonus = achBonuses.enchantFlat + setBonuses.enchantPercent * 100f
         val activeEvent = EventUtils.getEventById(state.activeEventId)
         val eventBonus = if (activeEvent?.type == EventType.ENCHANTERS_LUCK &&
             EventUtils.isEventActive(state.eventEndTime)) 5f else 0f

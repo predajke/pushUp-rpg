@@ -194,8 +194,8 @@ object GameCalculations {
             "common" -> 2
             "uncommon" -> 4
             "rare" -> 8
-            "epic" -> 15
-            "legendary" -> 25
+            "epic" -> 22
+            "legendary" -> 40
             else -> 2
         }
     }

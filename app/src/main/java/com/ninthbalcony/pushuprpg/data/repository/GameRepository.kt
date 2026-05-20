@@ -33,6 +33,7 @@ import com.ninthbalcony.pushuprpg.utils.DailyRewardUtils
 import com.ninthbalcony.pushuprpg.utils.QuestSystem
 import com.ninthbalcony.pushuprpg.utils.QuestType
 import com.ninthbalcony.pushuprpg.utils.AchievementSystem
+import com.ninthbalcony.pushuprpg.utils.UnlockedAchievement
 import com.ninthbalcony.pushuprpg.utils.AvatarSystem
 import com.google.gson.Gson
 import kotlin.math.roundToInt
@@ -57,6 +58,15 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     override fun setPlayGamesManager(manager: com.ninthbalcony.pushuprpg.managers.PlayGamesManager) {
         playGamesManager = manager
+    }
+
+    // ==================== ДОСТИЖЕНИЯ (инлайн-триггеры) ====================
+
+    private fun unlockAch(state: GameStateEntity, id: String): GameStateEntity {
+        val unlocked = AchievementSystem.getUnlocked(state.achievementsJson)
+        if (unlocked.any { it.defId == id }) return state
+        val newList = unlocked + UnlockedAchievement(id, DateUtils.getTodayString())
+        return state.copy(achievementsJson = AchievementSystem.serializeUnlocked(newList))
     }
 
     // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
@@ -167,6 +177,14 @@ class GameRepository(private val context: Context) : IGameRepository {
         val state = getGameState()
         val wasRevived = state.isPlayerDead
 
+        // Phoenix: вернулся после 7+ дней отсутствия
+        val phoenixGap = if (state.lastLoginDate.isNotEmpty()) try {
+            java.time.temporal.ChronoUnit.DAYS.between(
+                java.time.LocalDate.parse(state.lastLoginDate),
+                java.time.LocalDate.now()
+            )
+        } catch (_: Exception) { 0L } else 0L
+
         val newPushUpsToday = if (state.lastResetDate == today) state.pushUpsToday + count else count
         val newStreak = updateStreak(state)
 
@@ -259,13 +277,12 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
         workingState = workingState.copy(activeQuestsJson = QuestSystem.serialize(questsForPushups))
 
-        // Проверка достижений — ach_berserker (50+ за сессию), time-based
+        // Phoenix: 7+ дней отсутствия
+        if (phoenixGap >= 7) workingState = unlockAch(workingState, "ach_phoenix")
+
+        // Проверка достижений
         val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-        workingState = AchievementSystem.checkAndUnlock(
-            workingState.copy(
-                // Помечаем условия для checkAndUnlock через totalPushUpsAllTime — уже обновлено выше
-            ), today
-        )
+        workingState = AchievementSystem.checkAndUnlock(workingState, today)
         workingState = AvatarSystem.checkAndUnlock(workingState)
         // Ночная / утренняя сессия — логика через час
         if (hour >= 23 || hour < 7) {
@@ -351,6 +368,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
             totalDmg += dmg
             if (isCrit) critCount++
+            if (isBurst && isCrit) current = unlockAch(current, "ach_critical")
             if (dmg > maxSingleHit) maxSingleHit = dmg
 
             current = if (killed) {
@@ -487,13 +505,13 @@ class GameRepository(private val context: Context) : IGameRepository {
     private suspend fun handleMonsterKill(state: GameStateEntity): GameStateEntity {
         val baseTeeth = GameCalculations.getTeethFromMonster(state.monsterLevel)
         val bossMult = if (state.isCurrentBoss) kotlin.random.Random.nextInt(2, 5) else 1
-        val teethFromKill = baseTeeth * bossMult
         val monster = MonsterUtils.getMonsterByLevel(state.monsterLevel)
 
-        // Бонус дропа от достижений и сетов
+        // Бонус дропа и зубов от достижений и сетов
         val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
         val equippedItems = getEquippedItemObjects(state)
         val setBonuses = ItemUtils.getSetBonuses(equippedItems)
+        val teethFromKill = (baseTeeth * bossMult * (1f + achBonuses.teethRatePercent)).roundToInt()
         val dropBonus = achBonuses.dropRatePercent + setBonuses.dropRatePercent
         val isItemDropped = GameCalculations.isItemDropped(state.baseLuck, monster.dropRate * (1f + dropBonus))
 
@@ -607,6 +625,12 @@ class GameRepository(private val context: Context) : IGameRepository {
         if ((droppedRarity == "epic" || droppedRarity == "legendary") && unlocked.none { it.defId == "ach_epic_catch" })
             unlocked.add(com.ninthbalcony.pushuprpg.utils.UnlockedAchievement("ach_epic_catch", today))
         updated = updated.copy(achievementsJson = AchievementSystem.serializeUnlocked(unlocked))
+
+        // ach_no_sweat: убить босса с HP > 50%
+        if (state.isCurrentBoss) {
+            val totalStats = GameCalculations.calculateTotalStats(state)
+            if (state.currentHp * 2 > totalStats.health) updated = unlockAch(updated, "ach_no_sweat")
+        }
 
         // Play Games achievements
         if (state.monstersKilled == 0) {
@@ -1353,7 +1377,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     override fun calculateEnchantChance(luck: Float, streak: Int, achBonus: Float, isNight: Boolean): Float {
         val base = minOf(90f, 15f + (luck * 3f) + (streak * 0.07f) + achBonus)
-        return if (isNight) base / 2f else base
+        return if (isNight) minOf(90f, base * 1.2f) else base
     }
 
     override fun calculateEnchantCost(rarity: String, currentEnchantLevel: Int, isNight: Boolean): Int {
@@ -1393,7 +1417,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             val achBonuses = AchievementSystem.getActiveBonuses(state.activeAchievementIds)
             val equippedForEnchant = getEquippedItemObjects(state)
             val setBonuses = ItemUtils.getSetBonuses(equippedForEnchant)
-            val enchantBonus = (achBonuses.enchantFlat + setBonuses.enchantPercent) * 100f
+            val enchantBonus = achBonuses.enchantFlat + setBonuses.enchantPercent * 100f
             val activeEvent = EventUtils.getEventById(state.activeEventId)
             val eventBonus = if (activeEvent?.type == EventType.ENCHANTERS_LUCK &&
                 EventUtils.isEventActive(state.eventEndTime)) 5f else 0f
@@ -1409,7 +1433,6 @@ class GameRepository(private val context: Context) : IGameRepository {
                 enchantQuestsList = QuestSystem.addProgress(enchantQuestsList, QuestType.ENCHANT, 1)
                 enchantQuestsList = QuestSystem.addProgress(enchantQuestsList, QuestType.TEETH_SPENT, cost)
                 val enchantQuests = QuestSystem.serialize(enchantQuestsList)
-                // Достижение ach_master_enchant — вещь заточена до +9
                 var afterEnchant = state.copy(
                     inventoryItems = buildInventory(entries),
                     teeth = newTeeth,
@@ -1418,13 +1441,6 @@ class GameRepository(private val context: Context) : IGameRepository {
                     totalEnchantAttempts = state.totalEnchantAttempts + 1,
                     activeQuestsJson = enchantQuests
                 )
-                if (newLevel >= 9) {
-                    val ul = AchievementSystem.getUnlocked(afterEnchant.achievementsJson).toMutableList()
-                    if (ul.none { it.defId == "ach_master_enchant" }) {
-                        ul.add(com.ninthbalcony.pushuprpg.utils.UnlockedAchievement("ach_master_enchant", today))
-                        afterEnchant = afterEnchant.copy(achievementsJson = AchievementSystem.serializeUnlocked(ul))
-                    }
-                }
                 afterEnchant = AchievementSystem.checkAndUnlock(afterEnchant, today)
                 saveStamped(afterEnchant)
                 addLog(
@@ -1747,7 +1763,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         val monster = MonsterUtils.rollNextMonster(state.playerLevel)
         val hpBonus = GameCalculations.MONSTER_HP_BONUS_PER_PRESTIGE * state.prestigeLevel
         val dmgBonus = GameCalculations.MONSTER_DAMAGE_BONUS_PER_PRESTIGE * state.prestigeLevel
-        saveStamped(state.copy(
+        saveStamped(unlockAch(state.copy(
             isGoldenGoblinActive = false,
             goldenGoblinEndTime = 0L,
             goldenGoblinPunchCount = 0,
@@ -1760,7 +1776,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             monsterMaxHp = monster.maxHp + hpBonus,
             monsterCurrentHp = monster.maxHp + hpBonus,
             monsterDamage = monster.damage + dmgBonus
-        ))
+        ), "ach_goblin_hunter"))
         addLog(
             "🟡 Golden Goblin escaped! You earned $teethEarned 🦷",
             "🟡 Золотой Гоблин сбежал! Ты получил $teethEarned 🦷"
