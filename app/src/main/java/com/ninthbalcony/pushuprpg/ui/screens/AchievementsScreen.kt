@@ -29,6 +29,7 @@ import com.ninthbalcony.pushuprpg.utils.AchBonusType
 import com.ninthbalcony.pushuprpg.utils.AchievementDef
 import com.ninthbalcony.pushuprpg.utils.AchievementSystem
 import com.ninthbalcony.pushuprpg.utils.AppStrings
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 
@@ -50,6 +51,13 @@ fun AchievementsScreen(
             state.activeAchievementIds.split(",").filter { it.isNotEmpty() }.toMutableList()
         )
     }
+
+    val saveAndBack = {
+        viewModel.setActiveAchievements(activeIds.toList())
+        onBack()
+    }
+
+    BackHandler(onBack = saveAndBack)
 
     val uniqueDefs = AchievementSystem.ALL.filter { it.tier == 0 }
     val progressiveDefs = AchievementSystem.ALL.filter { it.tier > 0 }
@@ -74,7 +82,7 @@ fun AchievementsScreen(
                 )
             },
             navigationIcon = {
-                IconButton(onClick = onBack) {
+                IconButton(onClick = saveAndBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
@@ -180,10 +188,7 @@ fun AchievementsScreen(
                 .clip(RoundedCornerShape(8.dp))
                 .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
                 .background(Color(0xFF1565C0))
-                .clickable {
-                    viewModel.setActiveAchievements(activeIds.toList())
-                    onBack()
-                },
+                .clickable(onClick = saveAndBack),
             contentAlignment = Alignment.Center
         ) {
             if (achBtnBgId != 0) {
