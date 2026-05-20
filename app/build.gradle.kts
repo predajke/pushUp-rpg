@@ -25,7 +25,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 14
-        versionName = "1.0.6"
+        versionName = "1.0.6a"
 
         // Bundle native debug symbols into the AAB so Play Console / Crashlytics
         // can de-symbolicate native crash stack traces (Firebase, Play Services, Lottie).
@@ -117,9 +117,6 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     // Bridges Firebase's Task<T> → Kotlin coroutines (.await())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
-
-    // Network Connectivity
-    implementation("androidx.work:work-runtime-ktx:2.10.1")
 
     // Testing
     ksp(libs.androidx.room.compiler)

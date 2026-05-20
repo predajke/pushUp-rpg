@@ -50,7 +50,6 @@ import java.util.Locale
 private val LbLine = Color(0x0FFFFFFF)
 
 // Hoisted brushes (используют цвета темы)
-private val BrushBg        = Brush.verticalGradient(listOf(DarkSurface, DarkBackground))
 private val BrushActiveTab = Brush.horizontalGradient(listOf(OrangeLight, OrangeAccent))
 private val BrushStickyMe  = Brush.verticalGradient(listOf(OrangeAccent.copy(alpha = 0.05f), Color(0x66000000)))
 private val BrushMeCard    = Brush.verticalGradient(listOf(OrangeAccent.copy(alpha = 0.13f), OrangeAccent.copy(alpha = 0.04f)))
@@ -411,9 +410,10 @@ fun LeaderboardScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BrushBg)
+            .background(DarkBackground)
             .windowInsetsPadding(WindowInsets.statusBars)
     ) {
+        ScreenBackground("bg_mainmenu_overall")
         Column(modifier = Modifier.fillMaxSize()) {
 
             // ── Header ───────────────────────────────────────────────────────
