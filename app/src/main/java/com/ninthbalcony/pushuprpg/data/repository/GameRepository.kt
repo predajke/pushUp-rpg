@@ -1377,7 +1377,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     override fun calculateEnchantChance(luck: Float, streak: Int, achBonus: Float, isNight: Boolean): Float {
         val base = minOf(90f, 15f + (luck * 3f) + (streak * 0.07f) + achBonus)
-        return if (isNight) base / 2f else base
+        return if (isNight) minOf(90f, base * 1.2f) else base
     }
 
     override fun calculateEnchantCost(rarity: String, currentEnchantLevel: Int, isNight: Boolean): Int {

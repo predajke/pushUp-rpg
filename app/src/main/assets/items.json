@@ -2006,10 +2006,10 @@
       "rarity": "legendary",
       "setId": "post",
       "stats": {
-        "power": 42,
-        "armor": 4,
+        "power": 55,
+        "armor": 5,
         "health": 0,
-        "luck": 3.8
+        "luck": 4.0
       },
       "description_ru": "Поступь Разрушителя. 2/3/4: +60%/+120%/+200% урон.",
       "description_en": "Destroyer's Tread. 2/3/4pc: +60%/+120%/+200% dmg.",
@@ -2023,10 +2023,10 @@
       "rarity": "legendary",
       "setId": "post",
       "stats": {
-        "power": 24,
-        "armor": 17,
-        "health": 26,
-        "luck": 2.8
+        "power": 28,
+        "armor": 20,
+        "health": 44,
+        "luck": 3.0
       },
       "description_ru": "Поступь Разрушителя. 2/3/4: +60%/+120%/+200% урон.",
       "description_en": "Destroyer's Tread. 2/3/4pc: +60%/+120%/+200% dmg.",
@@ -2040,10 +2040,10 @@
       "rarity": "legendary",
       "setId": "post",
       "stats": {
-        "power": 23,
-        "armor": 16,
-        "health": 20,
-        "luck": 1.8
+        "power": 26,
+        "armor": 22,
+        "health": 36,
+        "luck": 2.5
       },
       "description_ru": "Поступь Разрушителя. 2/3/4: +60%/+120%/+200% урон.",
       "description_en": "Destroyer's Tread. 2/3/4pc: +60%/+120%/+200% dmg.",
@@ -2057,10 +2057,10 @@
       "rarity": "legendary",
       "setId": "post",
       "stats": {
-        "power": 33,
-        "armor": 19,
-        "health": 26,
-        "luck": 3.8
+        "power": 36,
+        "armor": 22,
+        "health": 48,
+        "luck": 4.0
       },
       "description_ru": "Поступь Разрушителя. 2/3/4: +60%/+120%/+200% урон.",
       "description_en": "Destroyer's Tread. 2/3/4pc: +60%/+120%/+200% dmg.",
