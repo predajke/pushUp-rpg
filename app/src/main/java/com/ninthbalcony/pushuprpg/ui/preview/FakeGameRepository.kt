@@ -98,6 +98,7 @@ class FakeGameRepository : IGameRepository {
     override suspend fun checkAndGrantHourlySpins(): Int = 0
 
     override suspend fun performDailySpin(): SpinResult? = null
+    override suspend fun performNightDailySpin(): com.ninthbalcony.pushuprpg.utils.NightSpinReward? = null
     override suspend fun addSpinFromAd(): Boolean = true
     override suspend fun getAvailableSpins(): Int = 3
 

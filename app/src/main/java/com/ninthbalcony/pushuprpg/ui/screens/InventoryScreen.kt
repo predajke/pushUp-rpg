@@ -824,6 +824,36 @@ private fun InventoryStatsPanel(
                 }
             }
 
+            // ===== SPIN BOOSTS =====
+            if (state.spinBoostDmgPercent > 0f || state.spinBoostArmorPercent > 0f ||
+                state.spinBoostPower > 0 || state.spinBoostArmor > 0 || state.spinBoostHp > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = if (state.language == "ru") "🎰 Бонусы спина:" else "🎰 Spin Boosts:",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFBB86FC)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
+                    if (state.spinBoostDmgPercent > 0f) Text(
+                        text = "+${(state.spinBoostDmgPercent * 100).toInt()}% ${if (state.language == "ru") "урон" else "DMG"}",
+                        fontSize = 12.sp, color = Color(0xFFFF4444))
+                    if (state.spinBoostArmorPercent > 0f) Text(
+                        text = "+${(state.spinBoostArmorPercent * 100).toInt()}% ${if (state.language == "ru") "броня" else "Armor"}",
+                        fontSize = 12.sp, color = Color(0xFF2196F3))
+                    if (state.spinBoostPower > 0) Text(
+                        text = "+${state.spinBoostPower} ${if (state.language == "ru") "Сила" else "Power"}",
+                        fontSize = 12.sp, color = TextSecondary)
+                    if (state.spinBoostArmor > 0) Text(
+                        text = "+${state.spinBoostArmor} ${if (state.language == "ru") "Броня" else "Armor"}",
+                        fontSize = 12.sp, color = TextSecondary)
+                    if (state.spinBoostHp > 0) Text(
+                        text = "+${state.spinBoostHp} HP",
+                        fontSize = 12.sp, color = Color(0xFF44CC44))
+                }
+            }
+
             // ===== EVENT BONUS =====
             val activeEvent = if (com.ninthbalcony.pushuprpg.utils.EventUtils.isEventActive(state.eventEndTime))
                 com.ninthbalcony.pushuprpg.utils.EventUtils.getEventById(state.activeEventId) else null

@@ -36,9 +36,12 @@ import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.EventUtils
 import com.ninthbalcony.pushuprpg.utils.ItemUtils
 import com.ninthbalcony.pushuprpg.utils.ShopUtils
+import com.ninthbalcony.pushuprpg.utils.NightSpinReward
+import com.ninthbalcony.pushuprpg.utils.NightStatBoostType
 import com.ninthbalcony.pushuprpg.utils.SpinReward
 import com.ninthbalcony.pushuprpg.utils.SpinResult
 import com.ninthbalcony.pushuprpg.utils.SpinUtils
+import com.ninthbalcony.pushuprpg.utils.toRibbonType
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
 import com.ninthbalcony.pushuprpg.utils.SoundManager
 import androidx.compose.animation.AnimatedVisibility
@@ -70,6 +73,9 @@ private fun buildSpinRibbon(winnerType: String?): List<String> {
     if (winnerType != null) items[22] = winnerType
     return items
 }
+
+private fun buildNightSpinRibbon(winnerType: String?): List<String> =
+    SpinUtils.buildNightSpinRibbon(winnerType)
 
 @Composable
 fun ShopScreen(
@@ -108,6 +114,7 @@ fun ShopScreen(
     val state = gameState ?: return
     val isNightGrindstone = state.activeEventId in NIGHT_GRINDSTONE_EVENT_IDS &&
         EventUtils.isEventActive(state.eventEndTime)
+    val isNightSpin = isNightGrindstone
     val grindstoneMaxEnchant = if (isNightGrindstone) 25 else 9
 
     var selectedShopItem by remember { mutableStateOf<Item?>(null) }
@@ -128,10 +135,13 @@ fun ShopScreen(
     // Daily Spin state
     var showSpinResultDialog by remember { mutableStateOf(false) }
     var spinResultToShow by remember { mutableStateOf<SpinResult?>(null) }
+    var showNightSpinResultDialog by remember { mutableStateOf(false) }
+    var nightSpinResultToShow by remember { mutableStateOf<NightSpinReward?>(null) }
     var isSpinAnimating by remember { mutableStateOf(false) }
     // Лента генерируется в ShopScreen (гарантирует совпадение иконки и награды)
     var spinRibbonItems by remember { mutableStateOf(buildSpinRibbon(null)) }
     val spinResult by viewModel.spinResult.collectAsState()
+    val nightSpinResult by viewModel.nightSpinResult.collectAsState()
     val availableSpins by viewModel.availableSpins.collectAsState()
     val adViewsToday by viewModel.adViewsToday.collectAsState()
 
@@ -189,6 +199,15 @@ fun ShopScreen(
         spinRibbonItems = buildSpinRibbon(result.reward.type)
         spinResultToShow = result
         // 2. Ждём recomposition (~4 кадра = 64ms) — гарантирует что лента перестроилась
+        kotlinx.coroutines.delay(64)
+        isSpinAnimating = true
+    }
+
+    LaunchedEffect(nightSpinResult) {
+        val result = nightSpinResult ?: return@LaunchedEffect
+        if (isSpinAnimating || showNightSpinResultDialog) return@LaunchedEffect
+        spinRibbonItems = buildNightSpinRibbon(result.toRibbonType())
+        nightSpinResultToShow = result
         kotlinx.coroutines.delay(64)
         isSpinAnimating = true
     }
@@ -300,6 +319,21 @@ fun ShopScreen(
                     showSpinResultDialog = false
                     spinResultToShow = null
                     viewModel.clearSpinResult()
+                    viewModel.refreshSpinCounters()
+                }
+            )
+        }
+    }
+
+    nightSpinResultToShow?.let { reward ->
+        if (showNightSpinResultDialog) {
+            NightSpinResultDialog(
+                reward = reward,
+                language = language,
+                onDismiss = {
+                    showNightSpinResultDialog = false
+                    nightSpinResultToShow = null
+                    viewModel.clearNightSpinResult()
                     viewModel.refreshSpinCounters()
                 }
             )
@@ -479,16 +513,19 @@ fun ShopScreen(
                 isSpinAnimating = isSpinAnimating,
                 ribbonItems = spinRibbonItems,
                 language = language,
+                isNight = isNightSpin,
                 vibrationEnabled = shopVibrationEnabled,
                 context = shopContext,
                 onSpin = {
                     SoundManager.playSpin(shopSoundEnabled)
-                    viewModel.performDailySpin()
+                    if (isNightSpin) viewModel.performNightDailySpin()
+                    else viewModel.performDailySpin()
                 },
                 onAdSpin = { viewModel.requestAdSpin() },
                 onAnimationEnd = {
                     isSpinAnimating = false
-                    showSpinResultDialog = true
+                    if (isNightSpin) showNightSpinResultDialog = true
+                    else showSpinResultDialog = true
                 }
             )
 
@@ -2309,6 +2346,7 @@ private fun DailySpinSection(
     isSpinAnimating: Boolean,
     ribbonItems: List<String>,
     language: String,
+    isNight: Boolean = false,
     vibrationEnabled: Boolean = false,
     context: android.content.Context? = null,
     onSpin: () -> Unit,
@@ -2316,8 +2354,9 @@ private fun DailySpinSection(
     onAnimationEnd: () -> Unit
 ) {
     val context = LocalContext.current
-    val bgResId = remember {
-        context.resources.getIdentifier("bg_spin", "drawable", context.packageName)
+    val bgKey = if (isNight) "bg_spin_night" else "bg_spin"
+    val bgResId = remember(bgKey) {
+        context.resources.getIdentifier(bgKey, "drawable", context.packageName)
     }
     val canWatchAd = adViewsToday < SpinUtils.MAX_DAILY_AD_VIEWS
     val canSpin = availableSpins > 0 && !isSpinAnimating
@@ -2431,11 +2470,18 @@ private fun DailySpinSection(
             // Вероятности наград
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = if (language == "ru")
-                    "Leg 3% • Epic 12% • Rare 19% • Unc 20% • Зубы 21% • Com 25%"
-                else
-                    "Leg 3% • Epic 12% • Rare 19% • Unc 20% • Teeth 21% • Com 25%",
-                color = TextSecondary.copy(alpha = 0.6f),
+                text = if (isNight) {
+                    if (language == "ru")
+                        "Стат 1% • Зач+++ 2% • Зач++ 3% • Зач+ 4% • Ничего 90%"
+                    else
+                        "Stat 1% • Ench+++ 2% • Ench++ 3% • Ench+ 4% • Nothing 90%"
+                } else {
+                    if (language == "ru")
+                        "Leg 3% • Epic 12% • Rare 19% • Unc 20% • Зубы 21% • Com 25%"
+                    else
+                        "Leg 3% • Epic 12% • Rare 19% • Unc 20% • Teeth 21% • Com 25%"
+                },
+                color = if (isNight) Color(0xFFBB86FC).copy(alpha = 0.8f) else TextSecondary.copy(alpha = 0.6f),
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -2524,6 +2570,12 @@ private fun SpinRibbonIcon(
             "uncommon_spin" -> context.resources.getIdentifier("weapon_009", "drawable", context.packageName)
             "rare_spin"     -> context.resources.getIdentifier("weapon_011", "drawable", context.packageName)
             "common_spin"   -> context.resources.getIdentifier("boots_001", "drawable", context.packageName)
+            // Night spin icons
+            "night_stat"    -> context.resources.getIdentifier("set_hellxdead_head", "drawable", context.packageName)
+            "night_high"    -> context.resources.getIdentifier("weapon_035", "drawable", context.packageName)
+            "night_med"     -> context.resources.getIdentifier("set_shadow_dagger", "drawable", context.packageName)
+            "night_low"     -> context.resources.getIdentifier("weapon_022", "drawable", context.packageName)
+            "night_nothing" -> context.resources.getIdentifier("weapon_008", "drawable", context.packageName)
             else            -> 0
         }
     }
@@ -2698,6 +2750,99 @@ private fun SpinResultDialog(
                     onClick = onDismiss,
                     modifier = Modifier.width(80.dp).height(32.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(AppStrings.t(language, "btn_ok"), fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NightSpinResultDialog(
+    reward: NightSpinReward,
+    language: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+
+    val (iconRes, title, desc) = when (reward) {
+        is NightSpinReward.Nothing -> Triple(
+            "weapon_008",
+            if (language == "ru") "Ничего..." else "Nothing...",
+            if (language == "ru") "В следующий раз повезёт!" else "Better luck next time!"
+        )
+        is NightSpinReward.StatBoost -> {
+            val (icon, titleStr, descStr) = when (reward.type) {
+                NightStatBoostType.DMG_PERCENT   -> Triple("set_hellxdead_head", if (language == "ru") "+1% к урону!" else "+1% Damage!", if (language == "ru") "Постоянный бонус добавлен." else "Permanent bonus added.")
+                NightStatBoostType.ARMOR_PERCENT -> Triple("set_hellxdead_head", if (language == "ru") "+1% к броне!" else "+1% Armor!", if (language == "ru") "Постоянный бонус добавлен." else "Permanent bonus added.")
+                NightStatBoostType.POWER_FLAT    -> Triple("set_hellxdead_head", if (language == "ru") "+5 Силы!" else "+5 Power!", if (language == "ru") "Постоянный бонус добавлен." else "Permanent bonus added.")
+                NightStatBoostType.ARMOR_FLAT    -> Triple("set_hellxdead_head", if (language == "ru") "+5 Брони!" else "+5 Armor!", if (language == "ru") "Постоянный бонус добавлен." else "Permanent bonus added.")
+                NightStatBoostType.HP_FLAT       -> Triple("set_hellxdead_head", if (language == "ru") "+15 HP!" else "+15 HP!", if (language == "ru") "Постоянный бонус добавлен." else "Permanent bonus added.")
+            }
+            Triple(icon, titleStr, descStr)
+        }
+        is NightSpinReward.EnchantedItem -> when (reward.tier) {
+            "high" -> Triple("weapon_035", if (language == "ru") "Высокая заточка!" else "High Enchant!", if (language == "ru") "+12–25 добавлен в инвентарь." else "+12–25 added to inventory.")
+            "med"  -> Triple("set_shadow_dagger", if (language == "ru") "Средняя заточка!" else "Mid Enchant!", if (language == "ru") "+5–11 добавлен в инвентарь." else "+5–11 added to inventory.")
+            else   -> Triple("weapon_022", if (language == "ru") "Лёгкая заточка!" else "Low Enchant!", if (language == "ru") "+1–4 добавлен в инвентарь." else "+1–4 added to inventory.")
+        }
+    }
+
+    val rewardColor = when (reward) {
+        is NightSpinReward.Nothing       -> TextMuted
+        is NightSpinReward.StatBoost     -> Color(0xFFBB86FC)
+        is NightSpinReward.EnchantedItem -> when (reward.tier) {
+            "high" -> Color(0xFFFFD700)
+            "med"  -> Color(0xFF2196F3)
+            else   -> UncommonColor
+        }
+    }
+
+    val iconResId = remember(iconRes) {
+        context.resources.getIdentifier(iconRes, "drawable", context.packageName)
+    }
+    val bgResId = remember {
+        context.resources.getIdentifier("bg_spin_night", "drawable", context.packageName)
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))) {
+            if (bgResId != 0) {
+                Image(painter = painterResource(id = bgResId), contentDescription = null,
+                    modifier = Modifier.matchParentSize(), contentScale = ContentScale.Crop)
+                Box(modifier = Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.55f)))
+            } else {
+                Box(modifier = Modifier.matchParentSize().background(DarkCard))
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp)
+            ) {
+                Text(
+                    text = AppStrings.t(language, "you_won_label"),
+                    color = Color(0xFFBB86FC),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                if (iconResId != 0) {
+                    Image(painter = painterResource(id = iconResId), contentDescription = null,
+                        modifier = Modifier.size(72.dp), contentScale = ContentScale.Fit)
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+                Text(text = title, color = rewardColor, fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = desc, color = TextSecondary, fontSize = 13.sp,
+                    textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(20.dp))
+                Button(onClick = onDismiss, modifier = Modifier.width(80.dp).height(32.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EA)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(AppStrings.t(language, "btn_ok"), fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)

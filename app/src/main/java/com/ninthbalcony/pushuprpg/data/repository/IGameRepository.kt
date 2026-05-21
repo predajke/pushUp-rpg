@@ -10,6 +10,7 @@ import com.ninthbalcony.pushuprpg.data.model.Item
 import com.ninthbalcony.pushuprpg.data.model.PeriodStats
 import com.ninthbalcony.pushuprpg.managers.PlayGamesManager
 import com.ninthbalcony.pushuprpg.utils.DailyRewardUtils
+import com.ninthbalcony.pushuprpg.utils.NightSpinReward
 import com.ninthbalcony.pushuprpg.utils.SpinResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
@@ -77,6 +78,7 @@ interface IGameRepository {
 
     // ===== Spin =====
     suspend fun performDailySpin(): SpinResult?
+    suspend fun performNightDailySpin(): NightSpinReward?
     suspend fun addSpinFromAd(): Boolean
     suspend fun getAvailableSpins(): Int
 
