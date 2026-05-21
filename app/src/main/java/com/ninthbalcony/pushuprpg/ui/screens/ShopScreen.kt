@@ -1,10 +1,15 @@
 package com.ninthbalcony.pushuprpg.ui.screens
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.geometry.Offset
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -868,6 +873,8 @@ fun ForgeSection(
         label = "forgeBorder"
     )
 
+    var mergeSparkActive by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -949,7 +956,10 @@ fun ForgeSection(
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .clip(RoundedCornerShape(8.dp))
-                                .clickable(enabled = slot1Item != null && slot2Item != null) { onMerge() }
+                                .clickable(enabled = slot1Item != null && slot2Item != null) {
+                                    mergeSparkActive = true
+                                    onMerge()
+                                }
                                 .padding(horizontal = 12.dp),  // внутренние отступы слева/справа
                             contentAlignment = Alignment.Center
                         ) {
@@ -967,6 +977,11 @@ fun ForgeSection(
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFC34017),  // новый цвет текста
                                 fontSize = 15.sp
+                            )
+                            SparkBurst(
+                                active = mergeSparkActive,
+                                modifier = Modifier.matchParentSize(),
+                                onComplete = { mergeSparkActive = false }
                             )
                         }
                         // Recycle button
@@ -1974,6 +1989,7 @@ fun GrindstoneSection(
         label = "enchantBorder"
     )
 
+    var enchantSwirlActive by remember { mutableStateOf(false) }
     var showItemPicker by remember { mutableStateOf(false) }
 
     if (showItemPicker) {
@@ -2046,6 +2062,11 @@ fun GrindstoneSection(
                     } else {
                         Text(text = "⚡", fontSize = 40.sp)
                     }
+                    MagicSwirl(
+                        active = enchantSwirlActive,
+                        modifier = Modifier.matchParentSize(),
+                        onComplete = { enchantSwirlActive = false }
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -2162,7 +2183,10 @@ fun GrindstoneSection(
 
                     // Кнопка Заточить
                     Button(
-                        onClick = onEnchant,
+                        onClick = {
+                            enchantSwirlActive = true
+                            onEnchant()
+                        },
                         enabled = selectedEnchantItem != null &&
                                 (getEnchantLevel(selectedEnchantItem) < maxEnchant),
                         modifier = Modifier.fillMaxWidth(0.8f),
@@ -2830,8 +2854,16 @@ private fun NightSpinResultDialog(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 if (iconResId != 0) {
-                    Image(painter = painterResource(id = iconResId), contentDescription = null,
-                        modifier = Modifier.size(72.dp), contentScale = ContentScale.Fit)
+                    Box(
+                        modifier = Modifier.size(120.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (reward !is NightSpinReward.Nothing) {
+                            NightSpinGlow(color = rewardColor, modifier = Modifier.matchParentSize())
+                        }
+                        Image(painter = painterResource(id = iconResId), contentDescription = null,
+                            modifier = Modifier.size(72.dp), contentScale = ContentScale.Fit)
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 Text(text = title, color = rewardColor, fontSize = 16.sp,
@@ -2848,6 +2880,120 @@ private fun NightSpinResultDialog(
                     Text(AppStrings.t(language, "btn_ok"), fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
                 }
             }
+        }
+    }
+}
+
+/** Радиальный взрыв искр (анвил-эффект для Merge). */
+@Composable
+private fun SparkBurst(
+    active: Boolean,
+    modifier: Modifier = Modifier,
+    color: Color = Color(0xFFFFC107),
+    durationMs: Int = 500,
+    onComplete: () -> Unit = {}
+) {
+    if (!active) return
+    val progress = remember { Animatable(0f) }
+    val particles = remember {
+        List(14) { i ->
+            val angle = (i * (360f / 14f) + (-12..12).random()) * (PI.toFloat() / 180f)
+            cos(angle) to sin(angle)
+        }
+    }
+    LaunchedEffect(Unit) {
+        progress.snapTo(0f)
+        progress.animateTo(1f, animationSpec = tween(durationMs, easing = LinearEasing))
+        onComplete()
+    }
+    Canvas(modifier = modifier) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val maxR = size.minDimension * 0.95f
+        val p = progress.value
+        val alpha = (1f - p).coerceIn(0f, 1f)
+        particles.forEach { (cosA, sinA) ->
+            drawCircle(
+                color = color.copy(alpha = alpha),
+                radius = 3.5.dp.toPx() * (1f - p * 0.5f),
+                center = Offset(cx + cosA * maxR * p, cy + sinA * maxR * p)
+            )
+        }
+    }
+}
+
+/** Магическое завихрение (Enchant): частицы по спирали стягиваются к центру. */
+@Composable
+private fun MagicSwirl(
+    active: Boolean,
+    modifier: Modifier = Modifier,
+    color: Color = Color(0xFFBB86FC),
+    durationMs: Int = 800,
+    onComplete: () -> Unit = {}
+) {
+    if (!active) return
+    val progress = remember { Animatable(0f) }
+    val startAngles = remember { List(10) { it * 36f } }
+    LaunchedEffect(Unit) {
+        progress.snapTo(0f)
+        progress.animateTo(1f, animationSpec = tween(durationMs, easing = LinearEasing))
+        onComplete()
+    }
+    Canvas(modifier = modifier) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val maxR = size.minDimension * 0.45f
+        val p = progress.value
+        startAngles.forEach { startAngle ->
+            val angle = (startAngle + p * 540f) * (PI.toFloat() / 180f)
+            val r = maxR * (1f - p * 0.85f)
+            val alpha = ((1f - p) * 0.9f).coerceIn(0f, 1f)
+            drawCircle(
+                color = color.copy(alpha = alpha),
+                radius = 4.dp.toPx(),
+                center = Offset(cx + cos(angle) * r, cy + sin(angle) * r)
+            )
+        }
+    }
+}
+
+/** Пульсирующее свечение + орбита для рарного результата ночного спина. */
+@Composable
+private fun NightSpinGlow(
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    val infinite = rememberInfiniteTransition(label = "nightSpinGlow")
+    val pulse by infinite.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(900, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+    val rotation by infinite.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(animation = tween(3000, easing = LinearEasing)),
+        label = "rotation"
+    )
+    Canvas(modifier = modifier) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val baseR = size.minDimension * 0.5f
+        drawCircle(color = color.copy(alpha = pulse * 0.35f), radius = baseR * 0.85f, center = Offset(cx, cy))
+        drawCircle(color = color.copy(alpha = pulse * 0.15f), radius = baseR * 1.10f, center = Offset(cx, cy))
+        val particleCount = 8
+        for (i in 0 until particleCount) {
+            val angle = (rotation + i * 360f / particleCount) * (PI.toFloat() / 180f)
+            val r = baseR * 0.85f
+            drawCircle(
+                color = color.copy(alpha = 0.9f),
+                radius = 4.dp.toPx(),
+                center = Offset(cx + cos(angle) * r, cy + sin(angle) * r)
+            )
         }
     }
 }

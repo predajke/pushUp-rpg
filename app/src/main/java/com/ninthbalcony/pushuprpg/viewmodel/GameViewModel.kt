@@ -1063,6 +1063,32 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                     }
                 }
 
+                parts[0] == "event" -> {
+                    val arg = parts.getOrNull(1)
+                        ?: return@launch run { _cheatFeedback.value = "Usage: event <1-11> | event none" }
+                    if (arg == "none" || arg == "off") {
+                        repository.saveGameState(state.copy(
+                            activeEventId = 0,
+                            eventStartTime = 0L,
+                            eventEndTime = 0L
+                        ))
+                        "✅ Event cleared"
+                    } else {
+                        val eventId = arg.toIntOrNull()
+                            ?: return@launch run { _cheatFeedback.value = "Usage: event <1-11> | event none" }
+                        val event = EventUtils.getEventById(eventId)
+                            ?: return@launch run { _cheatFeedback.value = "❌ Event id $eventId not found (use 1-11)" }
+                        val now = System.currentTimeMillis()
+                        repository.saveGameState(state.copy(
+                            activeEventId = eventId,
+                            eventStartTime = now,
+                            eventEndTime = now + EventUtils.EVENT_DURATION_MS,
+                            lastEventTime = now
+                        ))
+                        "✅ Event activated: ${event.nameEn} (id=$eventId)"
+                    }
+                }
+
                 else -> "❌ Unknown command. Tap [?] for help"
             }
             _cheatFeedback.value = feedback

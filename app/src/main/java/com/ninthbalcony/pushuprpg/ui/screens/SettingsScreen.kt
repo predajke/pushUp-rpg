@@ -195,7 +195,7 @@ private fun SettingsTabContent(
             title = { Text("Dev Console", color = TextPrimary) },
             text = {
                 Text(
-                    text = "give xp <n>\ngive lvl <1-49>\ngive teeth <n>\ngive item <id>\ngive items\ngive spins <n>\ngive hp",
+                    text = "give xp <n>\ngive lvl <1-49>\ngive teeth <n>\ngive item <id>\ngive items\ngive spins <n>\ngive hp\nevent <1-11>  (6,9,10,11 = night)\nevent none",
                     color = TextSecondary,
                     fontSize = 13.sp
                 )
