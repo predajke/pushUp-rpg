@@ -3,6 +3,35 @@ package com.ninthbalcony.pushuprpg.utils
 import com.ninthbalcony.pushuprpg.data.db.GameStateEntity
 import kotlin.random.Random
 
+enum class NightStatBoostType { DMG_PERCENT, ARMOR_PERCENT, POWER_FLAT, ARMOR_FLAT, HP_FLAT }
+
+sealed class NightSpinReward {
+    object Nothing : NightSpinReward()
+    data class StatBoost(val type: NightStatBoostType) : NightSpinReward()
+    data class EnchantedItem(val tier: String) : NightSpinReward()
+}
+
+fun NightSpinReward.toRibbonType(): String = when (this) {
+    is NightSpinReward.Nothing      -> "night_nothing"
+    is NightSpinReward.StatBoost    -> "night_stat"
+    is NightSpinReward.EnchantedItem -> when (tier) {
+        "high" -> "night_high"
+        "med"  -> "night_med"
+        else   -> "night_low"
+    }
+}
+
+fun generateNightSpinResult(): NightSpinReward {
+    val roll = Random.nextFloat() * 100f
+    return when {
+        roll < 1f  -> NightSpinReward.StatBoost(NightStatBoostType.values().random())
+        roll < 3f  -> NightSpinReward.EnchantedItem("high")
+        roll < 6f  -> NightSpinReward.EnchantedItem("med")
+        roll < 10f -> NightSpinReward.EnchantedItem("low")
+        else       -> NightSpinReward.Nothing
+    }
+}
+
 data class SpinReward(
     val type: String,        // "clover_box", "boss_cube", "boots_001", "teeth"
     val amount: Int = 0,     // for teeth
@@ -72,5 +101,20 @@ object SpinUtils {
     // Проверяет можно ли ещё просмотреть рекламу
     fun canWatchAd(state: GameStateEntity): Boolean {
         return state.dailySpinAdViewsToday < MAX_DAILY_AD_VIEWS
+    }
+
+    // ===== Night Spin =====
+    private val NIGHT_SPIN_WEIGHTED_TYPES: List<String> = buildList {
+        repeat(54) { add("night_nothing") }
+        repeat(2)  { add("night_low") }
+        repeat(2)  { add("night_med") }
+        add("night_high")
+        add("night_stat")
+    }
+
+    fun buildNightSpinRibbon(winnerType: String?): List<String> {
+        val items = MutableList(60) { NIGHT_SPIN_WEIGHTED_TYPES.random() }
+        if (winnerType != null) items[22] = winnerType
+        return items
     }
 }

@@ -19,6 +19,7 @@ import com.ninthbalcony.pushuprpg.utils.DailyRewardUtils
 import com.ninthbalcony.pushuprpg.utils.QuestSystem
 import com.ninthbalcony.pushuprpg.utils.ActiveQuest
 import com.ninthbalcony.pushuprpg.utils.AchievementSystem
+import com.ninthbalcony.pushuprpg.utils.NightSpinReward
 import com.ninthbalcony.pushuprpg.utils.UnlockedAchievement
 import com.ninthbalcony.pushuprpg.data.model.EventType
 import com.google.gson.Gson
@@ -697,6 +698,9 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
     private val _spinResult = MutableStateFlow<com.ninthbalcony.pushuprpg.utils.SpinResult?>(null)
     val spinResult: StateFlow<com.ninthbalcony.pushuprpg.utils.SpinResult?> = _spinResult.asStateFlow()
 
+    private val _nightSpinResult = MutableStateFlow<NightSpinReward?>(null)
+    val nightSpinResult: StateFlow<NightSpinReward?> = _nightSpinResult.asStateFlow()
+
     private val _isSpinning = MutableStateFlow(false)
     val isSpinning: StateFlow<Boolean> = _isSpinning.asStateFlow()
 
@@ -726,6 +730,21 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
 
     fun clearSpinResult() {
         _spinResult.value = null
+    }
+
+    fun performNightDailySpin() {
+        viewModelScope.launch {
+            _isSpinning.value = true
+            _nightSpinResult.value = repository.performNightDailySpin()
+            _availableSpins.value = repository.getAvailableSpins()
+            _adViewsToday.value = repository.getGameState().dailySpinAdViewsToday
+            triggerRealtimeTick()
+            _isSpinning.value = false
+        }
+    }
+
+    fun clearNightSpinResult() {
+        _nightSpinResult.value = null
     }
 
     // ==================== ПЕРЕМЕННЫЕ ДЛЯ СТАТИСТИКИ (STATISTICS) ====================
@@ -1041,6 +1060,32 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                             playerLevel = actualLevel
                         ))
                         "✅ +$amount XP → Level $actualLevel (total: $actualXp)"
+                    }
+                }
+
+                parts[0] == "event" -> {
+                    val arg = parts.getOrNull(1)
+                        ?: return@launch run { _cheatFeedback.value = "Usage: event <1-11> | event none" }
+                    if (arg == "none" || arg == "off") {
+                        repository.saveGameState(state.copy(
+                            activeEventId = 0,
+                            eventStartTime = 0L,
+                            eventEndTime = 0L
+                        ))
+                        "✅ Event cleared"
+                    } else {
+                        val eventId = arg.toIntOrNull()
+                            ?: return@launch run { _cheatFeedback.value = "Usage: event <1-11> | event none" }
+                        val event = EventUtils.getEventById(eventId)
+                            ?: return@launch run { _cheatFeedback.value = "❌ Event id $eventId not found (use 1-11)" }
+                        val now = System.currentTimeMillis()
+                        repository.saveGameState(state.copy(
+                            activeEventId = eventId,
+                            eventStartTime = now,
+                            eventEndTime = now + EventUtils.EVENT_DURATION_MS,
+                            lastEventTime = now
+                        ))
+                        "✅ Event activated: ${event.nameEn} (id=$eventId)"
                     }
                 }
 

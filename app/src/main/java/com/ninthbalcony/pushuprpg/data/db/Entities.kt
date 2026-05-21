@@ -192,7 +192,14 @@ data class GameStateEntity(
     val lastUpdated: Long = 0L,                   // epoch ms последнего сохранения — для conflict resolution с облаком
 
     // ===== Streak rewards =====
-    val lastStreakRewardClaimedDay: Int = 0       // последний выданный milestone из StreakRewards.MILESTONES
+    val lastStreakRewardClaimedDay: Int = 0,      // последний выданный milestone из StreakRewards.MILESTONES
+
+    // ===== Night Spin permanent stat boosts =====
+    val spinBoostDmgPercent: Float = 0f,
+    val spinBoostArmorPercent: Float = 0f,
+    val spinBoostPower: Int = 0,
+    val spinBoostArmor: Int = 0,
+    val spinBoostHp: Int = 0
 )
 
 @Entity(tableName = "pushup_records")

@@ -136,10 +136,10 @@ object GameCalculations {
             itemLuck   += item.stats.luck   + lvl
         }
         val prestigeBonus = state.prestigeLevel * PRESTIGE_STAT_BONUS_PER_LEVEL
-        val rawHealth = state.baseHealth + (state.playerLevel * HP_PER_LEVEL) + itemHealth + achBonuses.hpFlat
+        val rawHealth = state.baseHealth + (state.playerLevel * HP_PER_LEVEL) + itemHealth + achBonuses.hpFlat + state.spinBoostHp
         return TotalStats(
-            power  = ((state.basePower  + itemPower)  * (1f + achBonuses.damagePercent + setBonuses.damagePercent + prestigeBonus)).toInt(),
-            armor  = ((state.baseArmor  + itemArmor)  * (1f + achBonuses.armorPercent + setBonuses.armorPercent + prestigeBonus)).toInt(),
+            power  = ((state.basePower  + state.spinBoostPower  + itemPower)  * (1f + achBonuses.damagePercent + state.spinBoostDmgPercent   + setBonuses.damagePercent + prestigeBonus)).toInt(),
+            armor  = ((state.baseArmor  + state.spinBoostArmor  + itemArmor)  * (1f + achBonuses.armorPercent  + state.spinBoostArmorPercent + setBonuses.armorPercent  + prestigeBonus)).toInt(),
             health = (rawHealth * (1f + prestigeBonus)).toInt(),
             luck   = state.baseLuck   + itemLuck   + achBonuses.critPercent * 100f
         )

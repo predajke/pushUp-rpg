@@ -25,6 +25,9 @@ import com.ninthbalcony.pushuprpg.utils.ShopUtils
 import com.ninthbalcony.pushuprpg.utils.SpinUtils
 import com.ninthbalcony.pushuprpg.utils.SpinReward
 import com.ninthbalcony.pushuprpg.utils.SpinResult
+import com.ninthbalcony.pushuprpg.utils.NightSpinReward
+import com.ninthbalcony.pushuprpg.utils.NightStatBoostType
+import com.ninthbalcony.pushuprpg.utils.generateNightSpinResult
 import com.ninthbalcony.pushuprpg.data.model.PeriodStats
 import com.ninthbalcony.pushuprpg.data.model.EnchantResult
 import com.ninthbalcony.pushuprpg.data.model.ForgeResult
@@ -1324,6 +1327,60 @@ class GameRepository(private val context: Context) : IGameRepository {
 
             saveStamped(updatedState.copy(itemLogJson = newItemLog))
             SpinResult(reward = reward, wonItemIds = wonItemIds)
+        }
+    }
+
+    /** Ночной спин: тратит 1 токен, выдаёт ночную награду */
+    override suspend fun performNightDailySpin(): NightSpinReward? {
+        return saveMutex.withLock {
+            val state = getGameState()
+            if (state.spinTokens <= 0) {
+                addLog("❌ No spins available", "❌ Спинов больше нет")
+                return@withLock null
+            }
+
+            val reward = generateNightSpinResult()
+            var updatedState = state.copy(spinTokens = state.spinTokens - 1)
+
+            when (reward) {
+                is NightSpinReward.Nothing -> {
+                    addLog("🎰 Night Spin: Nothing", "🎰 Ночной спин: Ничего")
+                }
+                is NightSpinReward.StatBoost -> {
+                    updatedState = when (reward.type) {
+                        NightStatBoostType.DMG_PERCENT    -> updatedState.copy(spinBoostDmgPercent = updatedState.spinBoostDmgPercent + 0.01f)
+                        NightStatBoostType.ARMOR_PERCENT  -> updatedState.copy(spinBoostArmorPercent = updatedState.spinBoostArmorPercent + 0.01f)
+                        NightStatBoostType.POWER_FLAT     -> updatedState.copy(spinBoostPower = updatedState.spinBoostPower + 5)
+                        NightStatBoostType.ARMOR_FLAT     -> updatedState.copy(spinBoostArmor = updatedState.spinBoostArmor + 5)
+                        NightStatBoostType.HP_FLAT        -> updatedState.copy(spinBoostHp = updatedState.spinBoostHp + 15)
+                    }
+                    addLog("🎰 Night Spin: Stat Boost (${reward.type})!", "🎰 Ночной спин: Бонус стата!")
+                }
+                is NightSpinReward.EnchantedItem -> {
+                    val enchantLevel = when (reward.tier) {
+                        "high" -> kotlin.random.Random.nextInt(12, 26)
+                        "med"  -> kotlin.random.Random.nextInt(5, 12)
+                        else   -> kotlin.random.Random.nextInt(1, 5)
+                    }
+                    val item = ItemUtils.getRandomItemByRarity()
+                    if (item != null) {
+                        val uid = "${item.id}_${System.currentTimeMillis()}"
+                        val entries = parseInventory(updatedState.inventoryItems)
+                        entries.add("$uid:$enchantLevel")
+                        val newItemLog = addItemToLog(updatedState, uid)
+                        updatedState = updatedState.copy(
+                            inventoryItems = buildInventory(entries),
+                            itemsCollected = updatedState.itemsCollected + 1,
+                            itemsFromSpin = updatedState.itemsFromSpin + 1,
+                            itemLogJson = newItemLog
+                        )
+                        addLog("🎰 Night Spin: ${item.name_en} +$enchantLevel!", "🎰 Ночной спин: ${item.name_ru} +$enchantLevel!")
+                    }
+                }
+            }
+
+            saveStamped(updatedState)
+            reward
         }
     }
 
