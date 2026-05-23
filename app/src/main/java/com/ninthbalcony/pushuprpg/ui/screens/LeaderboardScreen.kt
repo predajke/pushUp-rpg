@@ -588,6 +588,7 @@ fun LeaderboardScreen(
 
                 StickyMeRow(
                     me = me,
+                    avatarUrl = myAvatarUrl,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .navigationBarsPadding(),
@@ -616,6 +617,7 @@ fun LeaderboardScreen(
 @Composable
 private fun StickyMeRow(
     me: LeaderboardPlayer,
+    avatarUrl: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val cardShape = RoundedCornerShape(10.dp)
