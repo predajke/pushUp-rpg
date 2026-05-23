@@ -42,6 +42,7 @@ import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.ui.components.clanTagColor
 import com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId
+import coil.compose.AsyncImage
 import com.ninthbalcony.pushuprpg.utils.countryToFlag
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -142,6 +143,7 @@ private fun LbAvatar(
     size: Dp = 26.dp,
     borderColor: Color? = null,
     bgBrush: Brush? = null,
+    avatarUrl: String? = null,
 ) {
     val initial = remember(name) { (name.firstOrNull() ?: '?').uppercaseChar().toString() }
     val derivedBorder = when (rank) {
@@ -164,12 +166,21 @@ private fun LbAvatar(
             .border(1.dp, borderColor ?: derivedBorder, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = initial,
-            color = TextPrimary,
-            fontSize = (size.value * 0.40f).sp,
-            fontWeight = FontWeight.Bold,
-        )
+        if (!avatarUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = avatarUrl,
+                contentDescription = name,
+                modifier = Modifier.fillMaxSize().clip(CircleShape),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            Text(
+                text = initial,
+                color = TextPrimary,
+                fontSize = (size.value * 0.40f).sp,
+                fontWeight = FontWeight.Bold,
+            )
+        }
     }
 }
 
@@ -382,6 +393,7 @@ fun LeaderboardScreen(
     LaunchedEffect(Unit) { viewModel.refreshLeaderboard() }
 
     val friendUids = remember(friends) { friends.map { it.uid }.toSet() }
+    val myAvatarUrl by viewModel.playerIconUri.collectAsState()
     val me = remember(gameState) { buildMePlayer(gameState) }
     // Merge top-100 + friends (friends might be outside top-100), dedup, sort by pushUps,
     // assign rank, mark isMe / isFriend.
@@ -651,6 +663,7 @@ private fun StickyMeRow(
                 rank = me.rank,
                 borderColor = Color(0x8CFF8A2A),
                 bgBrush = Brush.radialGradient(listOf(Color(0xFF4A2A10), Color(0xFF1A1108))),
+                avatarUrl = myAvatarUrl,
             )
             Spacer(Modifier.width(6.dp))
             if (me.clanTag.isNotBlank()) {
