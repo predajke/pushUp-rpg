@@ -665,7 +665,7 @@ private fun StickyMeRow(
                 rank = me.rank,
                 borderColor = Color(0x8CFF8A2A),
                 bgBrush = Brush.radialGradient(listOf(Color(0xFF4A2A10), Color(0xFF1A1108))),
-                avatarUrl = myAvatarUrl,
+                avatarUrl = avatarUrl,
             )
             Spacer(Modifier.width(6.dp))
             if (me.clanTag.isNotBlank()) {
