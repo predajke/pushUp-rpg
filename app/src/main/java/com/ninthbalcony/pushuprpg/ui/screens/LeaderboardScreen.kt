@@ -248,7 +248,7 @@ private fun LbColumnHeader() {
 // ── Player row (5 fixed cols, no scroll) ─────────────────────────────────────
 
 @Composable
-private fun LbPlayerRow(p: LeaderboardPlayer, onClick: (() -> Unit)? = null) {
+private fun LbPlayerRow(p: LeaderboardPlayer, avatarUrl: String? = null, onClick: (() -> Unit)? = null) {
     val rankColor = when (p.rank) {
         1    -> GoldAccent
         2    -> PodiumSilver
@@ -280,7 +280,7 @@ private fun LbPlayerRow(p: LeaderboardPlayer, onClick: (() -> Unit)? = null) {
             modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            LbAvatar(name = p.name, rank = p.rank)
+            LbAvatar(name = p.name, rank = p.rank, avatarUrl = if (p.isMe) avatarUrl else null)
             Spacer(Modifier.width(6.dp))
             if (p.clanTag.isNotBlank()) {
                 Text(
@@ -580,6 +580,7 @@ fun LeaderboardScreen(
                         itemsIndexed(filtered, key = { _, p -> "${p.rank}-${p.name}" }) { _, p ->
                             LbPlayerRow(
                                 p = p,
+                                avatarUrl = if (p.isMe) myAvatarUrl else null,
                                 onClick = if (!p.isMe) { { selectedPlayer = p } } else null,
                             )
                         }
