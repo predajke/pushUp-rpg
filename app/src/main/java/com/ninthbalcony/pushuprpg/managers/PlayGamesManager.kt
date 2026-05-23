@@ -175,7 +175,7 @@ class PlayGamesManager(private val context: Context, private val scope: Coroutin
             if (t.isSuccessful) {
                 val player = t.result
                 _displayName.value = player?.displayName ?: "Player"
-                _iconUri.value = player?.iconImageUri?.toString()
+                _iconUri.value = player?.iconImageUrl ?: player?.iconImageUri?.toString()
                 Log.d(TAG, "Player display name: ${_displayName.value}, icon: ${_iconUri.value}")
             } else {
                 Log.w(TAG, "Failed to fetch player name: ${t.exception?.message}")
