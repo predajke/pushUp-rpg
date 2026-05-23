@@ -2810,10 +2810,20 @@ private fun NightSpinResultDialog(
             }
             Triple(icon, titleStr, descStr)
         }
-        is NightSpinReward.EnchantedItem -> when (reward.tier) {
-            "high" -> Triple("weapon_035", if (language == "ru") "Высокая заточка!" else "High Enchant!", if (language == "ru") "+12–25 добавлен в инвентарь." else "+12–25 added to inventory.")
-            "med"  -> Triple("set_shadow_dagger", if (language == "ru") "Средняя заточка!" else "Mid Enchant!", if (language == "ru") "+5–11 добавлен в инвентарь." else "+5–11 added to inventory.")
-            else   -> Triple("weapon_022", if (language == "ru") "Лёгкая заточка!" else "Low Enchant!", if (language == "ru") "+1–4 добавлен в инвентарь." else "+1–4 added to inventory.")
+        is NightSpinReward.EnchantedItem -> {
+            val icon = reward.itemIconRes.ifBlank {
+                when (reward.tier) { "high" -> "weapon_035"; "med" -> "set_shadow_dagger"; else -> "weapon_022" }
+            }
+            val tierTitle = when (reward.tier) {
+                "high" -> if (language == "ru") "Высокая заточка!" else "High Enchant!"
+                "med"  -> if (language == "ru") "Средняя заточка!" else "Mid Enchant!"
+                else   -> if (language == "ru") "Лёгкая заточка!" else "Low Enchant!"
+            }
+            val levelDesc = if (reward.enchantLevel > 0)
+                if (language == "ru") "+${reward.enchantLevel} добавлен в инвентарь." else "+${reward.enchantLevel} added to inventory."
+            else
+                if (language == "ru") "Добавлен в инвентарь." else "Added to inventory."
+            Triple(icon, tierTitle, levelDesc)
         }
     }
 

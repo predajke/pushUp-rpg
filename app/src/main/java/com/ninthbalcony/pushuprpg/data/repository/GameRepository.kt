@@ -1341,6 +1341,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
             val reward = generateNightSpinResult()
             var updatedState = state.copy(spinTokens = state.spinTokens - 1)
+            var finalReward: NightSpinReward = reward
 
             when (reward) {
                 is NightSpinReward.Nothing -> {
@@ -1375,12 +1376,13 @@ class GameRepository(private val context: Context) : IGameRepository {
                             itemLogJson = newItemLog
                         )
                         addLog("🎰 Night Spin: ${item.name_en} +$enchantLevel!", "🎰 Ночной спин: ${item.name_ru} +$enchantLevel!")
+                        finalReward = reward.copy(itemIconRes = item.image_id, enchantLevel = enchantLevel)
                     }
                 }
             }
 
             saveStamped(updatedState)
-            reward
+            finalReward
         }
     }
 

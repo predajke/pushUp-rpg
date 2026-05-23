@@ -8,7 +8,7 @@ enum class NightStatBoostType { DMG_PERCENT, ARMOR_PERCENT, POWER_FLAT, ARMOR_FL
 sealed class NightSpinReward {
     object Nothing : NightSpinReward()
     data class StatBoost(val type: NightStatBoostType) : NightSpinReward()
-    data class EnchantedItem(val tier: String) : NightSpinReward()
+    data class EnchantedItem(val tier: String, val itemIconRes: String = "", val enchantLevel: Int = 0) : NightSpinReward()
 }
 
 fun NightSpinReward.toRibbonType(): String = when (this) {
