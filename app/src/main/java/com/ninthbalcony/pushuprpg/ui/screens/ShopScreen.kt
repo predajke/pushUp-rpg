@@ -2814,16 +2814,21 @@ private fun NightSpinResultDialog(
             val icon = reward.itemIconRes.ifBlank {
                 when (reward.tier) { "high" -> "weapon_035"; "med" -> "set_shadow_dagger"; else -> "weapon_022" }
             }
-            val tierTitle = when (reward.tier) {
-                "high" -> if (language == "ru") "Высокая заточка!" else "High Enchant!"
-                "med"  -> if (language == "ru") "Средняя заточка!" else "Mid Enchant!"
-                else   -> if (language == "ru") "Лёгкая заточка!" else "Low Enchant!"
+            val itemName = when {
+                language == "ru" && reward.itemNameRu.isNotBlank() -> reward.itemNameRu
+                reward.itemNameEn.isNotBlank() -> reward.itemNameEn
+                else -> if (language == "ru") "Предмет" else "Item"
+            }
+            val tierLabel = when (reward.tier) {
+                "high" -> if (language == "ru") "Высокая заточка" else "High Enchant"
+                "med"  -> if (language == "ru") "Средняя заточка" else "Mid Enchant"
+                else   -> if (language == "ru") "Лёгкая заточка" else "Low Enchant"
             }
             val levelDesc = if (reward.enchantLevel > 0)
-                if (language == "ru") "+${reward.enchantLevel} добавлен в инвентарь." else "+${reward.enchantLevel} added to inventory."
+                "+${reward.enchantLevel}  ·  $tierLabel"
             else
-                if (language == "ru") "Добавлен в инвентарь." else "Added to inventory."
-            Triple(icon, tierTitle, levelDesc)
+                tierLabel
+            Triple(icon, itemName, levelDesc)
         }
     }
 

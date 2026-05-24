@@ -1376,7 +1376,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                             itemLogJson = newItemLog
                         )
                         addLog("🎰 Night Spin: ${item.name_en} +$enchantLevel!", "🎰 Ночной спин: ${item.name_ru} +$enchantLevel!")
-                        finalReward = reward.copy(itemIconRes = item.image_id, enchantLevel = enchantLevel)
+                        finalReward = reward.copy(itemIconRes = item.image_id, enchantLevel = enchantLevel, itemNameEn = item.name_en, itemNameRu = item.name_ru)
                     }
                 }
             }
