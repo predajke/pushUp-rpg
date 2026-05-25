@@ -24,7 +24,7 @@ android {
         applicationId = "com.ninthbalcony.pushuprpg"
         minSdk = 29
         targetSdk = 35
-        versionCode = 7
+        versionCode = 8
         versionName = "1.0.0b"
 
         // Bundle native debug symbols into the AAB so Play Console / Crashlytics
