@@ -134,13 +134,19 @@ class PlayGamesManager(private val context: Context, private val scope: Coroutin
      */
     private suspend fun linkFirebaseWithPlayGames(activity: Activity) {
         try {
+            val current = auth.currentUser
+            val alreadyLinked = current?.providerData?.any { it.providerId == "playgames.google.com" } == true
+            if (alreadyLinked) {
+                Log.d(TAG, "Already linked to Play Games (uid=${current?.uid}) — skipping")
+                return
+            }
+
             val client = PlayGames.getGamesSignInClient(activity)
             Log.d(TAG, "Requesting serverAuthCode with WEB_CLIENT_ID...")
             val serverAuthCode = client.requestServerSideAccess(WEB_CLIENT_ID, /* forceRefresh */ false).await()
             Log.d(TAG, "Got serverAuthCode (length=${serverAuthCode.length})")
             val credential = PlayGamesAuthProvider.getCredential(serverAuthCode)
-            val current = auth.currentUser
-            Log.d(TAG, "Current Firebase user: uid=${current?.uid}, isAnonymous=${current?.isAnonymous}, providers=${current?.providerData?.map { it.providerId }}")
+            Log.d(TAG, "Current Firebase user: uid=${current?.uid}, isAnonymous=${current?.isAnonymous}")
             if (current != null && current.isAnonymous) {
                 try {
                     current.linkWithCredential(credential).await()
