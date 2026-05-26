@@ -123,7 +123,6 @@ class LeaderboardRepository {
      * Returns empty list on failure.
      */
     suspend fun fetchTopByPushUps(limit: Int = 100): List<LeaderboardEntry> {
-        ensureSignedIn() ?: return emptyList()
         val query: Query = database.reference
             .child("leaderboard")
             .orderByChild("totalPushUps")
