@@ -135,25 +135,28 @@ class PlayGamesManager(private val context: Context, private val scope: Coroutin
     private suspend fun linkFirebaseWithPlayGames(activity: Activity) {
         try {
             val client = PlayGames.getGamesSignInClient(activity)
+            Log.d(TAG, "Requesting serverAuthCode with WEB_CLIENT_ID...")
             val serverAuthCode = client.requestServerSideAccess(WEB_CLIENT_ID, /* forceRefresh */ false).await()
+            Log.d(TAG, "Got serverAuthCode (length=${serverAuthCode.length})")
             val credential = PlayGamesAuthProvider.getCredential(serverAuthCode)
             val current = auth.currentUser
+            Log.d(TAG, "Current Firebase user: uid=${current?.uid}, isAnonymous=${current?.isAnonymous}, providers=${current?.providerData?.map { it.providerId }}")
             if (current != null && current.isAnonymous) {
                 try {
                     current.linkWithCredential(credential).await()
-                    Log.d(TAG, "Linked anonymous Firebase account with Play Games (uid=${current.uid})")
+                    Log.d(TAG, "Linked anonymous → Play Games OK (uid=${auth.currentUser?.uid})")
                 } catch (collision: FirebaseAuthUserCollisionException) {
-                    // Play Games already linked to a different uid. Sign in to that uid;
-                    // the orphaned anonymous record will eventually be cleaned up.
+                    val oldUid = current.uid
                     val result = auth.signInWithCredential(credential).await()
-                    Log.d(TAG, "Collision — signed in to existing Play Games uid=${result.user?.uid}")
+                    Log.d(TAG, "Collision — switched from anonymous uid=$oldUid to Play Games uid=${result.user?.uid}")
                 }
             } else {
                 val result = auth.signInWithCredential(credential).await()
                 Log.d(TAG, "Signed in with Play Games credential, uid=${result.user?.uid}")
             }
+            Log.d(TAG, "Firebase link complete — final uid=${auth.currentUser?.uid}, providers=${auth.currentUser?.providerData?.map { it.providerId }}")
         } catch (e: Throwable) {
-            Log.w(TAG, "Firebase link failed: ${e.message}")
+            Log.e(TAG, "Firebase link FAILED: ${e.javaClass.simpleName}: ${e.message}", e)
         }
     }
 

@@ -130,13 +130,16 @@ class LeaderboardRepository {
         val cutoff = System.currentTimeMillis() - ZOMBIE_TTL_MS
         return runCatching {
             val snap = query.get().await()
+            Log.d(TAG, "Fetched ${snap.childrenCount} leaderboard entries")
             snap.children.mapNotNull { child ->
                 val uid = child.key ?: return@mapNotNull null
-                snapshotToEntry(uid, child)
+                runCatching { snapshotToEntry(uid, child) }
+                    .onFailure { Log.w(TAG, "Parse failed for uid=$uid: ${it.message}") }
+                    .getOrNull()
             }.filter { it.lastUpdated == 0L || it.lastUpdated > cutoff }
              .sortedByDescending { it.totalPushUps }
         }.getOrElse {
-            Log.w(TAG, "Fetch top failed: ${it.message}")
+            Log.e(TAG, "Fetch top failed", it)
             emptyList()
         }
     }
