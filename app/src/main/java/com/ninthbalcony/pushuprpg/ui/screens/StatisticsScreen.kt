@@ -49,7 +49,7 @@ fun StatisticsScreen(
     Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
     ScreenBackground("bg_mainmenu_overall")
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().statusBarsPadding()
     ) {
         // --- Топбар ---
         Row(

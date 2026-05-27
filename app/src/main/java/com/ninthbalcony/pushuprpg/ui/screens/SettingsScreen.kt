@@ -91,7 +91,7 @@ fun SettingsScreen(
             .background(DarkBackground)
     ) {
         ScreenBackground("bg_settings_overall")
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             // --- Top bar ---
             Row(
                 modifier = Modifier

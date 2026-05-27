@@ -370,7 +370,7 @@ fun ShopScreen(
             .background(DarkBackground)
     ) {
         ScreenBackground("bg_shop_overall")
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

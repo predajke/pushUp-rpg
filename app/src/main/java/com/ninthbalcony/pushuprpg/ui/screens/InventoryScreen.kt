@@ -1116,7 +1116,7 @@ fun InventoryScreen(
 
     Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
         ScreenBackground("bg_inventory_overall")
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
             // Топбар
             Row(
                 modifier = Modifier
