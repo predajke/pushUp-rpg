@@ -274,7 +274,7 @@ private fun LbPlayerRow(p: LeaderboardPlayer, avatarUrl: String? = null, onClick
         )
         Spacer(Modifier.width(4.dp))
         Text(
-            text = countryToFlag(p.country.ifBlank { "US" }),
+            text = countryToFlag(p.country),
             fontSize = 14.sp,
         )
         Spacer(Modifier.width(5.dp))
@@ -659,7 +659,7 @@ private fun StickyMeRow(
             )
             Spacer(Modifier.width(4.dp))
             Text(
-                text = countryToFlag(me.country.ifBlank { "US" }),
+                text = countryToFlag(me.country),
                 fontSize = 14.sp,
             )
             Spacer(Modifier.width(5.dp))
@@ -724,7 +724,7 @@ private fun StickyMeRow(
 // ── Mock data generator (replace with real API / Firebase call) ───────────────
 
 private const val MY_RANK = 1                // overwritten by mapEntriesToPlayers
-private const val MY_COUNTRY = "US"
+private const val MY_COUNTRY = "XX"  // pirate flag until player picks a country
 
 /**
  * Convert RTDB entries to the legacy `LeaderboardPlayer` shape used by the
@@ -857,7 +857,7 @@ private fun PlayerProfileDialog(
 
             // Flag + clan + name
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = countryToFlag(player.country.ifBlank { "US" }), fontSize = 18.sp)
+                Text(text = countryToFlag(player.country), fontSize = 18.sp)
                 Spacer(Modifier.width(6.dp))
                 if (player.clanTag.isNotBlank()) {
                     Text(

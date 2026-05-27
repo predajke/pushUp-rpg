@@ -130,11 +130,12 @@ class GameRepository(private val context: Context) : IGameRepository {
     private suspend fun createInitialGameState(): GameStateEntity {
         val today = DateUtils.getTodayString()
         val initial = GameStateEntity(
+            playerName = com.ninthbalcony.pushuprpg.utils.randomHeroName(),
             lastResetDate = today,
             lastLoginDate = today,
             lastBattleTick = System.currentTimeMillis(),
             characterBirthDate = today,
-            playerCountry = com.ninthbalcony.pushuprpg.utils.detectDeviceCountry()
+            playerCountry = com.ninthbalcony.pushuprpg.utils.PIRATE_COUNTRY
         )
         saveStamped(initial)
         return initial
@@ -876,10 +877,12 @@ class GameRepository(private val context: Context) : IGameRepository {
         dao.deleteAllPushUpRecords()
         val today = DateUtils.getTodayString()
         val fresh = GameStateEntity(
+            playerName = com.ninthbalcony.pushuprpg.utils.randomHeroName(),
             lastResetDate = today,
             lastLoginDate = today,
             lastBattleTick = System.currentTimeMillis(),
-            characterBirthDate = today
+            characterBirthDate = today,
+            playerCountry = com.ninthbalcony.pushuprpg.utils.PIRATE_COUNTRY
         )
         saveStamped(fresh)
     }

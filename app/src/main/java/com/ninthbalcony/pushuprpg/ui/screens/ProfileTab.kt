@@ -199,7 +199,7 @@ private fun ProfileHeaderCard(
     ) {
         // Flag (clickable)
         Text(
-            text = countryToFlag(state.playerCountry.ifBlank { "US" }),
+            text = countryToFlag(state.playerCountry),
             fontSize = 26.sp,
             modifier = Modifier
                 .clickable { onFlagClick() }
@@ -458,7 +458,7 @@ private fun FriendRow(friend: LeaderboardEntry, onRemove: () -> Unit) {
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = countryToFlag(friend.country.ifBlank { "US" }), fontSize = 16.sp)
+        Text(text = countryToFlag(friend.country), fontSize = 16.sp)
         Spacer(Modifier.width(8.dp))
         if (friend.clanTag.isNotBlank()) {
             ClanTagText(tag = friend.clanTag, colorKey = friend.clanTagColor, fontSize = 12)
