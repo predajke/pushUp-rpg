@@ -44,6 +44,8 @@ import com.ninthbalcony.pushuprpg.ui.components.clanTagColor
 import com.ninthbalcony.pushuprpg.ui.util.rememberAvatarResId
 import coil.compose.AsyncImage
 import com.ninthbalcony.pushuprpg.utils.countryToFlag
+import com.ninthbalcony.pushuprpg.R
+import com.ninthbalcony.pushuprpg.ui.components.GameIcon
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -533,7 +535,7 @@ fun LeaderboardScreen(
                     .padding(horizontal = 10.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("🔍", color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                GameIcon(R.drawable.icon_search, size = 12.dp)
                 Spacer(Modifier.width(6.dp))
                 val placeholder = AppStrings.t(language, "lb_filter_name")
                 BasicTextField(

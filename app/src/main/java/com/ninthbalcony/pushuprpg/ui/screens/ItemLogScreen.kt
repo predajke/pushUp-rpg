@@ -35,6 +35,9 @@ import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.ItemUtils
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
+import com.ninthbalcony.pushuprpg.R
+import com.ninthbalcony.pushuprpg.ui.components.GameIcon
+import androidx.annotation.DrawableRes
 
 // common = 0, legendary = 4 — ascending order для сортировки
 private val RARITY_ORDER = listOf("common", "uncommon", "rare", "epic", "legendary")
@@ -301,10 +304,10 @@ private fun ItemDetailDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                if (item.stats.power > 0)  StatChip("⚔", item.stats.power.toString())
-                if (item.stats.armor > 0)  StatChip("🛡", item.stats.armor.toString())
-                if (item.stats.health > 0) StatChip("❤", item.stats.health.toString())
-                if (item.stats.luck > 0f)  StatChip("🍀", item.stats.luck.toInt().toString())
+                if (item.stats.power > 0)  StatChip(R.drawable.icon_power, item.stats.power.toString())
+                if (item.stats.armor > 0)  StatChip(R.drawable.icon_armor, item.stats.armor.toString())
+                if (item.stats.health > 0) StatChip(R.drawable.icon_hp, item.stats.health.toString())
+                if (item.stats.luck > 0f)  StatChip(R.drawable.icon_luck, item.stats.luck.toInt().toString())
             }
             if (description.isNotBlank()) {
                 Spacer(modifier = Modifier.height(10.dp))
@@ -331,9 +334,9 @@ private fun ItemDetailDialog(
 }
 
 @Composable
-private fun StatChip(icon: String, value: String) {
+private fun StatChip(@DrawableRes icon: Int, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(icon, fontSize = 18.sp)
+        GameIcon(icon, size = 18.dp)
         Text(value, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
     }
 }

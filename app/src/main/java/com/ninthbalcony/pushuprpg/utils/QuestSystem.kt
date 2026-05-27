@@ -184,8 +184,8 @@ object QuestSystem {
     fun getRewardText(def: QuestDef, language: String): String {
         return when {
             def.rewardTeeth > 0 && def.rewardItemRarity != null ->
-                "+${def.rewardTeeth} 🦷 + ${if (language == "ru") "вещь" else "item"}"
-            def.rewardTeeth > 0 -> "+${def.rewardTeeth} 🦷"
+                "+${def.rewardTeeth}"
+            def.rewardTeeth > 0 -> "+${def.rewardTeeth}"
             def.rewardItemRarity != null -> {
                 val rarity = def.rewardItemRarity
                 if (language == "ru") rarityRu(rarity) else rarity.replaceFirstChar { it.uppercase() }
@@ -193,6 +193,9 @@ object QuestSystem {
             else -> ""
         }
     }
+
+    /** Returns rarity color for reward display. Null if reward is teeth-only. */
+    fun getRewardRarityColor(def: QuestDef): String? = def.rewardItemRarity
 
     private fun rarityRu(r: String) = when (r) {
         "common" -> "Обычная вещь"

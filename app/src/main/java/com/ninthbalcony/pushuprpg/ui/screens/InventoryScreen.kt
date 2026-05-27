@@ -42,6 +42,10 @@ import com.ninthbalcony.pushuprpg.utils.GameCalculations
 import com.ninthbalcony.pushuprpg.utils.ItemUtils
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
+import com.ninthbalcony.pushuprpg.R
+import com.ninthbalcony.pushuprpg.ui.components.GameIcon
+import com.ninthbalcony.pushuprpg.ui.components.equipSlotIcon
+import androidx.annotation.DrawableRes
 
 private enum class SortOrder { NONE, ASC, DESC }
 private fun rarityOrder(rarity: String) = when (rarity) {
@@ -120,7 +124,7 @@ private fun EquipmentSection(
                             contentScale = ContentScale.Fit
                         )
                     } else {
-                        Text(text = "🥊", fontSize = 56.sp)
+                        GameIcon(R.drawable.icon_pushups_red, size = 56.dp)
                     }
                 }
 
@@ -217,7 +221,7 @@ private fun EquipSlot(label: String, itemId: String, onClick: () -> Unit) {
                         contentScale = ContentScale.Fit
                     )
                 } else {
-                    Text(text = getItemEmoji(item.slot), fontSize = 28.sp)
+                    GameIcon(getItemIconRes(item.slot), size = 28.dp)
                 }
                 if (enchantLevel > 0) {
                     Box(
@@ -277,7 +281,7 @@ private fun InventoryGrid(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp)
-            .background(DarkCard, RoundedCornerShape(12.dp))
+            .background(DarkCard.copy(alpha = 0.75f), RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
         Row(
@@ -392,7 +396,7 @@ private fun InventoryItemCell(
                 contentScale = ContentScale.Fit
             )
         } else {
-            Text(text = getItemEmoji(item.slot), fontSize = 24.sp)
+            GameIcon(getItemIconRes(item.slot), size = 24.dp)
         }
 
         if (enchantLevel > 0) {
@@ -505,13 +509,27 @@ private fun ItemInfoSection(
 
                 val stats = selectedItem.stats
                 val ench = getEnchantLevel(selectedItem)
-                val bonuses = buildList {
-                    if (stats.power > 0 || ench > 0) add("⚔️ +${stats.power + ench}")
-                    if (stats.armor > 0 || ench > 0) add("🛡️ +${stats.armor + ench}")
-                    if (stats.health > 0 || ench > 0) add("❤️ +${stats.health + ench}")
-                    if (stats.luck > 0f) add("🍀 +${stats.luck + ench}")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (stats.power > 0 || ench > 0) {
+                        GameIcon(R.drawable.icon_power, size = 13.dp)
+                        Text("+${stats.power + ench}", fontSize = 13.sp, color = TextPrimary)
+                    }
+                    if (stats.armor > 0 || ench > 0) {
+                        GameIcon(R.drawable.icon_armor, size = 13.dp)
+                        Text("+${stats.armor + ench}", fontSize = 13.sp, color = TextPrimary)
+                    }
+                    if (stats.health > 0 || ench > 0) {
+                        GameIcon(R.drawable.icon_hp, size = 13.dp)
+                        Text("+${stats.health + ench}", fontSize = 13.sp, color = TextPrimary)
+                    }
+                    if (stats.luck > 0f) {
+                        GameIcon(R.drawable.icon_luck, size = 13.dp)
+                        Text("+${stats.luck + ench}", fontSize = 13.sp, color = TextPrimary)
+                    }
                 }
-                Text(text = bonuses.joinToString("  "), fontSize = 13.sp, color = TextPrimary)
 
                 val sellPrice = GameCalculations.getTeethFromSell(selectedItem.rarity)
                 Row(
@@ -520,8 +538,9 @@ private fun ItemInfoSection(
                     modifier = Modifier.padding(top = 2.dp)
                 ) {
                     Text(text = "Sell:", fontSize = 12.sp, color = TextMuted)
+                    GameIcon(R.drawable.icon_teeth, size = 12.dp)
                     Text(
-                        text = "🦷 $sellPrice",
+                        text = " $sellPrice",
                         fontSize = 12.sp,
                         color = Color(0xFFE57373),
                         fontWeight = FontWeight.Bold
@@ -646,16 +665,22 @@ private fun InventoryStatsPanel(
                     color = TextSecondary
                 )
                 if (state.prestigeLevel > 0) {
-                    Text(
-                        text = if (language == "ru")
-                            "🏅 Сбросов: ${state.prestigeLevel}"
-                        else
-                            "🏅 Resets: ${state.prestigeLevel}",
-                        fontSize = 12.sp,
-                        color = LuckColor,
-                        fontWeight = FontWeight.Bold,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(end = 36.dp)
-                    )
+                    ) {
+                        GameIcon(R.drawable.icon_prestige, size = 12.dp)
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = if (language == "ru")
+                                "Сбросов: ${state.prestigeLevel}"
+                            else
+                                "Resets: ${state.prestigeLevel}",
+                            fontSize = 12.sp,
+                            color = LuckColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
                 if (hasPoints) {
                     Text(
@@ -670,7 +695,7 @@ private fun InventoryStatsPanel(
             Spacer(modifier = Modifier.height(8.dp))
 
             InventoryStatRowWithButton(
-                icon = "⚔️",
+                icon = R.drawable.icon_power,
                 label = AppStrings.t(language, "stat_power"),
                 value = "$totalPower",
                 color = PowerColor,
@@ -682,7 +707,7 @@ private fun InventoryStatsPanel(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "🛡️", fontSize = 16.sp)
+                GameIcon(R.drawable.icon_armor, size = 16.dp)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = AppStrings.t(language, "stat_armor"),
@@ -702,7 +727,7 @@ private fun InventoryStatsPanel(
             }
 
             InventoryStatRowWithButton(
-                icon = "❤️",
+                icon = R.drawable.icon_hp,
                 label = AppStrings.t(language, "stat_health"),
                 value = "$totalHealth",
                 color = HealthColor,
@@ -711,7 +736,7 @@ private fun InventoryStatsPanel(
             )
 
             InventoryStatRowWithButton(
-                icon = "🍀",
+                icon = R.drawable.icon_luck,
                 label = AppStrings.t(language, "stat_luck"),
                 value = String.format("%.1f", totalLuck),
                 color = LuckColor,
@@ -755,12 +780,15 @@ private fun InventoryStatsPanel(
                 achBonuses.xpPercent > 0 || achBonuses.enchantFlat > 0 ||
                 achBonuses.dropRatePercent > 0 || achBonuses.teethRatePercent > 0) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = AppStrings.t(language, "achievement_boosts_label"),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = OrangeAccent
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    GameIcon(R.drawable.icon_achievement, size = 14.dp)
+                    Text(
+                        text = AppStrings.t(language, "achievement_boosts_label"),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = OrangeAccent
+                    )
+                }
                 Spacer(modifier = Modifier.height(6.dp))
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
                     if (achBonuses.damagePercent > 0) {
@@ -832,12 +860,16 @@ private fun InventoryStatsPanel(
             if (state.spinBoostDmgPercent > 0f || state.spinBoostArmorPercent > 0f ||
                 state.spinBoostPower > 0 || state.spinBoostArmor > 0 || state.spinBoostHp > 0) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = if (state.language == "ru") "🎰 Бонусы спина:" else "🎰 Spin Boosts:",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFBB86FC)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    GameIcon(R.drawable.icon_spin, size = 12.dp)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = if (state.language == "ru") "Бонусы спина:" else "Spin Boosts:",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFBB86FC)
+                    )
+                }
                 Spacer(modifier = Modifier.height(6.dp))
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
                     if (state.spinBoostDmgPercent > 0f) Text(
@@ -863,12 +895,16 @@ private fun InventoryStatsPanel(
                 com.ninthbalcony.pushuprpg.utils.EventUtils.getEventById(state.activeEventId) else null
             if (activeEvent != null) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = if (language == "ru") "🎉 Бонус события:" else "🎉 Event Bonus:",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64B5F6)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    GameIcon(R.drawable.icon_celebration, size = 12.dp)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = if (language == "ru") "Бонус события:" else "Event Bonus:",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF64B5F6)
+                    )
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = com.ninthbalcony.pushuprpg.utils.EventUtils.getEventDescription(activeEvent, language),
@@ -881,12 +917,15 @@ private fun InventoryStatsPanel(
             // ===== SET MODIFIERS =====
             if (setBonuses.damagePercent > 0 || setBonuses.armorPercent > 0) {
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = AppStrings.t(language, "set_modifiers_label"),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = OrangeAccent
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    GameIcon(R.drawable.icon_plus, size = 14.dp)
+                    Text(
+                        text = AppStrings.t(language, "set_modifiers_label"),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = OrangeAccent
+                    )
+                }
                 Spacer(modifier = Modifier.height(6.dp))
                 Column(modifier = Modifier.fillMaxWidth().padding(start = 8.dp)) {
                     if (setBonuses.damagePercent > 0) {
@@ -914,7 +953,7 @@ private fun InventoryStatsPanel(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "🏋️", fontSize = 16.sp)
+                    GameIcon(R.drawable.icon_dumbell, size = 16.dp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = AppStrings.t(language, "tonnage_label"),
@@ -936,7 +975,7 @@ private fun InventoryStatsPanel(
 
 @Composable
 private fun InventoryStatRowWithButton(
-    icon: String,
+    @DrawableRes icon: Int,
     label: String,
     value: String,
     color: Color,
@@ -947,7 +986,7 @@ private fun InventoryStatRowWithButton(
         modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = icon, fontSize = 16.sp)
+        GameIcon(icon, size = 16.dp)
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = label,
@@ -965,11 +1004,9 @@ private fun InventoryStatRowWithButton(
         )
         Box(modifier = Modifier.width(36.dp)) {
             if (hasPoints) {
-                Text(
-                    text = "+",
-                    fontSize = 26.sp,
-                    color = GoldAccent,
-                    fontWeight = FontWeight.Bold,
+                GameIcon(
+                    resId = R.drawable.icon_stat_point,
+                    size = 26.dp,
                     modifier = Modifier
                         .align(Alignment.Center)
                         .clickable { onSpend() }
@@ -1045,16 +1082,7 @@ private fun ActiveAchievementsPanel(
     }
 }
 
-private fun getItemEmoji(slot: String): String {
-    return when (slot) {
-        "weapon" -> "⚔️"
-        "head" -> "⛑️"
-        "necklace" -> "📿"
-        "pants" -> "👖"
-        "boots" -> "👟"
-        else -> "📦"
-    }
-}
+private fun getItemIconRes(slot: String): Int = equipSlotIcon(slot)
 
 @Composable
 fun InventoryScreen(
@@ -1116,12 +1144,16 @@ fun InventoryScreen(
                     modifier = Modifier.padding(end = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "🦷 ${state.teeth}",
-                        fontSize = 16.sp,
-                        color = Color(0xFFE0E0E0),
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        GameIcon(R.drawable.icon_teeth, size = 16.dp)
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = "${state.teeth}",
+                            fontSize = 16.sp,
+                            color = Color(0xFFE0E0E0),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     Text(text = state.playerName, fontSize = 14.sp, color = TextSecondary)
                 }
             }

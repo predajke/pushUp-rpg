@@ -55,6 +55,8 @@ import androidx.compose.ui.graphics.Shadow                  // + для крут
 import androidx.compose.ui.text.TextStyle                   // + для крутого шрифта
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.utils.SoundManager
+import com.ninthbalcony.pushuprpg.ui.components.GameIcon
+import androidx.annotation.DrawableRes
 
 @Composable
 fun MainMenuScreen(
@@ -553,13 +555,17 @@ private fun AchievementToast(
                         Spacer(Modifier.width(12.dp))
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (language == "ru") "🏆 ДОСТИЖЕНИЕ" else "🏆 ACHIEVEMENT UNLOCKED",
-                            color = GoldAccent,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            letterSpacing = 1.2.sp
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            GameIcon(R.drawable.icon_achievement, size = 12.dp)
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = if (language == "ru") "ДОСТИЖЕНИЕ" else "ACHIEVEMENT UNLOCKED",
+                                color = GoldAccent,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 1.2.sp
+                            )
+                        }
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = if (language == "ru") def.nameRu else def.nameEn,
@@ -621,7 +627,7 @@ fun QuestShortcutButton(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("📋", fontSize = 20.sp)
+            GameIcon(R.drawable.icon_quests, size = 20.dp)
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = "$label$badge",
@@ -679,7 +685,7 @@ fun ProgressShortcutButton(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🏆", fontSize = 20.sp)
+            GameIcon(R.drawable.icon_achievement, size = 20.dp)
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = label,
@@ -728,7 +734,7 @@ fun LeaderboardShortcutButton(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("🏅", fontSize = 20.sp)
+            GameIcon(R.drawable.icon_prestige, size = 20.dp)
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = label,
@@ -838,20 +844,28 @@ fun StreakRewardDialog(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-            Text(
-                text = "🔥 Streak — $streak ${AppStrings.t(language, "streak_days")} ${AppStrings.t(language, "streak_in_row")}",
-                color = OrangeAccent,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                GameIcon(R.drawable.icon_streak, size = 18.dp)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = "Streak — $streak ${AppStrings.t(language, "streak_days")} ${AppStrings.t(language, "streak_in_row")}",
+                    color = OrangeAccent,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
 
             if (pending != null) {
-                Text(
-                    text = "🎁 ${AppStrings.t(language, "day_label")} ${pending.day}: ${AppStrings.t(language, "streak_reward_ready")}",
-                    color = GoldAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    GameIcon(R.drawable.icon_reward, size = 14.dp)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "${AppStrings.t(language, "day_label")} ${pending.day}: ${AppStrings.t(language, "streak_reward_ready")}",
+                        color = GoldAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = rewardDescription(pending, language), color = TextPrimary, fontSize = 13.sp,
                     textAlign = TextAlign.Center)
@@ -884,10 +898,14 @@ fun StreakRewardDialog(
                 Text(text = rewardDescription(next, language), color = TextPrimary, fontSize = 12.sp,
                     textAlign = TextAlign.Center)
             } else {
-                Text(
-                    text = "🏆 ${AppStrings.t(language, "streak_all_claimed")}",
-                    color = GoldAccent, fontSize = 13.sp, textAlign = TextAlign.Center
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    GameIcon(R.drawable.icon_achievement, size = 13.dp)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = AppStrings.t(language, "streak_all_claimed"),
+                        color = GoldAccent, fontSize = 13.sp, textAlign = TextAlign.Center
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -927,11 +945,15 @@ fun StreakClaimedDialog(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-            Text(
-                text = "🎉 ${AppStrings.t(language, "day_label")} ${milestone.day} ${AppStrings.t(language, "streak_day_unlocked")}",
-                color = GoldAccent, fontSize = 20.sp, fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                GameIcon(R.drawable.icon_celebration, size = 20.dp)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = "${AppStrings.t(language, "day_label")} ${milestone.day} ${AppStrings.t(language, "streak_day_unlocked")}",
+                    color = GoldAccent, fontSize = 20.sp, fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = rewardDescription(milestone, language), color = TextPrimary, fontSize = 14.sp,
                 textAlign = TextAlign.Center)
@@ -1027,12 +1049,18 @@ fun TopBar(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "🔥 Streak ${state.currentStreak} days",
-                    fontSize = 11.sp,
-                    color = OrangeLight,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable { onStreakClick() }
-                )
+                ) {
+                    GameIcon(R.drawable.icon_streak, size = 11.dp)
+                    Spacer(Modifier.width(3.dp))
+                    Text(
+                        text = "Streak ${state.currentStreak} days",
+                        fontSize = 11.sp,
+                        color = OrangeLight
+                    )
+                }
                 Text(
                     text = "${GameCalculations.getXpForNextLevel(state.totalXp)} xp to next",
                     fontSize = 11.sp,
@@ -1063,7 +1091,7 @@ fun TopBar(
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
                 } else {
-                    Text(text = "👤", fontSize = 20.sp)
+                    GameIcon(R.drawable.icon_profile, size = 20.dp)
                 }
             }
             Text(
@@ -1481,11 +1509,11 @@ fun StatsPanel(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        StatItem(icon = "⚔️", value = "$power", color = PowerColor)
-        StatItem(icon = "🛡️", value = "$armor", color = ArmorColor)
-        StatItem(icon = "❤️", value = "$health", color = HealthColor)
-        StatItem(icon = "🍀", value = String.format("%.1f", luck), color = LuckColor)
-        StatItem(icon = "🦷", value = "${state.teeth}", color = Color(0xFFE0E0E0))
+        StatItem(icon = R.drawable.icon_power, value = "$power", color = PowerColor)
+        StatItem(icon = R.drawable.icon_armor, value = "$armor", color = ArmorColor)
+        StatItem(icon = R.drawable.icon_hp, value = "$health", color = HealthColor)
+        StatItem(icon = R.drawable.icon_luck, value = String.format("%.1f", luck), color = LuckColor)
+        StatItem(icon = R.drawable.icon_teeth, value = "${state.teeth}", color = Color(0xFFE0E0E0))
 
         Spacer(modifier = Modifier.width(4.dp))
 
@@ -1499,12 +1527,12 @@ fun StatsPanel(
 }
 
 @Composable
-fun StatItem(icon: String, value: String, color: Color) {
+fun StatItem(@androidx.annotation.DrawableRes icon: Int, value: String, color: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text(text = icon, fontSize = 16.sp)
+        com.ninthbalcony.pushuprpg.ui.components.GameIcon(resId = icon, size = 18.dp)
         Text(text = value, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = color)
     }
 }
@@ -1651,7 +1679,7 @@ fun BattleArena(
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = if (state.isPlayerDead) "💀" else "⚔️", fontSize = 18.sp)
+                GameIcon(if (state.isPlayerDead) R.drawable.icon_death else R.drawable.icon_power, size = 18.dp)
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
@@ -1841,19 +1869,34 @@ fun BattleArena(
                             alpha = 0.3f
                         )
                     }
-                    Text(
-                        text = when {
-                            state.isPlayerDead -> "💀 Dead"
-                            state.isGoldenGoblinActive -> "👊 PUNCH!"
-                            punchesRemaining == 0 -> "No punches"
-                            cooldownSec > 0L -> "⏳ ${cooldownSec}s"
-                            else -> "👊 Punch"
-                        },
-                        fontSize = if (state.isGoldenGoblinActive) 15.sp else 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (state.isGoldenGoblinActive) Color.Black else Color.White,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(horizontal = 12.dp)
-                    )
+                    ) {
+                        when {
+                            state.isPlayerDead -> {
+                                GameIcon(R.drawable.icon_death, size = if (state.isGoldenGoblinActive) 15.dp else 13.dp)
+                                Spacer(Modifier.width(4.dp))
+                                Text("Dead", fontSize = if (state.isGoldenGoblinActive) 15.sp else 13.sp, fontWeight = FontWeight.Bold, color = if (state.isGoldenGoblinActive) Color.Black else Color.White)
+                            }
+                            state.isGoldenGoblinActive -> {
+                                GameIcon(R.drawable.icon_punch, size = 15.dp)
+                                Spacer(Modifier.width(4.dp))
+                                Text("PUNCH!", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                            }
+                            punchesRemaining == 0 -> {
+                                Text("No punches", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            }
+                            cooldownSec > 0L -> {
+                                Text("⏳ ${cooldownSec}s", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            }
+                            else -> {
+                                GameIcon(R.drawable.icon_punch, size = 13.dp)
+                                Spacer(Modifier.width(4.dp))
+                                Text("Punch", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            }
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 if (state.isGoldenGoblinActive) {
@@ -2034,19 +2077,19 @@ fun LevelUpDialog(
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     StatPointButton(
-                        icon = "⚔️",
+                        icon = R.drawable.icon_power,
                         label = AppStrings.t(language, "stat_power"),
                         enabled = unspentPoints > 0,
                         onClick = { onSpendPoint("power") }
                     )
                     StatPointButton(
-                        icon = "❤️",
+                        icon = R.drawable.icon_hp,
                         label = AppStrings.t(language, "stat_health"),
                         enabled = unspentPoints > 0,
                         onClick = { onSpendPoint("health") }
                     )
                     StatPointButton(
-                        icon = "🍀",
+                        icon = R.drawable.icon_luck,
                         label = AppStrings.t(language, "stat_luck"),
                         enabled = unspentPoints > 0,
                         onClick = { onSpendPoint("luck") }
@@ -2080,7 +2123,7 @@ fun LevelUpDialog(
 
 @Composable
 fun StatPointButton(
-    icon: String,
+    @DrawableRes icon: Int,
     label: String,
     enabled: Boolean,
     onClick: () -> Unit
@@ -2097,7 +2140,7 @@ fun StatPointButton(
         contentPadding = PaddingValues(4.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = icon, fontSize = 24.sp)
+            GameIcon(icon, size = 24.dp)
             Text(
                 text = label,
                 fontSize = 10.sp,

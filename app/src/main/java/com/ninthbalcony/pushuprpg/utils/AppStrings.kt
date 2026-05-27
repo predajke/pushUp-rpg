@@ -389,8 +389,8 @@ object AppStrings {
 
         // --- Inventory extras ---
         "reset_bonus_label" to m("🔄 Reset Bonus:",    "🔄 Бонус ресета:",       "🔄 Bono Reinicio:",     "🔄 Bonus Réinit.:",    "🔄 Reset-Bonus:",          "🔄 Bônus Reinício:"),
-        "achievement_boosts_label" to m("📜 Achievement Boosts:", "📜 Бонусы достижений:", "📜 Mejoras Logros:", "📜 Boosts Succès:", "📜 Erfolgs-Boni:", "📜 Bônus Conquistas:"),
-        "set_modifiers_label" to m("⚙️ Set Modifiers:", "⚙️ Модификаторы наборов:", "⚙️ Modificadores Set:", "⚙️ Modificateurs Set:", "⚙️ Set-Modifikatoren:", "⚙️ Modificadores Set:"),
+        "achievement_boosts_label" to m("Achievement Boosts:", "Бонусы достижений:", "Mejoras Logros:", "Boosts Succès:", "Erfolgs-Boni:", "Bônus Conquistas:"),
+        "set_modifiers_label" to m("Set Modifiers:", "Модификаторы наборов:", "Modificadores Set:", "Modificateurs Set:", "Set-Modifikatoren:", "Modificadores Set:"),
         "stat_points_dist"  to m("Stat points to distribute:", "Очков для распределения:", "Puntos para distribuir:", "Points à distribuer:", "Punkte zu verteilen:", "Pontos a distribuir:"),
         "tonnage_label"     to m("Tonnage",         "Тоннаж",           "Tonelaje",             "Tonnage",              "Tonnage",              "Tonelagem"),
 
@@ -430,14 +430,14 @@ object AppStrings {
         // --- Quests extras ---
         "reroll_quest_desc" to m("Get 3 new random daily quests!", "Получите 3 новых случайных ежедневных задания!", "¡Obtén 3 nuevas misiones aleatorias!", "Obtenez 3 nouvelles quêtes aléatoires!", "Erhalte 3 neue zufällige Tagesquests!", "Obtenha 3 novas missões aleatórias!"),
         "reroll_quest_reward" to m("3 new quests",  "3 новых задания",  "3 misiones nuevas",    "3 nouvelles quêtes",   "3 neue Quests",        "3 novas missões"),
-        "reroll_quests_used" to m("🎬 Reroll Quests (used)", "🎬 Перебросить задания (исп.)", "🎬 Nuevas misiones (usadas)", "🎬 Relancer quêtes (utilisé)", "🎬 Quests neu würfeln (verbraucht)", "🎬 Novas missões (usado)"),
-        "reroll_quests_btn" to m("🎬 Watch Ad to Reroll Daily", "🎬 Перебросить ежедневные задания", "🎬 Ver anuncio para renovar", "🎬 Regarder pub pour relancer", "🎬 Anzeige für neue Tagesquests", "🎬 Ver anúncio para renovar"),
+        "reroll_quests_used" to m("Reroll Quests (used)", "Перебросить задания (исп.)", "Nuevas misiones (usadas)", "Relancer quêtes (utilisé)", "Quests neu würfeln (verbraucht)", "Novas missões (usado)"),
+        "reroll_quests_btn" to m("Watch Ad to Reroll Daily", "Перебросить ежедневные задания", "Ver anuncio para renovar", "Regarder pub pour relancer", "Anzeige für neue Tagesquests", "Ver anúncio para renovar"),
 
         // --- Statistics extras ---
-        "daily_spin_section" to m("🎰 Daily Spin",  "🎰 Вращение ленты","🎰 Giro diario",       "🎰 Tour quotidien",    "🎰 Tägliches Drehen",  "🎰 Giro diário"),
+        "daily_spin_section" to m("Daily Spin",  "Вращение ленты","Giro diario",       "Tour quotidien",    "Tägliches Drehen",  "Giro diário"),
         "teeth_from_spin"   to m("Teeth from spin", "Зубы с ленты",     "Dientes del giro",     "Dents du tour",        "Zähne vom Drehen",     "Dentes do giro"),
         "items_from_spin"   to m("Items from spin", "Вещи с ленты",     "Objetos del giro",     "Objets du tour",       "Gegenstände vom Drehen","Itens do giro"),
-        "teeth_sources_section" to m("🦷 Teeth sources", "🦷 Источники зубов", "🦷 Fuentes de dientes", "🦷 Sources de dents", "🦷 Zähne-Quellen", "🦷 Fontes de dentes"),
+        "teeth_sources_section" to m("Teeth sources", "Источники зубов", "Fuentes de dientes", "Sources de dents", "Zähne-Quellen", "Fontes de dentes"),
         "from_quests"       to m("From quests",     "С квестов",        "De misiones",          "Des quêtes",           "Von Quests",           "De missões"),
         "from_ads"          to m("From ads",        "С рекламы",        "De anuncios",          "Des publicités",       "Von Anzeigen",         "De anúncios"),
         "successful_merges" to m("Successful merges","Успешных merge",   "Fusiones exitosas",    "Fusions réussies",     "Erfolgreiche Verschmelzungen","Fusões bem-sucedidas"),

@@ -59,6 +59,9 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
+import com.ninthbalcony.pushuprpg.R
+import com.ninthbalcony.pushuprpg.ui.components.GameIcon
+import com.ninthbalcony.pushuprpg.ui.components.equipSlotIcon
 
 // Веса иконок для ленты (отражают вероятности наград)
 private val SPIN_WEIGHTED_TYPES = listOf(
@@ -221,11 +224,12 @@ fun ShopScreen(
         com.ninthbalcony.pushuprpg.ui.dialogs.RewardedAdDialog(
             title = AppStrings.t(language, "ad_title"),
             description = AppStrings.t(language, "ad_reward_desc"),
-            rewardText = "+$adRewardPending 🦷",
+            rewardText = "+$adRewardPending",
             language = language,
             onWatchAd = { (context as? android.app.Activity)?.let { viewModel.playRewardedAd(it) } },
             onDecline = { viewModel.dismissAdReward() },
-            onDismiss = { viewModel.dismissAdReward() }
+            onDismiss = { viewModel.dismissAdReward() },
+            rewardIconRes = R.drawable.icon_teeth
         )
     }
 
@@ -233,11 +237,12 @@ fun ShopScreen(
         com.ninthbalcony.pushuprpg.ui.dialogs.RewardedAdDialog(
             title = AppStrings.t(language, "ad_title"),
             description = AppStrings.t(language, "ad_reward_desc"),
-            rewardText = "+1 🎰",
+            rewardText = "+1",
             language = language,
             onWatchAd = { (context as? android.app.Activity)?.let { viewModel.playAdSpin(it) } },
             onDecline = { viewModel.dismissAdSpin() },
-            onDismiss = { viewModel.dismissAdSpin() }
+            onDismiss = { viewModel.dismissAdSpin() },
+            rewardIconRes = R.drawable.icon_spin
         )
     }
 
@@ -391,7 +396,7 @@ fun ShopScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(end = 16.dp)
             ) {
-                Text(text = "🦷", fontSize = 16.sp)
+                GameIcon(R.drawable.icon_teeth, size = 16.dp)
                 Text(
                     text = " ${state.teeth}",
                     fontSize = 16.sp,
@@ -698,9 +703,11 @@ fun ShopSection(
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp)
                     ) {
                         Text(
-                            text = "${AppStrings.t(language, "btn_reroll")} $rerollCost 🦷",
+                            text = "${AppStrings.t(language, "btn_reroll")} $rerollCost",
                             fontSize = 12.sp
                         )
+                        Spacer(Modifier.width(2.dp))
+                        GameIcon(R.drawable.icon_teeth, size = 14.dp)
                     }
                 }
             }
@@ -760,11 +767,15 @@ fun ShopSection(
                             fontWeight = FontWeight.Bold,
                             color = Color(ItemUtils.getRarityColor(selectedItem.rarity))
                         )
-                        Text(
-                            text = "🦷 $price",
-                            fontSize = 13.sp,
-                            color = if (canAfford) Color(0xFFE0E0E0) else HpBarLow
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            GameIcon(R.drawable.icon_teeth, size = 13.dp)
+                            Spacer(Modifier.width(3.dp))
+                            Text(
+                                text = "$price",
+                                fontSize = 13.sp,
+                                color = if (canAfford) Color(0xFFE0E0E0) else HpBarLow
+                            )
+                        }
                     }
                     Button(
                         onClick = { onBuy(selectedItem) },
@@ -784,16 +795,28 @@ fun ShopSection(
             }
 
             Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = if (rerollResetLabel != null)
-                    "${AppStrings.t(language, "reroll_reset_in")} $rerollResetLabel"
-                else
-                    (if (language == "ru") "Стоимость рерола: $rerollCost 🦷 (×3 за каждый рерол)" else "Reroll cost: $rerollCost 🦷 (×3 each reroll)"),
-                fontSize = 12.sp,
-                color = TextSecondary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (rerollResetLabel != null)
+                        "${AppStrings.t(language, "reroll_reset_in")} $rerollResetLabel"
+                    else
+                        (if (language == "ru") "Стоимость рерола: $rerollCost" else "Reroll cost: $rerollCost"),
+                    fontSize = 12.sp,
+                    color = TextSecondary,
+                )
+                if (rerollResetLabel == null) {
+                    GameIcon(R.drawable.icon_teeth, size = 12.dp, modifier = Modifier.padding(horizontal = 2.dp))
+                    Text(
+                        text = if (language == "ru") "(×3 за каждый рерол)" else "(×3 each reroll)",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                    )
+                }
+            }
         }
     }
 }
@@ -836,16 +859,20 @@ fun ShopItemCell(
                     contentScale = ContentScale.Fit
                 )
             } else {
-                Text(text = getItemEmojiForShop(item.slot), fontSize = 24.sp)
+                GameIcon(getItemIconForShop(item.slot), size = 24.dp)
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "🦷 $price",
-            fontSize = 11.sp,
-            color = Color(0xFFE0E0E0),
-            textAlign = TextAlign.Center
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            GameIcon(R.drawable.icon_teeth, size = 11.dp)
+            Spacer(Modifier.width(2.dp))
+            Text(
+                text = "$price",
+                fontSize = 11.sp,
+                color = Color(0xFFE0E0E0),
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
@@ -924,7 +951,7 @@ fun ForgeSection(
                             contentScale = ContentScale.Fit
                         )
                     } else {
-                        Text(text = "⚒️", fontSize = 40.sp)
+                        GameIcon(R.drawable.icon_forge, size = 40.dp)
                     }
                 }
 
@@ -949,7 +976,7 @@ fun ForgeSection(
                                 .width(92.dp)
                                 .height(44.dp)
                                 .background(
-                                    color = Color(0xFF0b0f02),  // новый цвет фона
+                                    color = Color(0xFF0b0f02),
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .border(
@@ -961,25 +988,23 @@ fun ForgeSection(
                                 .clickable(enabled = slot1Item != null && slot2Item != null) {
                                     mergeSparkActive = true
                                     onMerge()
-                                }
-                                .padding(horizontal = 12.dp),
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             if (mergeBtnBg != 0 && slot1Item != null && slot2Item != null) {
                                 Image(
                                     painter = painterResource(id = mergeBtnBg),
                                     contentDescription = null,
-                                    modifier = Modifier.matchParentSize(),
-                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.FillBounds,
                                     alpha = 0.3f
                                 )
                             }
                             Text(
                                 text = AppStrings.t(language, "btn_merge"),
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFC34017),  // новый цвет текста
-                                fontSize = 15.sp,
-                                modifier = Modifier.padding(horizontal = 12.dp)
+                                color = Color(0xFFC34017),
+                                fontSize = 15.sp
                             )
                             SparkBurst(
                                 active = mergeSparkActive,
@@ -997,7 +1022,7 @@ fun ForgeSection(
                                 .clickable { onRecycle() },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("♻", fontSize = 26.sp, color = Color(0xFF90EE90))
+                            GameIcon(R.drawable.icon_salvage, size = 26.dp)
                         }
                     }
                 }
@@ -1048,7 +1073,7 @@ fun ForgeSlot(
                     contentScale = ContentScale.Fit
                 )
             } else {
-                Text(text = getItemEmojiForShop(item.slot), fontSize = 32.sp)
+                GameIcon(getItemIconForShop(item.slot), size = 32.dp)
             }
         } else {
             Text(
@@ -1136,7 +1161,7 @@ fun CloverBoxSection(
                             contentScale = ContentScale.Fit
                         )
                     } else {
-                        Text(text = "📦", fontSize = 40.sp)
+                        GameIcon(R.drawable.icon_cloverbox, size = 40.dp)
                     }
                 }
 
@@ -1230,11 +1255,14 @@ fun CloverBoxSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("🎬", fontSize = 22.sp)
+                    GameIcon(R.drawable.icon_ads, size = 22.dp)
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(AppStrings.t(language, "ad_reward_title"), fontSize = 13.sp, color = TextPrimary)
-                        Text("+20 🦷", fontSize = 12.sp, color = TextSecondary)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("+20 ", fontSize = 12.sp, color = TextSecondary)
+                            GameIcon(R.drawable.icon_teeth, size = 12.dp)
+                        }
                         if (onAdCooldown) {
                             Text("${adCooldownRemaining / 1000}s", fontSize = 10.sp, color = TextMuted)
                         }
@@ -1338,7 +1366,7 @@ fun ForgeItemPickerDialog(
                                                 contentScale = ContentScale.Fit
                                             )
                                         } else {
-                                            Text(text = getItemEmojiForShop(item.slot), fontSize = 24.sp)
+                                            GameIcon(getItemIconForShop(item.slot), size = 24.dp)
                                         }
                                     }
                                 }
@@ -1669,7 +1697,7 @@ fun ResultDialog(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "✨", fontSize = 40.sp)
+                GameIcon(R.drawable.icon_ench, size = 40.dp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = message,
@@ -2064,7 +2092,7 @@ fun GrindstoneSection(
                             contentScale = ContentScale.Fit
                         )
                     } else {
-                        Text(text = "⚡", fontSize = 40.sp)
+                        GameIcon(R.drawable.icon_fast_ench, size = 40.dp)
                     }
                     MagicSwirl(
                         active = enchantSwirlActive,
@@ -2111,7 +2139,7 @@ fun GrindstoneSection(
                                     contentScale = ContentScale.Fit
                                 )
                             } else {
-                                Text(text = getItemEmojiForShop(selectedEnchantItem.slot), fontSize = 28.sp)
+                                GameIcon(getItemIconForShop(selectedEnchantItem.slot), size = 28.dp)
                             }
                             // Уровень заточки на предмете
                             val currentLevel = getEnchantLevel(selectedEnchantItem)
@@ -2148,11 +2176,14 @@ fun GrindstoneSection(
                             color = GoldAccent,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            text = "Cost = $enchantCost 🦷",
-                            fontSize = 12.sp,
-                            color = Color(0xFFE0E0E0)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Cost = $enchantCost ",
+                                fontSize = 12.sp,
+                                color = Color(0xFFE0E0E0)
+                            )
+                            GameIcon(R.drawable.icon_teeth, size = 14.dp)
+                        }
                         Text(
                             text = if (isNightMode) {
                                 if (language == "ru") "От +19: +2 Сила/Броня/HP"
@@ -2297,7 +2328,7 @@ fun EnchantItemPickerDialog(
                                         contentScale = ContentScale.Fit
                                     )
                                 } else {
-                                    Text(text = getItemEmojiForShop(item.slot), fontSize = 24.sp)
+                                    GameIcon(getItemIconForShop(item.slot), size = 24.dp)
                                 }
                                 if (enchantLevel > 0) {
                                     Box(
@@ -2353,16 +2384,7 @@ fun EnchantItemPickerDialog(
     }
 }
 
-private fun getItemEmojiForShop(slot: String): String {
-    return when (slot) {
-        "weapon" -> "⚔️"
-        "head" -> "⛑️"
-        "necklace" -> "📿"
-        "pants" -> "👖"
-        "boots" -> "👟"
-        else -> "📦"
-    }
-}
+private fun getItemIconForShop(slot: String): Int = equipSlotIcon(slot)
 
 // ==================== DAILY SPIN ====================
 
@@ -2618,7 +2640,7 @@ private fun SpinRibbonIcon(
                 contentScale = ContentScale.Fit
             )
         } else {
-            Text(text = "❓", fontSize = 24.sp)
+            GameIcon(R.drawable.icon_question, size = 24.dp)
         }
     }
 }
@@ -2744,7 +2766,7 @@ private fun SpinResultDialog(
                                         contentScale = ContentScale.Fit
                                     )
                                 } else {
-                                    Text("❓", fontSize = 36.sp)
+                                    GameIcon(R.drawable.icon_question, size = 36.dp)
                                 }
                             }
                         }

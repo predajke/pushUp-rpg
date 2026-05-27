@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ninthbalcony.pushuprpg.R
 import com.ninthbalcony.pushuprpg.ui.theme.*
+import com.ninthbalcony.pushuprpg.ui.components.GameIcon
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.remember
 
@@ -72,7 +73,7 @@ fun LoginScreen(
                         contentScale = androidx.compose.ui.layout.ContentScale.Fit
                     )
                 } else {
-                    Text(text = "💪", fontSize = 80.sp)
+                    GameIcon(R.drawable.icon_strenght, size = 80.dp)
                 }
             }
 

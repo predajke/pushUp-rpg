@@ -22,7 +22,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ninthbalcony.pushuprpg.R
 import com.ninthbalcony.pushuprpg.ui.GameViewModel
+import com.ninthbalcony.pushuprpg.ui.components.GameIcon
 import com.ninthbalcony.pushuprpg.ui.theme.*
 import com.ninthbalcony.pushuprpg.utils.ActiveQuest
 import com.ninthbalcony.pushuprpg.utils.AppStrings
@@ -88,12 +90,15 @@ fun QuestsScreen(
                 Text("‹", color = OrangeAccent, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "📋 ${AppStrings.t(language, "quests")}",
-                color = TextPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                GameIcon(R.drawable.icon_quests, size = 20.dp)
+                Text(
+                    text = AppStrings.t(language, "quests"),
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            }
         }
 
         LazyColumn(
@@ -145,6 +150,8 @@ fun QuestsScreen(
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = if (alreadyRerolledToday) TextMuted else OrangeAccent),
                         border = androidx.compose.foundation.BorderStroke(1.dp, if (alreadyRerolledToday) TextMuted else OrangeAccent)
                     ) {
+                        GameIcon(R.drawable.icon_ads, size = 14.dp)
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = if (alreadyRerolledToday)
                                 AppStrings.t(language, "reroll_quests_used")
@@ -273,12 +280,32 @@ private fun QuestCard(
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = QuestSystem.getRewardText(def, language),
-                color = GoldAccent,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                val rewardText = QuestSystem.getRewardText(def, language)
+                if (def.rewardTeeth > 0) {
+                    Text(text = rewardText, color = GoldAccent, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    GameIcon(R.drawable.icon_teeth, size = 14.dp)
+                }
+                if (def.rewardTeeth > 0 && def.rewardItemRarity != null) {
+                    Text(" + ", color = TextSecondary, fontSize = 13.sp)
+                }
+                if (def.rewardItemRarity != null) {
+                    val rarityColor = when (def.rewardItemRarity) {
+                        "common" -> CommonColor
+                        "uncommon" -> UncommonColor
+                        "rare" -> RareColor
+                        "epic" -> EpicColor
+                        "legendary" -> GoldAccent
+                        else -> TextPrimary
+                    }
+                    val rarityText = if (def.rewardTeeth > 0) {
+                        if (language == "ru") "вещь" else "item"
+                    } else {
+                        QuestSystem.getRewardText(def, language)
+                    }
+                    Text(text = rarityText, color = rarityColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))

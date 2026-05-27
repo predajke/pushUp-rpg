@@ -27,6 +27,8 @@ import com.ninthbalcony.pushuprpg.utils.AppStrings
 import com.ninthbalcony.pushuprpg.utils.TonnageCalculator
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
+import com.ninthbalcony.pushuprpg.R
+import com.ninthbalcony.pushuprpg.ui.components.GameIcon
 
 @Composable
 fun StatisticsScreen(
@@ -166,7 +168,7 @@ private fun SummaryStrip(weekTotal: Int, yearTotal: Int, weekAvg: Int, language:
 private fun SummaryStatCard(label: String, value: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .background(DarkCard, RoundedCornerShape(18.dp))
+            .background(DarkCard.copy(alpha = 0.75f), RoundedCornerShape(18.dp))
             .border(0.5.dp, DarkSurfaceVariant, RoundedCornerShape(18.dp))
             .padding(horizontal = 12.dp, vertical = 14.dp)
     ) {
@@ -208,7 +210,7 @@ fun BarChartPanel(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DarkCard, RoundedCornerShape(16.dp))
+            .background(DarkCard.copy(alpha = 0.75f), RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
         // Заголовок
@@ -339,7 +341,7 @@ fun PushUpStatsCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DarkCard, RoundedCornerShape(12.dp))
+            .background(DarkCard.copy(alpha = 0.75f), RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
         StatRow(
@@ -392,7 +394,7 @@ fun TonnageStatsCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DarkCard, RoundedCornerShape(12.dp))
+            .background(DarkCard.copy(alpha = 0.75f), RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
         Text(
@@ -455,7 +457,7 @@ fun RpgStatsCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(DarkCard, RoundedCornerShape(12.dp))
+            .background(DarkCard.copy(alpha = 0.75f), RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
         Text(
@@ -474,23 +476,27 @@ fun RpgStatsCard(
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "items_collected"),
-            value = "${state.itemsCollected}"
+            value = "${state.itemsCollected}",
+            iconRes = R.drawable.icon_helm
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "dmg_dealt"),
-            value = "${state.totalDamageDealt}"
+            value = "${state.totalDamageDealt}",
+            iconRes = R.drawable.icon_power
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "dmg_highest"),
             value = "${state.highestDamage}",
-            valueColor = PowerColor
+            valueColor = PowerColor,
+            iconRes = R.drawable.icon_crit
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "enemies_killed"),
-            value = "${state.monstersKilled}"
+            value = "${state.monstersKilled}",
+            iconRes = R.drawable.icon_death
         )
         StatDivider()
         StatRow(
@@ -499,39 +505,46 @@ fun RpgStatsCard(
                 state.characterBirthDate
             else
                 AppStrings.t(language, "unknown"),
-            valueColor = TextSecondary
+            valueColor = TextSecondary,
+            iconRes = R.drawable.icon_profile
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "best_session"),
             value = if (state.bestSingleSession > 0) "${state.bestSingleSession}" else "—",
-            valueColor = GoldAccent
+            valueColor = GoldAccent,
+            iconRes = R.drawable.icon_streak
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "crit_hits"),
-            value = "${state.totalCriticalHits}"
+            value = "${state.totalCriticalHits}",
+            iconRes = R.drawable.icon_crit
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "enchants_done"),
             value = "${state.totalEnchantmentsSuccess}",
-            valueColor = GoldAccent
+            valueColor = GoldAccent,
+            iconRes = R.drawable.icon_ench
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "items_merged"),
-            value = "${state.totalItemsMerged}"
+            value = "${state.totalItemsMerged}",
+            iconRes = R.drawable.icon_forge
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "teeth_spent"),
-            value = "${state.totalTeethSpent}"
+            value = "${state.totalTeethSpent}",
+            iconRes = R.drawable.icon_teeth
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "teeth_earned"),
-            value = "${state.totalTeethEarned}"
+            value = "${state.totalTeethEarned}",
+            iconRes = R.drawable.icon_teeth
         )
         StatDivider()
         StatRow(
@@ -541,73 +554,89 @@ fun RpgStatsCard(
         )
 
         // ── Вращение ленты ──
-        StatSectionHeader(AppStrings.t(language, "daily_spin_section"))
+        StatSectionHeader(AppStrings.t(language, "daily_spin_section"), iconRes = R.drawable.icon_spin)
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "teeth_from_spin"),
-            value = "+${state.teethFromSpin} 🦷",
-            valueColor = UncommonColor
+            value = "+${state.teethFromSpin}",
+            valueColor = UncommonColor,
+            iconRes = R.drawable.icon_teeth
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "items_from_spin"),
             value = "+${state.itemsFromSpin}",
-            valueColor = UncommonColor
+            valueColor = UncommonColor,
+            iconRes = R.drawable.icon_neck
         )
 
         // ── Источники зубов ──
-        StatSectionHeader(AppStrings.t(language, "teeth_sources_section"))
+        StatSectionHeader(AppStrings.t(language, "teeth_sources_section"), iconRes = R.drawable.icon_teeth)
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "from_quests"),
-            value = "+${state.teethFromQuests} 🦷",
-            valueColor = UncommonColor
+            value = "+${state.teethFromQuests}",
+            valueColor = UncommonColor,
+            iconRes = R.drawable.icon_quests
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "from_ads"),
-            value = "+${state.teethFromAds} 🦷",
-            valueColor = UncommonColor
+            value = "+${state.teethFromAds}",
+            valueColor = UncommonColor,
+            iconRes = R.drawable.icon_ads
         )
 
         // ── Forge & Enchant ──
-        StatSectionHeader("🔨 Forge & Enchant")
+        StatSectionHeader("Forge & Enchant", iconRes = R.drawable.icon_forge)
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "successful_merges"),
             value = "${state.totalItemsMerged}",
-            valueColor = GoldAccent
+            valueColor = GoldAccent,
+            iconRes = R.drawable.icon_forge
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "failed_merges"),
             value = "${(state.totalMergeAttempts - state.totalItemsMerged).coerceAtLeast(0)}",
-            valueColor = Color(0xFFE53935)
+            valueColor = Color(0xFFE53935),
+            iconRes = R.drawable.icon_forge
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "successful_enchants"),
             value = "${state.totalEnchantmentsSuccess}",
-            valueColor = GoldAccent
+            valueColor = GoldAccent,
+            iconRes = R.drawable.icon_ench
         )
         StatDivider()
         StatRow(
             label = AppStrings.t(language, "failed_enchants"),
             value = "${(state.totalEnchantAttempts - state.totalEnchantmentsSuccess).coerceAtLeast(0)}",
-            valueColor = Color(0xFFE53935)
+            valueColor = Color(0xFFE53935),
+            iconRes = R.drawable.icon_ench
         )
     }
 }
 
 @Composable
-private fun StatSectionHeader(text: String) {
-    Text(
-        text = text,
-        color = TextSecondary,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
+private fun StatSectionHeader(text: String, @androidx.annotation.DrawableRes iconRes: Int? = null) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 12.dp, bottom = 2.dp)
-    )
+    ) {
+        if (iconRes != null) {
+            GameIcon(iconRes, size = 11.dp)
+            Spacer(Modifier.width(4.dp))
+        }
+        Text(
+            text = text,
+            color = TextSecondary,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
 }
 
 // --- Вспомогательные ---
@@ -615,7 +644,8 @@ private fun StatSectionHeader(text: String) {
 fun StatRow(
     label: String,
     value: String,
-    valueColor: Color = TextPrimary
+    valueColor: Color = TextPrimary,
+    @androidx.annotation.DrawableRes iconRes: Int? = null
 ) {
     Row(
         modifier = Modifier
@@ -624,12 +654,20 @@ fun StatRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = label,
-            fontSize = 14.sp,
-            color = TextSecondary,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
-        )
+        ) {
+            if (iconRes != null) {
+                GameIcon(iconRes, size = 14.dp)
+                Spacer(Modifier.width(4.dp))
+            }
+            Text(
+                text = label,
+                fontSize = 14.sp,
+                color = TextSecondary
+            )
+        }
         Text(
             text = value,
             fontSize = 14.sp,

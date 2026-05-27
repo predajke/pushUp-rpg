@@ -28,6 +28,8 @@ import com.ninthbalcony.pushuprpg.ui.theme.TextPrimary
 import com.ninthbalcony.pushuprpg.ui.theme.TextSecondary
 import com.ninthbalcony.pushuprpg.ui.theme.UncommonColor
 import com.ninthbalcony.pushuprpg.utils.AppStrings
+import androidx.annotation.DrawableRes
+import com.ninthbalcony.pushuprpg.ui.components.GameIcon
 
 @Composable
 fun RewardedAdDialog(
@@ -37,7 +39,8 @@ fun RewardedAdDialog(
     language: String,
     onWatchAd: () -> Unit,
     onDecline: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    @DrawableRes rewardIconRes: Int? = null
 ) {
     val context = LocalContext.current
     val bgResId = remember { context.resources.getIdentifier("bg_fight_3", "drawable", context.packageName) }
@@ -75,12 +78,20 @@ fun RewardedAdDialog(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
-                Text(
-                    text = "${AppStrings.t(language, "reward_label")} $rewardText",
-                    fontSize = 16.sp,
-                    color = UncommonColor,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 16.dp)
-                )
+                ) {
+                    Text(
+                        text = "${AppStrings.t(language, "reward_label")} $rewardText",
+                        fontSize = 16.sp,
+                        color = UncommonColor
+                    )
+                    if (rewardIconRes != null) {
+                        Spacer(Modifier.width(4.dp))
+                        GameIcon(rewardIconRes, size = 16.dp)
+                    }
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
