@@ -98,14 +98,14 @@ fun AppNavigation(viewModel: GameViewModel) {
         composable(Routes.MAIN_MENU) {
             MainMenuScreen(
                 viewModel = viewModel,
-                onNavigateToInventory = { navController.navigate(Routes.INVENTORY) },
-                onNavigateToLogs = { navController.navigate(Routes.LOGS) },
-                onNavigateToStatistics = { navController.navigate(Routes.STATISTICS) },
-                onNavigateToSettings = { navController.navigate(Routes.SETTINGS) },
-                onNavigateToShop = { navController.navigate(Routes.SHOP) },
-                onNavigateToQuests = { navController.navigate(Routes.QUESTS) },
-                onNavigateToProgress = { navController.navigate(Routes.PROGRESS) },
-                onNavigateToLeaderboard = { navController.navigate(Routes.LEADERBOARD) }
+                onNavigateToInventory = { navController.navigate(Routes.INVENTORY) { launchSingleTop = true } },
+                onNavigateToLogs = { navController.navigate(Routes.LOGS) { launchSingleTop = true } },
+                onNavigateToStatistics = { navController.navigate(Routes.STATISTICS) { launchSingleTop = true } },
+                onNavigateToSettings = { navController.navigate(Routes.SETTINGS) { launchSingleTop = true } },
+                onNavigateToShop = { navController.navigate(Routes.SHOP) { launchSingleTop = true } },
+                onNavigateToQuests = { navController.navigate(Routes.QUESTS) { launchSingleTop = true } },
+                onNavigateToProgress = { navController.navigate(Routes.PROGRESS) { launchSingleTop = true } },
+                onNavigateToLeaderboard = { navController.navigate(Routes.LEADERBOARD) { launchSingleTop = true } }
             )
         }
 
@@ -114,8 +114,8 @@ fun AppNavigation(viewModel: GameViewModel) {
             InventoryScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
-                onNavigateToShop = { navController.navigate(Routes.SHOP) },
-                onNavigateToAchievements = { navController.navigate(Routes.ACHIEVEMENTS) }
+                onNavigateToShop = { navController.navigate(Routes.SHOP) { launchSingleTop = true } },
+                onNavigateToAchievements = { navController.navigate(Routes.ACHIEVEMENTS) { launchSingleTop = true } }
             )
         }
 
@@ -163,10 +163,10 @@ fun AppNavigation(viewModel: GameViewModel) {
         composable(Routes.PROGRESS) {
             ProgressScreen(
                 viewModel = viewModel,
-                onNavigateToAchievements = { navController.navigate(Routes.ACHIEVEMENTS) },
-                onNavigateToBestiary = { navController.navigate(Routes.BESTIARY) },
-                onNavigateToBosses = { navController.navigate(Routes.BOSSES) },
-                onNavigateToItemLog = { navController.navigate(Routes.ITEM_LOG) },
+                onNavigateToAchievements = { navController.navigate(Routes.ACHIEVEMENTS) { launchSingleTop = true } },
+                onNavigateToBestiary = { navController.navigate(Routes.BESTIARY) { launchSingleTop = true } },
+                onNavigateToBosses = { navController.navigate(Routes.BOSSES) { launchSingleTop = true } },
+                onNavigateToItemLog = { navController.navigate(Routes.ITEM_LOG) { launchSingleTop = true } },
                 onBack = { navController.popBackStack() }
             )
         }

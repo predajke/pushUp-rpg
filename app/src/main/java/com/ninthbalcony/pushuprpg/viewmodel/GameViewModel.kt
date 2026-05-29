@@ -101,7 +101,7 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
             .filterNotNull()
             .distinctUntilChangedBy { leaderboardRepo.publicFingerprint(it) }
             .debounce(LeaderboardRepository.PUSH_DEBOUNCE_MS)
-            .onEach { leaderboardRepo.pushSnapshot(it) }
+            .onEach { leaderboardRepo.pushSnapshot(it, _playerIconUri.value) }
             .launchIn(viewModelScope)
 
         // Auto-refresh leaderboard each time we transition offline → online.

@@ -79,6 +79,7 @@ data class LeaderboardPlayer(
     val friendCode: String = "",
     val heroAvatar: String = "avatar_base",
     val gender: String = "male",
+    val avatarUrl: String = "",
     val totalTeethEarned: Int = 0,
     val longestStreak: Int = 0,
     val lastUpdated: Long = 0L,
@@ -145,9 +146,11 @@ private fun LbAvatar(
     size: Dp = 26.dp,
     borderColor: Color? = null,
     bgBrush: Brush? = null,
-    avatarUrl: String? = null,
+    avatarUrl: String = "",
+    heroAvatar: String = "avatar_base",
+    gender: String = "male",
 ) {
-    val initial = remember(name) { (name.firstOrNull() ?: '?').uppercaseChar().toString() }
+    val gameAvatarResId = rememberAvatarResId(heroAvatar, gender)
     val derivedBorder = when (rank) {
         1    -> Color(0x66F3C969)
         2    -> Color(0x59CFD2D6)
@@ -168,20 +171,35 @@ private fun LbAvatar(
             .border(1.dp, borderColor ?: derivedBorder, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
-        if (!avatarUrl.isNullOrBlank()) {
-            AsyncImage(
-                model = avatarUrl,
-                contentDescription = name,
-                modifier = Modifier.fillMaxSize().clip(CircleShape),
-                contentScale = ContentScale.Crop,
-            )
-        } else {
-            Text(
-                text = initial,
-                color = TextPrimary,
-                fontSize = (size.value * 0.40f).sp,
-                fontWeight = FontWeight.Bold,
-            )
+        when {
+            // Priority 1: Google Play avatar URL
+            avatarUrl.isNotBlank() -> {
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = name,
+                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+            // Priority 2: in-game avatar drawable
+            gameAvatarResId != 0 -> {
+                Image(
+                    painter = painterResource(id = gameAvatarResId),
+                    contentDescription = name,
+                    modifier = Modifier.fillMaxSize().clip(CircleShape).padding(2.dp),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+            // Priority 3: initial letter
+            else -> {
+                val initial = remember(name) { (name.firstOrNull() ?: '?').uppercaseChar().toString() }
+                Text(
+                    text = initial,
+                    color = TextPrimary,
+                    fontSize = (size.value * 0.40f).sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
     }
 }
@@ -250,7 +268,7 @@ private fun LbColumnHeader() {
 // ── Player row (5 fixed cols, no scroll) ─────────────────────────────────────
 
 @Composable
-private fun LbPlayerRow(p: LeaderboardPlayer, avatarUrl: String? = null, onClick: (() -> Unit)? = null) {
+private fun LbPlayerRow(p: LeaderboardPlayer, onClick: (() -> Unit)? = null) {
     val rankColor = when (p.rank) {
         1    -> GoldAccent
         2    -> PodiumSilver
@@ -282,7 +300,7 @@ private fun LbPlayerRow(p: LeaderboardPlayer, avatarUrl: String? = null, onClick
             modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            LbAvatar(name = p.name, rank = p.rank, avatarUrl = if (p.isMe) avatarUrl else null)
+            LbAvatar(name = p.name, rank = p.rank, avatarUrl = p.avatarUrl, heroAvatar = p.heroAvatar, gender = p.gender)
             Spacer(Modifier.width(6.dp))
             if (p.clanTag.isNotBlank()) {
                 Text(
@@ -396,7 +414,7 @@ fun LeaderboardScreen(
 
     val friendUids = remember(friends) { friends.map { it.uid }.toSet() }
     val myAvatarUrl by viewModel.playerIconUri.collectAsState()
-    val me = remember(gameState) { buildMePlayer(gameState) }
+    val me = remember(gameState, myAvatarUrl) { buildMePlayer(gameState, myAvatarUrl) }
     // Merge top-100 + friends (friends might be outside top-100), dedup, sort by pushUps,
     // assign rank, mark isMe / isFriend.
     val players = remember(liveEntries, friends, me, friendUids) {
@@ -582,7 +600,6 @@ fun LeaderboardScreen(
                         itemsIndexed(filtered, key = { _, p -> "${p.rank}-${p.name}" }) { _, p ->
                             LbPlayerRow(
                                 p = p,
-                                avatarUrl = if (p.isMe) myAvatarUrl else null,
                                 onClick = if (!p.isMe) { { selectedPlayer = p } } else null,
                             )
                         }
@@ -591,7 +608,6 @@ fun LeaderboardScreen(
 
                 StickyMeRow(
                     me = me,
-                    avatarUrl = myAvatarUrl,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .navigationBarsPadding(),
@@ -620,7 +636,6 @@ fun LeaderboardScreen(
 @Composable
 private fun StickyMeRow(
     me: LeaderboardPlayer,
-    avatarUrl: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val cardShape = RoundedCornerShape(10.dp)
@@ -668,7 +683,9 @@ private fun StickyMeRow(
                 rank = me.rank,
                 borderColor = Color(0x8CFF8A2A),
                 bgBrush = Brush.radialGradient(listOf(Color(0xFF4A2A10), Color(0xFF1A1108))),
-                avatarUrl = avatarUrl,
+                avatarUrl = me.avatarUrl,
+                heroAvatar = me.heroAvatar,
+                gender = me.gender,
             )
             Spacer(Modifier.width(6.dp))
             if (me.clanTag.isNotBlank()) {
@@ -763,6 +780,7 @@ private fun mapEntriesToPlayers(
             friendCode = e.friendCode,
             heroAvatar = e.heroAvatar,
             gender = e.gender,
+            avatarUrl = e.avatarUrl,
             totalTeethEarned = e.totalTeethEarned,
             longestStreak = e.longestStreak,
             lastUpdated = e.lastUpdated,
@@ -778,7 +796,7 @@ private fun mapEntriesToPlayers(
 
 private val BIRTH_DATE_FMT = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
-private fun buildMePlayer(gs: GameStateEntity?): LeaderboardPlayer {
+private fun buildMePlayer(gs: GameStateEntity?, myAvatarUrl: String? = null): LeaderboardPlayer {
     if (gs == null) {
         return LeaderboardPlayer(
             rank = MY_RANK, name = "YouHero", country = MY_COUNTRY, isMe = true,
@@ -805,6 +823,7 @@ private fun buildMePlayer(gs: GameStateEntity?): LeaderboardPlayer {
         clanTagColor = gs.clanTagColor,
         heroAvatar = gs.heroAvatar,
         gender = gs.playerGender,
+        avatarUrl = myAvatarUrl ?: "",
         totalTeethEarned = gs.totalTeethEarned,
         longestStreak = gs.longestStreak,
     )

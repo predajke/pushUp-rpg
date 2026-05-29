@@ -64,9 +64,9 @@ class LeaderboardRepository {
      * Push the public profile snapshot to RTDB. No-op without an authenticated
      * user. Caller is responsible for debouncing — see [shouldPush].
      */
-    suspend fun pushSnapshot(state: GameStateEntity) {
+    suspend fun pushSnapshot(state: GameStateEntity, playGamesAvatarUrl: String? = null) {
         val uid = ensureSignedIn() ?: return
-        val payload = mapOf(
+        val payload = mutableMapOf<String, Any>(
             "name"             to state.playerName,
             "country"          to state.playerCountry,
             "clanTag"          to state.clanTag,
@@ -81,6 +81,9 @@ class LeaderboardRepository {
             "longestStreak"    to state.longestStreak,
             "lastUpdated"      to System.currentTimeMillis(),
         )
+        if (!playGamesAvatarUrl.isNullOrBlank()) {
+            payload["avatarUrl"] = playGamesAvatarUrl
+        }
         runCatching {
             database.reference.child("leaderboard").child(uid).updateChildren(payload).await()
             Log.d(TAG, "Pushed leaderboard snapshot for uid=$uid")
@@ -318,6 +321,7 @@ class LeaderboardRepository {
         clanTagColor     = s.child("clanTagColor").getValue(String::class.java) ?: "default",
         heroAvatar       = s.child("heroAvatar").getValue(String::class.java) ?: "avatar_base",
         gender           = s.child("gender").getValue(String::class.java) ?: "male",
+        avatarUrl        = s.child("avatarUrl").getValue(String::class.java) ?: "",
         level            = s.child("level").getValue(Int::class.java) ?: 1,
         prestige         = s.child("prestige").getValue(Int::class.java) ?: 0,
         power            = s.child("power").getValue(Int::class.java) ?: 0,
@@ -395,6 +399,7 @@ data class LeaderboardEntry(
     val clanTagColor: String,
     val heroAvatar: String,
     val gender: String,
+    val avatarUrl: String = "",
     val level: Int,
     val prestige: Int,
     val power: Int = 0,

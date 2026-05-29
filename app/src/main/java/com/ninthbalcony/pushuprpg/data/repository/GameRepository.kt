@@ -103,7 +103,14 @@ class GameRepository(private val context: Context) : IGameRepository {
     }
 
     override suspend fun getGameState(): GameStateEntity {
-        return dao.getGameState() ?: createInitialGameState()
+        val state = dao.getGameState() ?: return createInitialGameState()
+        // One-time migration: replace default "Hero" name with a random one
+        if (state.playerName == "Hero") {
+            val migrated = state.copy(playerName = com.ninthbalcony.pushuprpg.utils.randomHeroName())
+            saveStamped(migrated)
+            return migrated
+        }
+        return state
     }
 
     override suspend fun saveGameState(state: GameStateEntity) {
