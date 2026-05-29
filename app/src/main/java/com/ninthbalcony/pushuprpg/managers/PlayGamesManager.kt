@@ -47,6 +47,9 @@ class PlayGamesManager(private val context: Context, private val scope: Coroutin
         private const val ACHIEVEMENT_FAILED_ENCHANTS = "CgkI58rH-vINEAIQBQ"
         private const val ACHIEVEMENT_FULL_WARDROBE = "CgkI58rH-vINEAIQBg"
         private const val ACHIEVEMENT_ALCHEMIST = "CgkI58rH-vINEAIQBw"
+        private const val ACHIEVEMENT_ARACHNOPHOBE = "Cgkl58rH-vINEAIQCg"
+        private const val ACHIEVEMENT_STREET_FIGHTER = "Cgkl58rH-vINEAIQCw"
+        private const val ACHIEVEMENT_SCROOGE_MCFANG = "Cgkl58rH-vINEAIQDA"
     }
 
     private val auth = FirebaseAuth.getInstance()
@@ -257,6 +260,27 @@ class PlayGamesManager(private val context: Context, private val scope: Coroutin
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_ALCHEMIST, steps)
         Log.d(TAG, "Incremented Alchemist by $steps")
+    }
+
+    fun incrementAchievementArachnophobe(steps: Int) {
+        if (!_isAuth.value) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_ARACHNOPHOBE, steps)
+        Log.d(TAG, "Incremented Arachnophobe by $steps")
+    }
+
+    fun incrementAchievementStreetFighter(steps: Int) {
+        if (!_isAuth.value) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_STREET_FIGHTER, steps)
+        Log.d(TAG, "Incremented Street Fighter by $steps")
+    }
+
+    fun incrementAchievementScroogeMcFang(steps: Int) {
+        if (!_isAuth.value) return
+        val a = act() ?: return
+        PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_SCROOGE_MCFANG, steps)
+        Log.d(TAG, "Incremented Scrooge McFang by $steps")
     }
 
     fun destroy() {

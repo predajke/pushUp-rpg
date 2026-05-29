@@ -653,6 +653,10 @@ class GameRepository(private val context: Context) : IGameRepository {
         if (droppedRarity == "legendary") {
             playGamesManager?.unlockAchievementLegendaryCatch()
         }
+        // Arachnophobe: increment for low-level monster kills (1-5)
+        if (state.monsterLevel in 1..5) {
+            playGamesManager?.incrementAchievementArachnophobe(1)
+        }
 
         val afterAchievements = AchievementSystem.checkAndUnlock(updated, today)
         return AvatarSystem.checkAndUnlock(afterAchievements)
@@ -1022,6 +1026,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 activeQuestsJson = QuestSystem.serialize(buyQuests)
             ))
 
+            playGamesManager?.incrementAchievementScroogeMcFang(price)
             addLog(
                 "Bought ${item.name_en} for $price 🦷",
                 "Куплено ${item.name_ru} за $price 🦷"
@@ -1071,6 +1076,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             shopRerollResetTime = if (currentCount == 0) now else state.shopRerollResetTime,
             activeQuestsJson = QuestSystem.serialize(rerollQuests)
         ))
+        playGamesManager?.incrementAchievementScroogeMcFang(cost)
         return true
     }
 
@@ -1521,10 +1527,12 @@ class GameRepository(private val context: Context) : IGameRepository {
                     "⚡ ${item.name_ru} успешно заточен до +$newLevel!"
                 )
                 playGamesManager?.incrementAchievementAlchemist(1)
+                playGamesManager?.incrementAchievementScroogeMcFang(cost)
                 EnchantResult.SUCCESS
             } else {
                 var failQuests = QuestSystem.deserialize(state.activeQuestsJson)
                 failQuests = QuestSystem.addProgress(failQuests, QuestType.TEETH_SPENT, cost)
+                playGamesManager?.incrementAchievementScroogeMcFang(cost)
                 saveStamped(state.copy(
                     teeth = newTeeth,
                     totalTeethSpent = state.totalTeethSpent + cost,
@@ -1789,6 +1797,7 @@ class GameRepository(private val context: Context) : IGameRepository {
             )
         }
         saveStamped(newState.copy(totalPunchesAllTime = newState.totalPunchesAllTime + 1))
+        playGamesManager?.incrementAchievementStreetFighter(1)
         dmg
     }
 
