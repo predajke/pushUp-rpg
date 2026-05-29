@@ -118,8 +118,8 @@ class GameCalculationsTest {
         assertEquals(2, GameCalculations.getTeethFromSell("common"))
         assertEquals(4, GameCalculations.getTeethFromSell("uncommon"))
         assertEquals(8, GameCalculations.getTeethFromSell("rare"))
-        assertEquals(15, GameCalculations.getTeethFromSell("epic"))
-        assertEquals(25, GameCalculations.getTeethFromSell("legendary"))
+        assertEquals(22, GameCalculations.getTeethFromSell("epic"))
+        assertEquals(40, GameCalculations.getTeethFromSell("legendary"))
     }
 
     @Test
