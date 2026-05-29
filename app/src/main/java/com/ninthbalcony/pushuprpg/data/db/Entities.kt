@@ -199,7 +199,13 @@ data class GameStateEntity(
     val spinBoostArmorPercent: Float = 0f,
     val spinBoostPower: Int = 0,
     val spinBoostArmor: Int = 0,
-    val spinBoostHp: Int = 0
+    val spinBoostHp: Int = 0,
+
+    // ===== Achievement tracking counters =====
+    val nightSpinWins: Int = 0,              // Выигрышные Night Spin (результат ≠ Nothing)
+    val nightSpinNothing: Int = 0,           // Night Spin с результатом Nothing
+    val nightEnchantMaxLevel: Int = 0,       // Макс уровень ночной заточки
+    val totalPunchesAllTime: Int = 0         // Всего панчей за всё время
 )
 
 @Entity(tableName = "pushup_records")

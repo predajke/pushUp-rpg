@@ -127,6 +127,10 @@ object MonsterUtils {
 
     fun getAllMonsters(): List<Monster> = monsters
 
+    /** Returns the level of a monster by its English name, or 0 if not found. */
+    fun getMonsterLevelByName(name: String): Int =
+        monsters.find { it.name == name }?.level ?: 0
+
     // Герой меняет облик в зависимости от уровня
     fun getHeroImageRes(heroLevel: Int): String {
         return when {

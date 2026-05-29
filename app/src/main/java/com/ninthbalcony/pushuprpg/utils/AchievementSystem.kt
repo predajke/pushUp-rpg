@@ -18,7 +18,11 @@ data class AchievementDef(
     val imageRes: String,
     val bonusType: AchBonusType,
     val bonusValue: Float,
-    val tier: Int = 0
+    val tier: Int = 0,
+    val bonusType2: AchBonusType? = null,
+    val bonusValue2: Float = 0f,
+    val bonusType3: AchBonusType? = null,
+    val bonusValue3: Float = 0f
 )
 
 data class UnlockedAchievement(val defId: String, val unlockedDate: String = "")
@@ -55,16 +59,16 @@ object AchievementSystem {
         AchievementDef("ach_early_bird",      "Ранняя пташка",         "Early Bird",         "Отжимания до 7:00",               "Push-ups before 7:00",             "ach_early_bird",      AchBonusType.XP_PERCENT,        0.03f),
         AchievementDef("ach_immortal",        "Бессмертный",           "Immortal",           "7-дневный стрик",                 "7-day streak",                     "ach_immortal",        AchBonusType.HP_FLAT,           25f),
         AchievementDef("ach_alchemist",       "Алхимик",               "Alchemist",          "10 операций в Forge",             "10 Forge operations",              "ach_alchemist",       AchBonusType.ENCHANT_FLAT,      4f),
-        AchievementDef("ach_dragon_slayer",   "Покоритель дракона",    "Dragon Slayer",      "Убей Ancient Dragon",             "Kill the Ancient Dragon",          "boss_ancient_dragon", AchBonusType.DAMAGE_PERCENT,    0.08f),
+        AchievementDef("ach_dragon_slayer",   "Покоритель дракона",    "Dragon Slayer",      "Убей Ancient Dragon",             "Kill the Ancient Dragon",          "boss_ancient_dragon", AchBonusType.DAMAGE_PERCENT,    0.05f),
         AchievementDef("ach_critical",        "Критический момент",    "Critical Moment",    "Крит во время Burst-атаки",       "Land a crit during a Burst attack","ach_critical",        AchBonusType.CRIT_PERCENT,      0.02f),
         AchievementDef("ach_abyssal_reaper",  "Губитель Бездны",       "Abyss Slayer",       "Убей Бездонного Жнеца 20 раз",    "Kill Abyssal Reaper 20 times",     "boss_abyssal_reaper", AchBonusType.DAMAGE_PERCENT,    0.04f),
         AchievementDef("ach_skull_crusher",   "Истребитель Черепов",   "Skull Hunter",       "Убей Сокрушителя Черепов 20 раз", "Kill Skull Crusher 20 times",      "boss_skull_crusher",  AchBonusType.CRIT_PERCENT,      0.04f),
         AchievementDef("ach_sky_sentry",      "Покоритель Небес",      "Sky Conqueror",      "Убей Стража Небес 10 раз",        "Kill Sky Sentry 10 times",         "boss_sky_sentry",     AchBonusType.XP_PERCENT,        0.08f),
         AchievementDef("ach_heat_cannon",     "Огнеборец",             "Flame Fighter",      "Убей Пушку Пламени 5 раз",        "Kill Heat Cannon 5 times",         "boss_heat_cannon",    AchBonusType.HP_FLAT,           60f),
-        AchievementDef("ach_void",            "VOID ПОЛУЧЕН. VOID ПОЛУЧИЛ ТЕБЯ.", "YOU GOT THE VOID, VOID GOT YOU.", "Экипируй все 5 предметов набора VOID", "Equip all 5 pieces of the VOID set", "ach_void",        AchBonusType.DAMAGE_PERCENT,    0.12f),
+        AchievementDef("ach_void",            "VOID ПОЛУЧЕН. VOID ПОЛУЧИЛ ТЕБЯ.", "YOU GOT THE VOID, VOID GOT YOU.", "Экипируй все 5 предметов набора VOID", "Equip all 5 pieces of the VOID set", "ach_void",        AchBonusType.DAMAGE_PERCENT,    0.10f),
         AchievementDef("ach_diablo_first",    "Повелитель Ада",        "Hell Lord",          "Убей Дьявола Бездны 3 раза",      "Kill Diablo 3 times",              "boss_dib",            AchBonusType.DAMAGE_PERCENT,    0.08f),
         AchievementDef("ach_iron_bull_5",     "Бычья охота",           "Bull Hunt",          "Убей Iron Bull 5 раз",            "Kill Iron Bull 5 times",           "boss_oven",           AchBonusType.HP_FLAT,           80f),
-        AchievementDef("ach_king_slayer",     "Убийца Королей",        "King Slayer",        "Убей Королевского Клона 3 раза",  "Kill King Clone 3 times",          "boss_king",           AchBonusType.DAMAGE_PERCENT,    0.10f),
+        AchievementDef("ach_king_slayer",     "Убийца Королей",        "King Slayer",        "Убей Королевского Клона 3 раза",  "Kill King Clone 3 times",          "boss_king",           AchBonusType.DAMAGE_PERCENT,    0.09f),
         AchievementDef("ach_unrealm_set",     "Облачение Преисподней", "Underrealm Clad",    "Надень 4/4 Unrealm",              "Equip 4/4 Unrealm",                "boss_underworld_demon",AchBonusType.XP_PERCENT,        0.15f),
         AchievementDef("ach_holy_set",        "Благодать Эмпирея",     "Empyrean Grace",     "Надень 4/4 Empyrean",             "Equip 4/4 Empyrean",               "boss_iron_golem",     AchBonusType.ARMOR_PERCENT,     0.20f),
         AchievementDef("ach_clone_killer",    "Убийца клонов",         "Clone Killer",       "Убей Накаченного Клона 10 раз",   "Kill Pumped Clone 10 times",       "monster_42",          AchBonusType.DAMAGE_PERCENT,    0.06f),
@@ -108,7 +112,16 @@ object AchievementSystem {
         AchievementDef("ach_demon_knight_50", "Убийца Клонов II",      "Clone Slayer II",    "Убей Клона-Рыцаря 50 раз",       "Kill Demon Knight Clone 50 times", "monster_43",          AchBonusType.CRIT_PERCENT,      0.04f),
         AchievementDef("ach_clone_50",        "Клономор",              "Clone Reaper",       "Убей Накачанного Клона 50 раз",  "Kill Pumped Clone 50 times",       "monster_42",          AchBonusType.DAMAGE_PERCENT,    0.05f),
         AchievementDef("ach_abyss_50",        "Пожиратель Бездны",     "Abyss Devourer",     "Убей Бездну 50 раз",             "Kill The Abyss 50 times",          "monster_40",          AchBonusType.ARMOR_PERCENT,     0.05f),
-        AchievementDef("ach_void_titan_50",   "Титанобой",             "Titan Slayer",       "Убей Титана Пустоты 50 раз",     "Kill Void Titan 50 times",         "monster_40",          AchBonusType.DAMAGE_PERCENT,    0.03f)
+        AchievementDef("ach_void_titan_50",   "Титанобой",             "Titan Slayer",       "Убей Титана Пустоты 50 раз",     "Kill Void Titan 50 times",         "monster_40",          AchBonusType.DAMAGE_PERCENT,    0.03f),
+        // ===== v1.2 новые мультибонусные =====
+        AchievementDef("ach_pentagram",       "Неправильное казино",   "Crooked Casino",     "10 выигрышных Night Spin",        "Win 10 Night Spins",               "ach_pentagram",       AchBonusType.CRIT_PERCENT,      0.03f, bonusType2 = AchBonusType.XP_PERCENT, bonusValue2 = 0.03f),
+        AchievementDef("ach_red_sword",       "Оружие заката",         "Sunset Blade",       "Получи оружие с заточкой +18+",   "Get a weapon enchanted to +18+",   "ach_red_sword",       AchBonusType.DAMAGE_PERCENT,    0.04f, bonusType2 = AchBonusType.CRIT_PERCENT, bonusValue2 = 0.01f),
+        AchievementDef("ach_red_flag",        "Знамя собирателя",     "Collector's Banner",  "100+ вещей в инвентаре одновременно","Have 100+ items in inventory at once","ach_red_flag",    AchBonusType.ARMOR_PERCENT,     0.05f, bonusType2 = AchBonusType.DROP_RATE_PERCENT, bonusValue2 = 0.05f),
+        AchievementDef("ach_purple_skull",    "Безумный игрок",        "Insane Gambler",     "100 раз ничего в Night Spin",     "Get nothing 100 times in Night Spin","ach_purple_skull",  AchBonusType.TEETH_RATE_PERCENT,0.04f, bonusType2 = AchBonusType.DAMAGE_PERCENT, bonusValue2 = 0.01f, bonusType3 = AchBonusType.CRIT_PERCENT, bonusValue3 = 0.01f),
+        AchievementDef("ach_roach",           "Арахнофоб",             "Arachnophobe",       "Победить 200 врагов (1-5 уровня)","Defeat 200 enemies (level 1-5)",   "ach_roach",           AchBonusType.XP_PERCENT,        0.03f, bonusType2 = AchBonusType.HP_FLAT, bonusValue2 = 30f, bonusType3 = AchBonusType.DROP_RATE_PERCENT, bonusValue3 = 0.03f),
+        AchievementDef("ach_night_ench",      "Ночной заклинатель",    "Night Enchanter",    "Ночная заточка на +21 и выше",    "Night enchant to +21 or higher",   "ach_night_ench",      AchBonusType.DAMAGE_PERCENT,    0.03f, bonusType2 = AchBonusType.DROP_RATE_PERCENT, bonusValue2 = 0.08f, bonusType3 = AchBonusType.ENCHANT_FLAT, bonusValue3 = 10f),
+        AchievementDef("ach_goold",           "Скрудж МакФак",         "Scrooge McFang",     "Потратить 10000 зубов",           "Spend 10,000 teeth total",         "ach_goold",           AchBonusType.DROP_RATE_PERCENT, 0.05f, bonusType2 = AchBonusType.HP_FLAT, bonusValue2 = 10f, bonusType3 = AchBonusType.TEETH_RATE_PERCENT, bonusValue3 = 0.10f),
+        AchievementDef("ach_fighter",         "Уличный боец",          "Street Fighter",     "150 панчей за всё время",         "Land 150 punches total",           "ach_fighter",         AchBonusType.DAMAGE_PERCENT,    0.01f, bonusType2 = AchBonusType.XP_PERCENT, bonusValue2 = 0.02f, bonusType3 = AchBonusType.CRIT_PERCENT, bonusValue3 = 0.03f)
     )
 
     private val PROGRESSIVE: List<AchievementDef> = listOf(
@@ -178,35 +191,45 @@ object AchievementSystem {
         val ids = activeIdsStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }
         var xp = 0f; var dmg = 0f; var drop = 0f; var armor = 0f
         var hp = 0f; var crit = 0f; var enchant = 0f; var teeth = 0f
+        fun applyBonus(type: AchBonusType, value: Float) {
+            when (type) {
+                AchBonusType.XP_PERCENT          -> xp      += value
+                AchBonusType.DAMAGE_PERCENT       -> dmg     += value
+                AchBonusType.DROP_RATE_PERCENT    -> drop    += value
+                AchBonusType.ARMOR_PERCENT        -> armor   += value
+                AchBonusType.HP_FLAT              -> hp      += value
+                AchBonusType.CRIT_PERCENT         -> crit    += value
+                AchBonusType.ENCHANT_FLAT         -> enchant += value
+                AchBonusType.TEETH_RATE_PERCENT   -> teeth   += value
+            }
+        }
         for (id in ids) {
             val def = getDefById(id) ?: continue
-            when (def.bonusType) {
-                AchBonusType.XP_PERCENT          -> xp      += def.bonusValue
-                AchBonusType.DAMAGE_PERCENT       -> dmg     += def.bonusValue
-                AchBonusType.DROP_RATE_PERCENT    -> drop    += def.bonusValue
-                AchBonusType.ARMOR_PERCENT        -> armor   += def.bonusValue
-                AchBonusType.HP_FLAT              -> hp      += def.bonusValue
-                AchBonusType.CRIT_PERCENT         -> crit    += def.bonusValue
-                AchBonusType.ENCHANT_FLAT         -> enchant += def.bonusValue
-                AchBonusType.TEETH_RATE_PERCENT   -> teeth   += def.bonusValue
-            }
+            applyBonus(def.bonusType, def.bonusValue)
+            def.bonusType2?.let { applyBonus(it, def.bonusValue2) }
+            def.bonusType3?.let { applyBonus(it, def.bonusValue3) }
         }
         return AchievementBonuses(xp, dmg, drop, armor, hp.toInt(), crit, enchant, teeth)
     }
 
     fun getBonusLabel(def: AchievementDef, language: String): String {
-        val v = def.bonusValue
-        val pct = (v * 100).toInt()
-        return when (def.bonusType) {
-            AchBonusType.XP_PERCENT        -> "+$pct% XP"
-            AchBonusType.DAMAGE_PERCENT    -> "+$pct% " + when (language) { "ru" -> "урон"; "es" -> "daño"; "fr" -> "dégâts"; "de" -> "Schaden"; "pt" -> "dano"; else -> "DMG" }
-            AchBonusType.DROP_RATE_PERCENT -> "+$pct% " + when (language) { "ru" -> "дроп"; "es" -> "botín"; "fr" -> "butin"; "de" -> "Beute"; "pt" -> "loot"; else -> "drop" }
-            AchBonusType.ARMOR_PERCENT     -> "+$pct% " + when (language) { "ru" -> "броня"; "es" -> "armadura"; "fr" -> "armure"; "de" -> "Rüstung"; "pt" -> "armadura"; else -> "armor" }
-            AchBonusType.HP_FLAT           -> "+${v.toInt()} HP"
-            AchBonusType.CRIT_PERCENT      -> "+$pct% " + when (language) { "ru" -> "крит"; "es" -> "crítico"; "fr" -> "critique"; "de" -> "Krit"; "pt" -> "crítico"; else -> "crit" }
-            AchBonusType.ENCHANT_FLAT      -> "+${v.toInt()} " + when (language) { "ru" -> "заточка"; "es" -> "forja"; "fr" -> "forge"; "de" -> "Schmieden"; "pt" -> "forja"; else -> "forge" }
-            AchBonusType.TEETH_RATE_PERCENT-> "+$pct% " + when (language) { "ru" -> "зубы"; "es" -> "dientes"; "fr" -> "dents"; "de" -> "Zähne"; "pt" -> "dentes"; else -> "teeth" }
+        fun label(type: AchBonusType, value: Float): String {
+            val pct = (value * 100).toInt()
+            return when (type) {
+                AchBonusType.XP_PERCENT        -> "+$pct% XP"
+                AchBonusType.DAMAGE_PERCENT    -> "+$pct% " + when (language) { "ru" -> "урон"; "es" -> "daño"; "fr" -> "dégâts"; "de" -> "Schaden"; "pt" -> "dano"; else -> "DMG" }
+                AchBonusType.DROP_RATE_PERCENT -> "+$pct% " + when (language) { "ru" -> "дроп"; "es" -> "botín"; "fr" -> "butin"; "de" -> "Beute"; "pt" -> "loot"; else -> "drop" }
+                AchBonusType.ARMOR_PERCENT     -> "+$pct% " + when (language) { "ru" -> "броня"; "es" -> "armadura"; "fr" -> "armure"; "de" -> "Rüstung"; "pt" -> "armadura"; else -> "armor" }
+                AchBonusType.HP_FLAT           -> "+${value.toInt()} HP"
+                AchBonusType.CRIT_PERCENT      -> "+$pct% " + when (language) { "ru" -> "крит"; "es" -> "crítico"; "fr" -> "critique"; "de" -> "Krit"; "pt" -> "crítico"; else -> "crit" }
+                AchBonusType.ENCHANT_FLAT      -> "+${value.toInt()} " + when (language) { "ru" -> "заточка"; "es" -> "forja"; "fr" -> "forge"; "de" -> "Schmieden"; "pt" -> "forja"; else -> "forge" }
+                AchBonusType.TEETH_RATE_PERCENT-> "+$pct% " + when (language) { "ru" -> "зубы"; "es" -> "dientes"; "fr" -> "dents"; "de" -> "Zähne"; "pt" -> "dentes"; else -> "teeth" }
+            }
         }
+        val parts = mutableListOf(label(def.bonusType, def.bonusValue))
+        def.bonusType2?.let { parts.add(label(it, def.bonusValue2)) }
+        def.bonusType3?.let { parts.add(label(it, def.bonusValue3)) }
+        return parts.joinToString(", ")
     }
 
     // ===================== ПРОВЕРКА И РАЗБЛОКИРОВКА =====================
@@ -292,6 +315,30 @@ object AchievementSystem {
         if ((bestiary["Pumped Clone"]        ?: 0) >= 50) tryUnlock("ach_clone_50")
         if ((bestiary["The Abyss"]           ?: 0) >= 50) tryUnlock("ach_abyss_50")
         if ((bestiary["Void Titan"]          ?: 0) >= 50) tryUnlock("ach_void_titan_50")
+
+        // --- v1.2: новые ачивки ---
+        if (state.nightSpinWins >= 10)                                              tryUnlock("ach_pentagram")
+        if (state.nightSpinNothing >= 100)                                          tryUnlock("ach_purple_skull")
+        if (state.nightEnchantMaxLevel >= 21)                                       tryUnlock("ach_night_ench")
+        if (state.totalPunchesAllTime >= 150)                                       tryUnlock("ach_fighter")
+        if (state.totalTeethSpent >= 10_000)                                        tryUnlock("ach_goold")
+        // ach_red_flag: 100+ items currently in inventory
+        val invSize = state.inventoryItems.split(",").count { it.isNotBlank() }
+        if (invSize >= 100)                                                         tryUnlock("ach_red_flag")
+        // ach_red_sword: weapon with enchant +18+ in inventory
+        val hasWeapon18 = state.inventoryItems.split(",").any { entry ->
+            val parts = entry.split(":")
+            val baseId = parts[0]
+            val ench = parts.getOrNull(1)?.toIntOrNull() ?: 0
+            baseId.startsWith("weapon_") && ench >= 18
+        }
+        if (hasWeapon18)                                                            tryUnlock("ach_red_sword")
+        // ach_roach: 200 kills of level 1-5 monsters (sum from bestiary)
+        val lowLevelKills = bestiary.entries.sumOf { (name, count) ->
+            val monsterLevel = MonsterUtils.getMonsterLevelByName(name)
+            if (monsterLevel in 1..5) count else 0
+        }
+        if (lowLevelKills >= 200)                                                   tryUnlock("ach_roach")
 
         // --- Сеты: экипированные предметы ---
         val equipped6 = listOf(state.equippedHead, state.equippedNecklace,
@@ -479,6 +526,26 @@ object AchievementSystem {
             def.id == "ach_clone_50"       -> (bestiary["Pumped Clone"] ?: 0) to 50
             def.id == "ach_abyss_50"       -> (bestiary["The Abyss"] ?: 0) to 50
             def.id == "ach_void_titan_50"  -> (bestiary["Void Titan"] ?: 0) to 50
+            // v1.2 new achievements
+            def.id == "ach_pentagram"     -> state.nightSpinWins to 10
+            def.id == "ach_purple_skull"  -> state.nightSpinNothing to 100
+            def.id == "ach_night_ench"    -> state.nightEnchantMaxLevel to 21
+            def.id == "ach_fighter"       -> state.totalPunchesAllTime to 150
+            def.id == "ach_goold"         -> state.totalTeethSpent to 10_000
+            def.id == "ach_red_flag"      -> state.inventoryItems.split(",").count { it.isNotBlank() } to 100
+            def.id == "ach_red_sword"     -> {
+                val maxWeaponEnch = state.inventoryItems.split(",")
+                    .filter { it.split(":")[0].startsWith("weapon_") }
+                    .mapNotNull { it.split(":").getOrNull(1)?.toIntOrNull() }
+                    .maxOrNull() ?: 0
+                maxWeaponEnch to 18
+            }
+            def.id == "ach_roach"         -> {
+                val low = bestiary.entries.sumOf { (name, count) ->
+                    if (MonsterUtils.getMonsterLevelByName(name) in 1..5) count else 0
+                }
+                low to 200
+            }
             else -> return if (language == "ru") def.descRu else def.descEn
         }
         if (target == 0) return if (language == "ru") def.descRu else def.descEn

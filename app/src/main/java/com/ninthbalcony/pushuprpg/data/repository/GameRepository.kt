@@ -1355,9 +1355,11 @@ class GameRepository(private val context: Context) : IGameRepository {
 
             when (reward) {
                 is NightSpinReward.Nothing -> {
+                    updatedState = updatedState.copy(nightSpinNothing = updatedState.nightSpinNothing + 1)
                     addLog("🎰 Night Spin: Nothing", "🎰 Ночной спин: Ничего")
                 }
                 is NightSpinReward.StatBoost -> {
+                    updatedState = updatedState.copy(nightSpinWins = updatedState.nightSpinWins + 1)
                     updatedState = when (reward.type) {
                         NightStatBoostType.DMG_PERCENT    -> updatedState.copy(spinBoostDmgPercent = updatedState.spinBoostDmgPercent + 0.01f)
                         NightStatBoostType.ARMOR_PERCENT  -> updatedState.copy(spinBoostArmorPercent = updatedState.spinBoostArmorPercent + 0.01f)
@@ -1368,6 +1370,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                     addLog("🎰 Night Spin: Stat Boost (${reward.type})!", "🎰 Ночной спин: Бонус стата!")
                 }
                 is NightSpinReward.EnchantedItem -> {
+                    updatedState = updatedState.copy(nightSpinWins = updatedState.nightSpinWins + 1)
                     val enchantLevel = when (reward.tier) {
                         "high" -> kotlin.random.Random.nextInt(12, 26)
                         "med"  -> kotlin.random.Random.nextInt(5, 12)
@@ -1508,7 +1511,8 @@ class GameRepository(private val context: Context) : IGameRepository {
                     totalTeethSpent = state.totalTeethSpent + cost,
                     totalEnchantmentsSuccess = state.totalEnchantmentsSuccess + 1,
                     totalEnchantAttempts = state.totalEnchantAttempts + 1,
-                    activeQuestsJson = enchantQuests
+                    activeQuestsJson = enchantQuests,
+                    nightEnchantMaxLevel = if (isNight) maxOf(state.nightEnchantMaxLevel, newLevel) else state.nightEnchantMaxLevel
                 )
                 afterEnchant = AchievementSystem.checkAndUnlock(afterEnchant, today)
                 saveStamped(afterEnchant)
@@ -1784,7 +1788,7 @@ class GameRepository(private val context: Context) : IGameRepository {
                 totalDamageDealt = state.totalDamageDealt + dmg
             )
         }
-        saveStamped(newState)
+        saveStamped(newState.copy(totalPunchesAllTime = newState.totalPunchesAllTime + 1))
         dmg
     }
 

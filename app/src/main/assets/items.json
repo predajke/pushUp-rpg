@@ -2786,6 +2786,102 @@
       "description_ru": "Мерцающая фиолетовая энергия окутывает каждый шаг. Лёгкие, но чрезвычайно прочные.",
       "description_en": "Shimmering purple energy wraps every step. Light but extraordinarily durable.",
       "image_id": "boots_019"
+    },
+    {
+      "id": "head_019",
+      "name_ru": "Кибер-шлем Гладиатора",
+      "name_en": "Cyber Gladiator Helm",
+      "slot": "head",
+      "rarity": "epic",
+      "stats": {
+        "power": 14,
+        "armor": 34,
+        "health": 32,
+        "luck": 0.5
+      },
+      "description_ru": "Древний шлем гладиаторов, модифицированный в эре киберпанка. Красный ирокез из оптоволокна рассекает воздух.",
+      "description_en": "An ancient gladiator helm upgraded in the cyberpunk era. A crimson fiber-optic mohawk cuts through the air.",
+      "image_id": "head_019"
+    },
+    {
+      "id": "boots_020",
+      "name_ru": "Литые Прототип-сапоги",
+      "name_en": "Cast Prototype Boots",
+      "slot": "boots",
+      "rarity": "epic",
+      "stats": {
+        "power": 18,
+        "armor": 33,
+        "health": 38,
+        "luck": 1.8
+      },
+      "description_ru": "Очень прочные литые ботинки, изготовленные по древним прототипам, но модифицированные технологиями будущего.",
+      "description_en": "Extremely durable cast boots crafted from ancient blueprints, enhanced with futuristic technology.",
+      "image_id": "boots_020"
+    },
+    {
+      "id": "necklace_026",
+      "name_ru": "Наплечник Золотого Льва",
+      "name_en": "Golden Lion Pauldron",
+      "slot": "necklace",
+      "rarity": "epic",
+      "stats": {
+        "power": 22,
+        "armor": 28,
+        "health": 45,
+        "luck": 2.0
+      },
+      "description_ru": "Элемент брони для защиты плеча с золотой головой льва. Символ королевской стражи.",
+      "description_en": "A shoulder guard crowned with a golden lion head. A symbol of the royal guard.",
+      "image_id": "necklace_026"
+    },
+    {
+      "id": "weapon_42",
+      "name_ru": "Клинок Крови и Солнца",
+      "name_en": "Blood & Sun Blade",
+      "slot": "weapon",
+      "rarity": "epic",
+      "stats": {
+        "power": 48,
+        "armor": 12,
+        "health": 10,
+        "luck": 2.5
+      },
+      "description_ru": "Древний, уникальный меч, заточенный силой крови и солнца. Лезвие пульсирует алым пламенем.",
+      "description_en": "An ancient, unique blade forged with the power of blood and sun. The edge pulses with crimson fire.",
+      "image_id": "weapon_42"
+    },
+    {
+      "id": "weapon_41",
+      "name_ru": "Булава Атмосферы",
+      "name_en": "Atmosphere Mace",
+      "slot": "weapon",
+      "rarity": "legendary",
+      "stats": {
+        "power": 55,
+        "armor": 18,
+        "health": 25,
+        "luck": 4.0
+      },
+      "description_ru": "Уникальная булава из инопланетных материалов. Несёт в себе силу целой атмосферы.",
+      "description_en": "A unique mace crafted from alien materials. It carries the force of an entire atmosphere within.",
+      "image_id": "weapon_41"
+    },
+    {
+      "id": "weapon_40",
+      "name_ru": "Лук Пришельцев",
+      "name_en": "Alien Longbow",
+      "slot": "weapon",
+      "rarity": "rare",
+      "stats": {
+        "power": 28,
+        "armor": 6,
+        "health": 5,
+        "luck": 1.5
+      },
+      "description_ru": "Древний лук, проапгрейженный пришельцами. Стрелы находят цель сами.",
+      "description_en": "An ancient longbow upgraded by aliens. Arrows find their target on their own.",
+      "image_id": "weapon_40"
     }
   ]
 }
