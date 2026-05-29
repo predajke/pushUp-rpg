@@ -4,8 +4,19 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.ninthbalcony.pushuprpg.data.db.dao.MaxPushUpsDao
 import com.ninthbalcony.pushuprpg.data.db.entity.MaxPushUpsAttemptEntity
+
+private val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE game_state ADD COLUMN nightSpinWins INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE game_state ADD COLUMN nightSpinNothing INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE game_state ADD COLUMN nightEnchantMaxLevel INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE game_state ADD COLUMN totalPunchesAllTime INTEGER NOT NULL DEFAULT 0")
+    }
+}
 
 @Database(
     entities = [
@@ -14,7 +25,7 @@ import com.ninthbalcony.pushuprpg.data.db.entity.MaxPushUpsAttemptEntity
         LogEntryEntity::class,
         MaxPushUpsAttemptEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -33,8 +44,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "pushup_rpg_database"
                 )
-                    // Testing phase: wipe local DB on schema change instead of migrating.
-                    // TODO: replace with proper migrations before production release.
+                    .addMigrations(MIGRATION_1_2)
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build().also { INSTANCE = it }
             }
