@@ -380,9 +380,9 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
                 onValueChange = {
                     inputCode = it.uppercase().filter { c -> c.isLetterOrDigit() }.take(6)
                 },
-                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                modifier = Modifier.weight(1f).height(52.dp),
                 singleLine = true,
-                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp, color = TextPrimary),
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp, color = Color.White),
                 placeholder = {
                     Text(
                         text = AppStrings.t(language, "friend_code_label"),
@@ -394,9 +394,11 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = OrangeAccent,
                     unfocusedBorderColor = TextMuted,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
                     cursorColor = OrangeAccent,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
                 ),
             )
             Spacer(Modifier.width(8.dp))
@@ -407,9 +409,10 @@ private fun FriendsCard(viewModel: GameViewModel, language: String) {
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = OrangeAccent),
                 shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.height(52.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
             ) {
-                Text(AppStrings.t(language, "btn_add"), color = Color.White, fontSize = 13.sp)
+                Text(AppStrings.t(language, "btn_add"), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
         }
 

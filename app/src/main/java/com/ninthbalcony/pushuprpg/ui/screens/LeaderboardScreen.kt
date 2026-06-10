@@ -46,6 +46,7 @@ import coil.compose.AsyncImage
 import com.ninthbalcony.pushuprpg.utils.countryToFlag
 import com.ninthbalcony.pushuprpg.R
 import com.ninthbalcony.pushuprpg.ui.components.GameIcon
+import com.ninthbalcony.pushuprpg.utils.GameCalculations
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -806,6 +807,7 @@ private fun buildMePlayer(gs: GameStateEntity?, myAvatarUrl: String? = null): Le
         runCatching { BIRTH_DATE_FMT.parse(dateStr) }.getOrNull()
             ?.let { ((System.currentTimeMillis() - it.time) / 86_400_000L).toInt().coerceAtLeast(1) }
     } ?: 1
+    val totalStats = GameCalculations.calculateTotalStats(gs)
     return LeaderboardPlayer(
         rank = MY_RANK,
         name = gs.playerName,
@@ -814,10 +816,10 @@ private fun buildMePlayer(gs: GameStateEntity?, myAvatarUrl: String? = null): Le
         res = gs.prestigeLevel,
         lvl = gs.playerLevel,
         totalPushUps = gs.totalPushUpsAllTime,
-        power = gs.basePower,
-        armor = gs.baseArmor,
-        hp = gs.baseHealth,
-        luck = gs.baseLuck.toInt(),
+        power = totalStats.power,
+        armor = totalStats.armor,
+        hp = totalStats.health,
+        luck = totalStats.luck.toInt(),
         ageDays = ageDays,
         clanTag = gs.clanTag,
         clanTagColor = gs.clanTagColor,

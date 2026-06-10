@@ -8,6 +8,7 @@ import com.google.android.gms.games.PlayGamesSdk
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.PlayGamesAuthProvider
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -158,6 +159,7 @@ class PlayGamesManager(private val context: Context, private val scope: Coroutin
                     val oldUid = current.uid
                     val result = auth.signInWithCredential(credential).await()
                     Log.d(TAG, "Collision — switched from anonymous uid=$oldUid to Play Games uid=${result.user?.uid}")
+                    cleanupOrphanedUid(oldUid)
                 }
             } else {
                 val result = auth.signInWithCredential(credential).await()
@@ -281,6 +283,15 @@ class PlayGamesManager(private val context: Context, private val scope: Coroutin
         val a = act() ?: return
         PlayGames.getAchievementsClient(a).increment(ACHIEVEMENT_SCROOGE_MCFANG, steps)
         Log.d(TAG, "Incremented Scrooge McFang by $steps")
+    }
+
+    private suspend fun cleanupOrphanedUid(oldUid: String) {
+        val db = FirebaseDatabase.getInstance().reference
+        for (node in listOf("leaderboard", "friends", "users")) {
+            runCatching { db.child(node).child(oldUid).removeValue().await() }
+                .onFailure { Log.w(TAG, "Cleanup $node/$oldUid failed: ${it.message}") }
+        }
+        Log.d(TAG, "Cleaned up orphaned uid=$oldUid")
     }
 
     fun destroy() {

@@ -2837,18 +2837,18 @@
     },
     {
       "id": "weapon_42",
-      "name_ru": "Клинок Крови и Солнца",
-      "name_en": "Blood & Sun Blade",
+      "name_ru": "Лук Пришельцев",
+      "name_en": "Alien Longbow",
       "slot": "weapon",
-      "rarity": "epic",
+      "rarity": "rare",
       "stats": {
-        "power": 48,
-        "armor": 12,
-        "health": 10,
-        "luck": 2.5
+        "power": 28,
+        "armor": 6,
+        "health": 5,
+        "luck": 1.5
       },
-      "description_ru": "Древний, уникальный меч, заточенный силой крови и солнца. Лезвие пульсирует алым пламенем.",
-      "description_en": "An ancient, unique blade forged with the power of blood and sun. The edge pulses with crimson fire.",
+      "description_ru": "Древний лук, проапгрейженный пришельцами. Стрелы находят цель сами.",
+      "description_en": "An ancient longbow upgraded by aliens. Arrows find their target on their own.",
       "image_id": "weapon_42"
     },
     {
@@ -2869,18 +2869,18 @@
     },
     {
       "id": "weapon_40",
-      "name_ru": "Лук Пришельцев",
-      "name_en": "Alien Longbow",
+      "name_ru": "Клинок Крови и Солнца",
+      "name_en": "Blood & Sun Blade",
       "slot": "weapon",
-      "rarity": "rare",
+      "rarity": "epic",
       "stats": {
-        "power": 28,
-        "armor": 6,
-        "health": 5,
-        "luck": 1.5
+        "power": 48,
+        "armor": 12,
+        "health": 10,
+        "luck": 2.5
       },
-      "description_ru": "Древний лук, проапгрейженный пришельцами. Стрелы находят цель сами.",
-      "description_en": "An ancient longbow upgraded by aliens. Arrows find their target on their own.",
+      "description_ru": "Древний, уникальный меч, заточенный силой крови и солнца. Лезвие пульсирует алым пламенем.",
+      "description_en": "An ancient, unique blade forged with the power of blood and sun. The edge pulses with crimson fire.",
       "image_id": "weapon_40"
     }
   ]

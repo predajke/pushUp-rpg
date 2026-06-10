@@ -113,7 +113,7 @@ fun AppNavigation(viewModel: GameViewModel) {
         composable(Routes.INVENTORY) {
             InventoryScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() },
+                onBack = { navController.popBackStack(Routes.MAIN_MENU, inclusive = false) },
                 onNavigateToShop = { navController.navigate(Routes.SHOP) { launchSingleTop = true } },
                 onNavigateToAchievements = { navController.navigate(Routes.ACHIEVEMENTS) { launchSingleTop = true } }
             )
@@ -123,7 +123,7 @@ fun AppNavigation(viewModel: GameViewModel) {
         composable(Routes.LOGS) {
             LogsScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack(Routes.MAIN_MENU, inclusive = false) }
             )
         }
 
@@ -131,7 +131,7 @@ fun AppNavigation(viewModel: GameViewModel) {
         composable(Routes.STATISTICS) {
             StatisticsScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack(Routes.MAIN_MENU, inclusive = false) }
             )
         }
 
@@ -139,7 +139,7 @@ fun AppNavigation(viewModel: GameViewModel) {
         composable(Routes.SETTINGS) {
             SettingsScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack(Routes.MAIN_MENU, inclusive = false) }
             )
         }
 
@@ -147,7 +147,7 @@ fun AppNavigation(viewModel: GameViewModel) {
         composable(Routes.SHOP) {
             ShopScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack(Routes.MAIN_MENU, inclusive = false) }
             )
         }
 
@@ -155,7 +155,7 @@ fun AppNavigation(viewModel: GameViewModel) {
         composable(Routes.QUESTS) {
             QuestsScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack(Routes.MAIN_MENU, inclusive = false) }
             )
         }
 
@@ -167,7 +167,7 @@ fun AppNavigation(viewModel: GameViewModel) {
                 onNavigateToBestiary = { navController.navigate(Routes.BESTIARY) { launchSingleTop = true } },
                 onNavigateToBosses = { navController.navigate(Routes.BOSSES) { launchSingleTop = true } },
                 onNavigateToItemLog = { navController.navigate(Routes.ITEM_LOG) { launchSingleTop = true } },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack(Routes.MAIN_MENU, inclusive = false) }
             )
         }
 
@@ -209,7 +209,7 @@ fun AppNavigation(viewModel: GameViewModel) {
         composable(Routes.LEADERBOARD) {
             LeaderboardScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack(Routes.MAIN_MENU, inclusive = false) }
             )
         }
     }
