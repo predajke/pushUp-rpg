@@ -56,6 +56,7 @@ import androidx.compose.ui.text.TextStyle                   // + для крут
 import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.utils.SoundManager
 import com.ninthbalcony.pushuprpg.ui.components.GameIcon
+import com.ninthbalcony.pushuprpg.ui.components.AutoResizeText
 import androidx.annotation.DrawableRes
 
 @Composable
@@ -1303,7 +1304,12 @@ fun PushUpCounter(
                         contentPadding = PaddingValues(0.dp),
                         border = BorderStroke(1.dp, Color.Black)
                     ) {
-                        Text(text = AppStrings.t(language, "btn_reset"), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        AutoResizeText(
+                            text = AppStrings.t(language, "btn_reset"),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 2.dp)
+                        )
                     }
                     Button(
                         onClick = { onAddToInput(-1) },
@@ -1337,11 +1343,12 @@ fun PushUpCounter(
                                 alpha = 0.4f
                             )
                         }
-                        Text(
+                        AutoResizeText(
                             text = AppStrings.t(language, "shop"),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = HealthColor
+                            color = HealthColor,
+                            modifier = Modifier.padding(horizontal = 2.dp)
                         )
                     }
                 }
@@ -1393,11 +1400,11 @@ fun PushUpCounter(
                             }
 
                             // Текст поверх картинки
-                            Text(
+                            AutoResizeText(
                                 text = AppStrings.t(language, "btn_save"),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
-                                maxLines = 1
+                                modifier = Modifier.padding(horizontal = 2.dp)
                             )
                         }
                     }

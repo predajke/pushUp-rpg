@@ -19,7 +19,7 @@ object AppStrings {
 
         // --- Слоты снаряжения ---
         "slot_head"         to m("Head",     "Голова",    "Cabeza",    "Tête",     "Kopf",       "Cabeça"),
-        "slot_necklace"     to m("Necklace", "Ожерелие",  "Collar",    "Collier",  "Halskette",  "Colar"),
+        "slot_necklace"     to m("Necklace", "Ожерелье",  "Collar",    "Collier",  "Halskette",  "Colar"),
         "slot_weapon1"      to m("Weapon 1", "Оружие 1",  "Arma 1",    "Arme 1",   "Waffe 1",    "Arma 1"),
         "slot_weapon2"      to m("Weapon 2", "Оружие 2",  "Arma 2",    "Arme 2",   "Waffe 2",    "Arma 2"),
         "slot_pants"        to m("Pants",    "Штаны",     "Pantalones","Pantalon",  "Hose",       "Calças"),
@@ -252,7 +252,7 @@ object AppStrings {
         "onboard_step_title_3" to m("Endless Battle", "Бесконечная битва", "Batalla infinita", "Bataille infinie", "Endlose Schlacht", "Batalha infinita"),
         "onboard_step_desc_3" to m(
             "Here's an endless battle: your push-ups vs. your laziness. Ha! You're on the left, and looks like you got some problems. 😄",
-            "Тут идёт бесконечная битва, между твоми отжиманиями и твоей ленью, ХА! (ты слева если что и похоже у тебя проблемы)",
+            "Тут идёт бесконечная битва, между твоими отжиманиями и твоей ленью, ХА! (ты слева если что и похоже у тебя проблемы)",
             "Aquí hay una batalla infinita: tus flexiones vs. tu pereza. ¡Ja! Estás a la izquierda, ¡y parece que tienes problemas!",
             "Il y a une bataille infinie ici: tes pompes vs. ta paresse. Ha! Tu es à gauche, et on dirait que tu as des problèmes!",
             "Hier ist eine endlose Schlacht: deine Liegestütze gegen deine Faulheit. Ha! Du bist links, und es sieht aus, als hättest du Probleme!",
@@ -272,7 +272,7 @@ object AppStrings {
         "onboard_step_title_5" to m("Quests & Achievements", "Квесты и ачивки", "Misiones y logros", "Quêtes et réalisations", "Quests und Erfolge", "Missões e conquistas"),
         "onboard_step_desc_5" to m(
             "Here are tabs with daily quests—get rewards, unlock achievements. Good luck out there, and let's do those push-ups! I'm watching. 💪",
-            "Тут вкладки с ежедневными квестами, опять же за вознограждение ну и все ачивки которые ты смог открыть. Удачи тебе и давай отжимайся, я слежу.",
+            "Тут вкладки с ежедневными квестами, опять же за вознаграждение ну и все ачивки которые ты смог открыть. Удачи тебе и давай отжимайся, я слежу.",
             "Aquí hay pestañas con misiones diarias: obtén recompensas, desbloquea logros. Buena suerte, ¡y hagamos esas flexiones! Estoy mirando. 💪",
             "Voici des onglets avec des quêtes quotidiennes: obtiens des récompenses, débloque les réalisations. Bonne chance, et faisons ces pompes! Je regarde. 💪",
             "Hier sind Registerkarten mit täglichen Quests: Belohnungen erhalten, Erfolge freischalten. Viel Glück, und lass uns diese Liegestütze machen! Ich beobachte. 💪",

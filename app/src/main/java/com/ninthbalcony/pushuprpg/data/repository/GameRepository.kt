@@ -151,7 +151,7 @@ class GameRepository(private val context: Context) : IGameRepository {
     // ==================== PUSH UPS ====================
 
     /** Возвращает новый уровень если произошёл level-up, иначе 0 */
-    override suspend fun addPushUps(count: Int): Int {
+    override suspend fun addPushUps(count: Int): Int = saveMutex.withLock {
         val today = DateUtils.getTodayString()
 
         // Anti-cheat: кулдаун при быстром повторном сохранении (любое кол-во < 99)
@@ -406,7 +406,7 @@ class GameRepository(private val context: Context) : IGameRepository {
     }
 
     /** Авто-бой: один тик каждые 5 минут */
-    override suspend fun processBattleTick() {
+    override suspend fun processBattleTick(): Unit = saveMutex.withLock {
         try {
             val state = getGameState()
             val now = System.currentTimeMillis()
@@ -690,7 +690,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
     }
 
-    override suspend fun updateStreakOnLogin() {
+    override suspend fun updateStreakOnLogin(): Unit = saveMutex.withLock {
         val state = getGameState()
         val today = DateUtils.getTodayString()
         if (state.lastLoginDate == today) return
@@ -735,7 +735,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== ИНВЕНТАРЬ ====================
 
-    suspend fun addItemToInventory(itemId: String) {
+    suspend fun addItemToInventory(itemId: String): Unit = saveMutex.withLock {
         val state = getGameState()
         val uniqueId = "${itemId}_${System.currentTimeMillis()}"
         val newEntry = "$uniqueId:0"
@@ -751,7 +751,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== ЭКИПИРОВКА ====================
 
-    override suspend fun equipItem(itemId: String, slot: String) {
+    override suspend fun equipItem(itemId: String, slot: String): Unit = saveMutex.withLock {
         val state = getGameState()
         val entries = parseInventory(state.inventoryItems)
 
@@ -811,7 +811,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         saveStamped(AvatarSystem.checkAndUnlock(updatedState))
     }
 
-    override suspend fun unequipItem(slot: String) {
+    override suspend fun unequipItem(slot: String): Unit = saveMutex.withLock {
         val state = getGameState()
 
         val slotEntry = when (slot) {
@@ -844,7 +844,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== ПРОДАЖА ====================
 
-    override suspend fun sellItem(itemId: String) {
+    override suspend fun sellItem(itemId: String): Unit = saveMutex.withLock {
         val state = getGameState()
         val entries = parseInventory(state.inventoryItems)
 
@@ -883,7 +883,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== СБРОС ====================
 
-    override suspend fun resetAllProgress() {
+    override suspend fun resetAllProgress(): Unit = saveMutex.withLock {
         dao.deleteAllLogs()
         dao.deleteAllPushUpRecords()
         val today = DateUtils.getTodayString()
@@ -900,7 +900,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== ОЧКИ ====================
 
-    override suspend fun spendStatPoint(stat: String) {
+    override suspend fun spendStatPoint(stat: String): Unit = saveMutex.withLock {
         val state = getGameState()
         if (state.unspentStatPoints <= 0) return
 
@@ -922,7 +922,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         saveStamped(updatedState)
     }
 
-    override suspend fun useFreePoints(): Boolean {
+    override suspend fun useFreePoints(): Boolean = saveMutex.withLock {
         val state = getGameState()
         if (state.freePointsUsedToday >= 2) return false
 
@@ -936,7 +936,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== СОБЫТИЯ ====================
 
-    override suspend fun checkAndUpdateEvent(): GameStateEntity {
+    override suspend fun checkAndUpdateEvent(): GameStateEntity = saveMutex.withLock {
         val state = getGameState()
         val now = System.currentTimeMillis()
 
@@ -977,7 +977,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== МАГАЗИН ====================
 
-    override suspend fun getOrRefreshShop(): List<com.ninthbalcony.pushuprpg.data.model.Item> {
+    override suspend fun getOrRefreshShop(): List<com.ninthbalcony.pushuprpg.data.model.Item> = saveMutex.withLock {
         val state = getGameState()
         val allItems = ItemUtils.loadedItems
 
@@ -1048,7 +1048,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
     }
 
-    override suspend fun rerollShop(): Boolean {
+    override suspend fun rerollShop(): Boolean = saveMutex.withLock {
         val state = getGameState()
         val now = System.currentTimeMillis()
         val resetIntervalMs = 5L * 60 * 1000
@@ -1082,7 +1082,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== КУЗНИЦА ====================
 
-    override suspend fun setForgeSlot(slot: Int, itemId: String) {
+    override suspend fun setForgeSlot(slot: Int, itemId: String): Unit = saveMutex.withLock {
         val state = getGameState()
         val updatedState = if (slot == 1) {
             state.copy(forgeSlot1 = itemId)
@@ -1093,7 +1093,7 @@ class GameRepository(private val context: Context) : IGameRepository {
     }
 
     /** Вставляет случайные вещи наименьшей редкости (кроме epic/legendary) в пустые слоты Forge */
-    override suspend fun recycleToForgeSlots() {
+    override suspend fun recycleToForgeSlots(): Unit = saveMutex.withLock {
         val state = getGameState()
         val entries = parseInventory(state.inventoryItems)
         val occupied = setOf(state.forgeSlot1, state.forgeSlot2).filter { it.isNotEmpty() }
@@ -1206,7 +1206,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== CLOVER BOX ====================
 
-    override suspend fun checkAndResetDaily() {
+    override suspend fun checkAndResetDaily(): Unit = saveMutex.withLock {
         val state = getGameState()
         val today = DateUtils.getTodayString()
         if (state.lastDailyReset != today) {
@@ -1422,7 +1422,7 @@ class GameRepository(private val context: Context) : IGameRepository {
     /** Возвращает количество доступных спинов (= spinTokens) */
     override suspend fun getAvailableSpins(): Int = getGameState().spinTokens
 
-    override suspend fun useCloverBox(): com.ninthbalcony.pushuprpg.data.model.Item? {
+    override suspend fun useCloverBox(): com.ninthbalcony.pushuprpg.data.model.Item? = saveMutex.withLock {
         val state = getGameState()
         if (state.cloverBoxUsedToday >= 2) return null
 
@@ -1549,14 +1549,14 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
     }
 
-    override suspend fun setActiveAchievements(ids: List<String>) {
+    override suspend fun setActiveAchievements(ids: List<String>): Unit = saveMutex.withLock {
         val state = getGameState()
         saveStamped(state.copy(activeAchievementIds = ids.take(3).joinToString(",")))
     }
 
     // ==================== КВЕСТЫ ====================
 
-    override suspend fun checkAndRefreshQuests() {
+    override suspend fun checkAndRefreshQuests(): Unit = saveMutex.withLock {
         val state = getGameState()
         val today = DateUtils.getTodayString()
         var quests = QuestSystem.deserialize(state.activeQuestsJson)
@@ -1626,7 +1626,7 @@ class GameRepository(private val context: Context) : IGameRepository {
         }
     }
 
-    override suspend fun adRerollDailyQuests(): Boolean {
+    override suspend fun adRerollDailyQuests(): Boolean = saveMutex.withLock {
         val state = getGameState()
         val today = DateUtils.getTodayString()
         if (state.lastAdQuestRerollDate == today) return false
@@ -1642,7 +1642,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== ЕЖЕДНЕВНАЯ НАГРАДА ====================
 
-    override suspend fun claimDailyReward(): DailyRewardUtils.DailyReward? {
+    override suspend fun claimDailyReward(): DailyRewardUtils.DailyReward? = saveMutex.withLock {
         return try {
             val state = getGameState()
             val today = DateUtils.getTodayString()
@@ -1695,7 +1695,7 @@ class GameRepository(private val context: Context) : IGameRepository {
 
     // ==================== STREAK REWARDS ====================
 
-    override suspend fun claimStreakReward(): com.ninthbalcony.pushuprpg.utils.StreakMilestone? {
+    override suspend fun claimStreakReward(): com.ninthbalcony.pushuprpg.utils.StreakMilestone? = saveMutex.withLock {
         return try {
             val state = getGameState()
             val milestone = com.ninthbalcony.pushuprpg.utils.StreakRewards

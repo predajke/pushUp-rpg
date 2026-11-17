@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 import com.ninthbalcony.pushuprpg.R
 import com.ninthbalcony.pushuprpg.ui.components.GameIcon
+import com.ninthbalcony.pushuprpg.ui.components.AutoResizeText
 
 @Composable
 fun StatisticsScreen(
@@ -172,12 +173,13 @@ private fun SummaryStatCard(label: String, value: String, modifier: Modifier = M
             .border(0.5.dp, DarkSurfaceVariant, RoundedCornerShape(18.dp))
             .padding(horizontal = 12.dp, vertical = 14.dp)
     ) {
-        Text(
+        AutoResizeText(
             text = label.uppercase(),
             fontSize = 9.sp,
             fontWeight = FontWeight.SemiBold,
             letterSpacing = 0.6.sp,
-            color = TextMuted
+            color = TextMuted,
+            minFontSize = 7.sp
         )
         Spacer(Modifier.height(4.dp))
         Text(

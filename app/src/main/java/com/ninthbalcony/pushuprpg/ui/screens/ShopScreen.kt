@@ -61,6 +61,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ninthbalcony.pushuprpg.ui.preview.FakeGameRepository
 import com.ninthbalcony.pushuprpg.R
 import com.ninthbalcony.pushuprpg.ui.components.GameIcon
+import com.ninthbalcony.pushuprpg.ui.components.AutoResizeText
 import com.ninthbalcony.pushuprpg.ui.components.equipSlotIcon
 
 // Веса иконок для ленты (отражают вероятности наград)
@@ -1000,11 +1001,12 @@ fun ForgeSection(
                                     alpha = 0.3f
                                 )
                             }
-                            Text(
+                            AutoResizeText(
                                 text = AppStrings.t(language, "btn_merge"),
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFC34017),
-                                fontSize = 15.sp
+                                modifier = Modifier.padding(horizontal = 2.dp)
                             )
                             SparkBurst(
                                 active = mergeSparkActive,

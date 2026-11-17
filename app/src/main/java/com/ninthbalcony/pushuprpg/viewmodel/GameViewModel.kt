@@ -536,6 +536,8 @@ class GameViewModel(private val repository: IGameRepository) : ViewModel() {
                         _showLevelUpDialog.value = true
                     }
                 } catch (e: CheatCooldownException) {
+                    // Возвращаем введённое значение — иначе отжимания пропадают при кулдауне
+                    _inputValue.value = count
                     _antiCheatCooldown.value = AntiCheatCooldown(
                         remainingMs = e.remainingMs,
                         adType = e.adType,

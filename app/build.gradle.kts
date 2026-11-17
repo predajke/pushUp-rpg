@@ -18,14 +18,14 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.ninthbalcony.pushuprpg"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.ninthbalcony.pushuprpg"
         minSdk = 29
-        targetSdk = 35
-        versionCode = 15
-        versionName = "1.3"
+        targetSdk = 36
+        versionCode = 17
+        versionName = "1.3.2"
 
         // Bundle native debug symbols into the AAB so Play Console / Crashlytics
         // can de-symbolicate native crash stack traces (Firebase, Play Services, Lottie).

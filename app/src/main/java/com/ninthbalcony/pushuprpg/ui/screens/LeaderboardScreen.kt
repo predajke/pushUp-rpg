@@ -46,6 +46,7 @@ import coil.compose.AsyncImage
 import com.ninthbalcony.pushuprpg.utils.countryToFlag
 import com.ninthbalcony.pushuprpg.R
 import com.ninthbalcony.pushuprpg.ui.components.GameIcon
+import com.ninthbalcony.pushuprpg.ui.components.AutoResizeText
 import com.ninthbalcony.pushuprpg.utils.GameCalculations
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -378,11 +379,12 @@ private fun TabPill(
             .padding(vertical = verticalPadding),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
+        AutoResizeText(
             text = label,
-            color = if (selected) DarkBackground else TextSecondary,
             fontSize = fontSize.sp,
+            color = if (selected) DarkBackground else TextSecondary,
             fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 4.dp),
         )
     }
 }
@@ -1041,12 +1043,13 @@ private fun StatLine(label: String, value: String, valueColor: Color) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
+        AutoResizeText(
             text = label,
-            color = TextMuted,
             fontSize = 10.sp,
+            color = TextMuted,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.14.sp,
+            modifier = Modifier.weight(1f, fill = false).padding(end = 8.dp),
         )
         Text(
             text = value,

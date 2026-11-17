@@ -139,7 +139,7 @@ class LeaderboardRepository {
                 runCatching { snapshotToEntry(uid, child) }
                     .onFailure { Log.w(TAG, "Parse failed for uid=$uid: ${it.message}") }
                     .getOrNull()
-            }.filter { it.lastUpdated == 0L || it.lastUpdated > cutoff }
+            }.filter { it.totalPushUps > 0 && it.lastUpdated > cutoff }
              .sortedByDescending { it.totalPushUps }
         }.getOrElse {
             Log.e(TAG, "Fetch top failed", it)
